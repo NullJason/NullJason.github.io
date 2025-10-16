@@ -32,27 +32,90 @@ filterButtons.forEach(button => {
     });
 });
 
-// Animate stats 
-function animateStats() {
-    const stats = document.querySelectorAll('.stat-number');
-    if (stats.length === 0) return;
+function calculateYearsCoding() {
+    const startYear = 2021;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
     
-    stats.forEach(stat => {
-        const target = parseInt(stat.getAttribute('data-count'));
-        const duration = 2000;
-        const steps = 60; // 60fps
-        const stepValue = target / (duration / (1000 / steps));
-        let current = 0;
+    const years = currentYear - startYear + (currentMonth >= 0 ? 1 : 0);
+    return Math.max(4, years); 
+}
+
+async function countTotalRepositories() {
+    try {
+        const response = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?per_page=100`);
+        if (!response.ok) throw new Error('Failed to fetch repos');
         
-        const timer = setInterval(() => {
-            current += stepValue;
-            if (current >= target) {
-                current = target;
-                clearInterval(timer);
+        const repos = await response.json();
+        return repos.filter(repo => !repo.fork && !repo.archived).length;
+    } catch (error) {
+        console.error('Error counting repositories:', error);
+        return -1;
+    }
+}
+function animateStatsOnce() {
+    const stats = document.querySelectorAll('.stat-number');
+    let hasAnimated = false;
+    
+    const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !hasAnimated) {
+                hasAnimated = true;
+                
+                const projectCount = document.getElementById('project-count');
+                const projectTarget = parseInt(projectCount.getAttribute('data-count'));
+                animateCounter(projectCount, projectTarget, '');
+                
+                const yearsElement = document.getElementById('years-coding');
+                animateCounter(yearsElement, calculateYearsCoding(), '');
+
+                const headacheEle = document.getElementById('headaches');
+                animateCounter(headacheEle, 100, '%');
+                                
+                statsObserver.unobserve(entry.target);
             }
-            stat.textContent = Math.floor(current);
-        }, 1000 / steps);
-    });
+        });
+    }, { threshold: 0.5 });
+    
+    const statsContainer = document.querySelector('.about-stats');
+    if (statsContainer) {
+        statsObserver.observe(statsContainer);
+    }
+}
+
+function animateCounter(element, target, suffix = '') {
+    const duration = 2000;
+    const steps = 60;
+    const increment = target / (duration / (1000 / steps));
+    let current = 0;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            current = target;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(current) + suffix;
+    }, 1000 / steps);
+}
+
+async function initializeStats() {
+    try {
+        const totalRepos = await countTotalRepositories();
+        const projectCount = document.getElementById('project-count');
+        projectCount.setAttribute('data-count', totalRepos);
+        projectCount.textContent = '0';
+        
+        const yearsElement = document.getElementById('years-coding');
+        const years = calculateYearsCoding();
+        yearsElement.setAttribute('data-count', years);
+        yearsElement.textContent = '4'; 
+        
+        console.log('Stats initialized:', { repos: totalRepos, years: years });
+        
+    } catch (error) {
+        console.error('Error initializing stats:', error);
+    }
 }
 
 // fetch projs
@@ -102,7 +165,7 @@ function createProjectCard(repo) {
                 
                 <div class="project-tech">
                     ${repo.language ? `<span class="tech-tag">${repo.language}</span>` : ''}
-                    ${techStack.tags.map(tag => `<span class="tech-tag">${tag}</span>`).join('')}
+                    ${techStack.tags.slice(0, 3).map(tag => `<span class="tech-tag">${tag}</span>`).join('')}
                 </div>
                 
                 <div class="project-links">
@@ -256,56 +319,83 @@ async function loadProjects() {
 }
 
 
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-            
-            if (entry.target.id === 'about') {
-                setTimeout(() => animateStats(), 300);
+// Enhanced Intersection Observer for one-time animations
+function initializeAnimations() {
+    // Track which elements have been animated
+    const animatedElements = new Set();
+    
+    // Observer for sections (fade in on scroll)
+    const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.id || 'unknown';
+                if (!animatedElements.has(id)) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                    animatedElements.add(id);
+                }
             }
-        }
+        });
+    }, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
     });
-}, observerOptions);
 
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Portfolio initialized');
-    
-    document.querySelectorAll('section').forEach(section => {
-        section.style.opacity = '0';
-        section.style.transform = 'translateY(20px)';
-        section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-        observer.observe(section);
-    });
-    
+    // Observer for project cards (staggered animation, one-time)
     const projectObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry, index) => {
             if (entry.isIntersecting) {
-                setTimeout(() => {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }, index * 100); 
+                const cardId = entry.target.dataset.projectId || `project-${index}`;
+                if (!animatedElements.has(cardId)) {
+                    setTimeout(() => {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                        animatedElements.add(cardId);
+                    }, index * 100);
+                }
             }
         });
     }, { threshold: 0.1 });
-    
+
+    // Observe all sections
+    document.querySelectorAll('section').forEach(section => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(30px)';
+        section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+        sectionObserver.observe(section);
+    });
+
+    // Function to observe projects after they load
     const observeProjects = () => {
         document.querySelectorAll('.project-card').forEach((card, index) => {
             card.style.opacity = '0';
             card.style.transform = 'translateY(30px)';
-            card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+            card.style.transition = `opacity 0.6s ease, transform 0.6s ease`;
+            card.dataset.projectId = `project-${index}`;
             projectObserver.observe(card);
         });
     };
+
+    return { observeProjects };
+}
+
+// Initialize everything when DOM is loaded
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Portfolio initialized');
     
+    // Initialize stats first
+    await initializeStats();
+    
+    // Initialize animations
+    const { observeProjects } = initializeAnimations();
+    
+    // Initialize stats animation (one-time)
+    animateStatsOnce();
+    
+    // Load projects and observe them
     loadProjects().then(observeProjects);
     
+    // Smooth scrolling
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -318,13 +408,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
-});
-
-window.addEventListener('scroll', () => {
-    const navbar = document.getElementById('navbar');
-    if (window.scrollY > 100) {
-        navbar.style.background = 'rgba(255, 255, 255, 0.98)';
-    } else {
-        navbar.style.background = 'rgba(255, 255, 255, 0.95)';
-    }
+    
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+        const navbar = document.getElementById('navbar');
+        if (window.scrollY > 100) {
+            navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+        } else {
+            navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+        }
+    });
 });
