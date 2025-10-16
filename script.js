@@ -153,19 +153,18 @@ async function fetchGitHubProjects() {
 // proj card
 function createProjectCard(repo) {
     const techStack = detectTechStack(repo);
-    
+    const uniqueTags = getUniqueTechTags(repo, techStack);
      return `
         <div class="project-card" data-category="${techStack.category}">
             <div class="project-image">
                 <i class="fas fa-code"></i>
             </div>
             <div class="project-content">
-                <h3 class="project-title">${repo.name.replace(/-/g, ' ').replace(/_/g, ' ')}</h3>
+                <h3 class="project-title">${repo.name.replace(/-/g, ' ').replace(/_/g, ' ').replace(/(^\w|\s\w)/g, letter => letter.toUpperCase());}</h3>
                 <p class="project-description">${repo.description || 'No description available.'}</p>
                 
                 <div class="project-tech">
-                    ${repo.language ? `<span class="tech-tag">${repo.language}</span>` : ''}
-                    ${techStack.tags.slice(0, 3).map(tag => `<span class="tech-tag">${tag}</span>`).join('')}
+                    ${uniqueTags.map(tag => `<span class="tech-tag">${tag}</span>`).join('')}
                 </div>
                 
                 <div class="project-links">
@@ -182,6 +181,25 @@ function createProjectCard(repo) {
         </div>
     `;
 }
+
+function getUniqueTechTags(repo, techStack) {
+    const tags = new Set();
+    
+    if (repo.language) {
+        tags.add(repo.language);
+    }
+    
+    if (repo.topics) {
+        repo.topics.forEach(topic => {
+            if (!repo.language || topic.toLowerCase() !== repo.language.toLowerCase()) {
+                tags.add(topic);
+            }
+        });
+    }
+    
+    return Array.from(tags).slice(0, 4);
+}
+
 
 // basically just categorizes thru a simple topic check on public repos
 function detectTechStack(repo) {
