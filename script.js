@@ -63,7 +63,7 @@ function animateStatsOnce() {
                 hasAnimated = true;
                 
                 const projectCount = document.getElementById('project-count');
-                const projectTarget = parseInt(projectCount.getAttribute('data-count'));
+                const projectTarget = parseInt(projectCount.getAttribute('data-count')) + 3;
                 animateCounter(projectCount, projectTarget, '');
                 
                 const yearsElement = document.getElementById('years-coding');
