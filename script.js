@@ -223,7 +223,7 @@ async function loadProjects() {
     });
 }
 
-// Contact form 
+// Contact form handler
 contactForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -237,37 +237,56 @@ contactForm.addEventListener('submit', async (e) => {
     const data = Object.fromEntries(formData);
 
     try {
-        await triggerGitHubAction(data);
+        const response = await fetch('/.netlify/functions/contact', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert('Thank you for your message! I\'ll get back to you soon.');
+            contactForm.reset();
+        } else {
+            throw new Error(result.error || 'Failed to send message');
+        }
         
-        alert('Message Sent! I\'ll get back to you soon.');
-        contactForm.reset();
     } catch (error) {
-        console.error('Error:', error);
-        alert('Sorry, there was an error sending your message. Please email me directly at your-email@gmail.com');
+        console.error('Contact form error:', error);
+        
+        const shouldUseFallback = confirm(
+            'Sorry, there was an error sending your message. ' +
+            'Would you like to send it via email instead?'
+        );
+        
+        if (shouldUseFallback) {
+            openEmailFallback(data);
+        }
     } finally {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
     }
 });
 
-async function triggerGitHubAction(formData) {
-    const response = await fetch('https://NullJason.github.io/contact-proxy', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            event_type: 'contact-form-submission',
-            client_payload: formData
-        })
-    });
+// Email fallback
+function openEmailFallback(formData) {
+    const subject = encodeURIComponent(`Portfolio Contact: ${formData.subject}`);
+    const body = encodeURIComponent(
+`Name: ${formData.name}
+Email: ${formData.email}
+Subject: ${formData.subject}
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to send message: ${errorText}`);
-    }
+Message:
+${formData.message}
+
+---
+Sent via portfolio contact form`
+    );
     
-    return await response.json();
+    window.location.href = `mailto:your-email@gmail.com?subject=${subject}&body=${body}`;
 }
 
 const observerOptions = {
