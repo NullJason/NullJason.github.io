@@ -6,7 +6,6 @@ const navMenu = document.querySelector('.nav-menu');
 const hamburger = document.querySelector('.hamburger');
 const filterButtons = document.querySelectorAll('.filter-btn');
 const projectsContainer = document.getElementById('projects-container');
-const contactForm = document.getElementById('contact-form');
 
 // mobile navi toggle
 hamburger.addEventListener('click', () => {
@@ -36,37 +35,54 @@ filterButtons.forEach(button => {
 // Animate stats 
 function animateStats() {
     const stats = document.querySelectorAll('.stat-number');
+    if (stats.length === 0) return;
     
     stats.forEach(stat => {
         const target = parseInt(stat.getAttribute('data-count'));
-        const duration = 2000; 
-        const step = target / (duration / 16);
+        const duration = 2000;
+        const steps = 60; // 60fps
+        const stepValue = target / (duration / (1000 / steps));
         let current = 0;
         
         const timer = setInterval(() => {
-            current += step;
+            current += stepValue;
             if (current >= target) {
                 current = target;
                 clearInterval(timer);
             }
             stat.textContent = Math.floor(current);
-        }, 16);
+        }, 1000 / steps);
     });
 }
 
 // fetch projs
 async function fetchGitHubProjects() {
     try {
+       projectsContainer.innerHTML = '<div class="loading">Loading projects from GitHub...</div>';
+        
         const response = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=100`);
         
         if (!response.ok) {
-            throw new Error('Failed to fetch projects from GitHub');
+            throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
         }
         
         const repos = await response.json();
-        return repos.filter(repo => !repo.fork); // Filter out forked repositories
+        const filteredRepos = repos.filter(repo => 
+            !repo.fork && 
+            !repo.archived &&
+            !repo.name.includes('.github.io') // Filter out GitHub Pages repos
+        );
+        
+        return filteredRepos;
     } catch (error) {
         console.error('Error fetching GitHub projects:', error);
+        projectsContainer.innerHTML = `
+            <div class="loading error">
+                <p>Unable to load projects from GitHub.</p>
+                <p><small>Error: ${error.message}</small></p>
+                <p><small>Please check your GitHub username configuration.</small></p>
+            </div>
+        `;
         return [];
     }
 }
@@ -75,26 +91,26 @@ async function fetchGitHubProjects() {
 function createProjectCard(repo) {
     const techStack = detectTechStack(repo);
     
-    return `
+     return `
         <div class="project-card" data-category="${techStack.category}">
             <div class="project-image">
                 <i class="fas fa-code"></i>
             </div>
             <div class="project-content">
-                <h3 class="project-title">${repo.name}</h3>
+                <h3 class="project-title">${repo.name.replace(/-/g, ' ').replace(/_/g, ' ')}</h3>
                 <p class="project-description">${repo.description || 'No description available.'}</p>
                 
                 <div class="project-tech">
+                    ${repo.language ? `<span class="tech-tag">${repo.language}</span>` : ''}
                     ${techStack.tags.map(tag => `<span class="tech-tag">${tag}</span>`).join('')}
-                    <span class="tech-tag">${repo.language || 'Various'}</span>
                 </div>
                 
                 <div class="project-links">
-                    <a href="${repo.html_url}" class="project-link" target="_blank">
+                    <a href="${repo.html_url}" class="project-link" target="_blank" rel="noopener">
                         <i class="fab fa-github"></i> Code
                     </a>
                     ${repo.homepage ? `
-                    <a href="${repo.homepage}" class="project-link" target="_blank">
+                    <a href="${repo.homepage}" class="project-link" target="_blank" rel="noopener">
                         <i class="fas fa-external-link-alt"></i> Live Demo
                     </a>
                     ` : ''}
@@ -207,20 +223,36 @@ function filterProjects(filter) {
 // Load them
 async function loadProjects() {
     projectsContainer.innerHTML = '<div class="loading">Loading projects from GitHub...</div>';
-    
-    const repos = await fetchGitHubProjects();
-    
-    if (repos.length === 0) {
-        projectsContainer.innerHTML = '<div class="loading">Unable to load projects. Please check your GitHub username configuration.</div>';
-        return;
+    try {
+        const repos = await fetchGitHubProjects();
+        
+        if (repos.length === 0) {
+            projectsContainer.innerHTML = `
+                <div class="loading">
+                    unable to load repos!
+                    <br><small>Please try again later...</small>
+                </div>
+            `;
+            return;
+        }
+        
+        projectsContainer.innerHTML = '';
+        
+        repos.forEach(repo => {
+            const projectCard = createProjectCard(repo);
+            projectsContainer.innerHTML += projectCard;
+        });
+        
+        console.log(`Loaded ${repos.length} projects from GitHub`);
+        
+    } catch (error) {
+        console.error('Error loading projects:', error);
+        projectsContainer.innerHTML = `
+            <div class="loading error">
+                Failed to load projects.
+            </div>
+        `;
     }
-    
-    projectsContainer.innerHTML = '';
-    
-    repos.forEach(repo => {
-        const projectCard = createProjectCard(repo);
-        projectsContainer.innerHTML += projectCard;
-    });
 }
 
 
@@ -235,22 +267,44 @@ const observer = new IntersectionObserver((entries) => {
             entry.target.style.opacity = '1';
             entry.target.style.transform = 'translateY(0)';
             
-            if (entry.target.classList.contains('about-stats')) {
-                animateStats();
+            if (entry.target.id === 'about') {
+                setTimeout(() => animateStats(), 300);
             }
         }
     });
-}, observer);
+}, observerOptions);
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Portfolio initialized');
+    
     document.querySelectorAll('section').forEach(section => {
         section.style.opacity = '0';
         section.style.transform = 'translateY(20px)';
-        section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
         observer.observe(section);
     });
     
-    loadProjects();
+    const projectObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry, index) => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }, index * 100); 
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    const observeProjects = () => {
+        document.querySelectorAll('.project-card').forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+            projectObserver.observe(card);
+        });
+    };
+    
+    loadProjects().then(observeProjects);
     
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
