@@ -223,16 +223,52 @@ async function loadProjects() {
     });
 }
 
-contactForm.addEventListener('submit', (e) => {
+// Contact form 
+contactForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    const submitBtn = contactForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    submitBtn.textContent = 'Sending...';
+    submitBtn.disabled = true;
+
     const formData = new FormData(contactForm);
     const data = Object.fromEntries(formData);
-    // todo plan is to have github send me the emails
-    
-    alert('Thank you for your message! I\'ll get back to you soon.');
-    contactForm.reset();
+
+    try {
+        await triggerGitHubAction(data);
+        
+        alert('Message Sent! I\'ll get back to you soon.');
+        contactForm.reset();
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Sorry, there was an error sending your message. Please email me directly at your-email@gmail.com');
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
 });
+
+async function triggerGitHubAction(formData) {
+    const response = await fetch('https://NullJason.github.io/contact-proxy', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            event_type: 'contact-form-submission',
+            client_payload: formData
+        })
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to send message: ${errorText}`);
+    }
+    
+    return await response.json();
+}
 
 const observerOptions = {
     threshold: 0.1,
