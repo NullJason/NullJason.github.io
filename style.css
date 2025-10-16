@@ -34,6 +34,17 @@ body {
     padding: 0 2rem;
 }
 
+.contact-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.contact-link:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
+}
+
 /* Navigation */
 #navbar {
     position: fixed;
