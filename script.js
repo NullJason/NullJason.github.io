@@ -58,7 +58,7 @@ function animateStats() {
 // fetch projs
 async function fetchGitHubProjects() {
     try {
-       projectsContainer.innerHTML = '<div class="loading">Loading projects from GitHub...</div>';
+       projectsContainer.innerHTML = '<div class="loading">Attempting to load projects from GitHub...</div>';
         
         const response = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=100`);
         
