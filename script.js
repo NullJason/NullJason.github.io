@@ -150,6 +150,13 @@ async function fetchGitHubProjects() {
     }
 }
 
+function formatRepoName(name) {
+     return name
+         .replace(/-/g, ' ')
+         .replace(/_/g, ' ')
+         .replace(/(^\w|\s\w)/g, letter => letter.toUpperCase());
+ }
+
 // proj card
 function createProjectCard(repo) {
     const techStack = detectTechStack(repo);
@@ -160,7 +167,7 @@ function createProjectCard(repo) {
                 <i class="fas fa-code"></i>
             </div>
             <div class="project-content">
-                <h3 class="project-title">${repo.name.replace(/-/g, ' ').replace(/_/g, ' ').replace(/(^\w|\s\w)/g, letter => letter.toUpperCase())}</h3>
+                <h3 class="project-title">${formatRepoName(repo.name)}</h3>
                 <p class="project-description">${repo.description || 'No description available.'}</p>
                 
                 <div class="project-tech">
