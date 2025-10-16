@@ -1,0 +1,52 @@
+name: Process Contact Form
+
+on:
+  repository_dispatch:
+    types: [contact-form-submission]
+
+jobs:
+  process-contact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PrivateMailing repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.CONTACTS_REPO_OWNER }}/${{ secrets.CONTACTS_REPO }}
+          token: ${{ secrets.CONTACT_FORM_PAT }}
+
+      - name: Create Issue from Contact Form
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.CONTACT_FORM_PAT }}
+          script: |
+            const { name, email, subject, message } = JSON.parse('${{ toJson(github.event.client_payload) }}');
+            
+            const issueBody = `
+**New Contact Form Submission** 📧
+
+**From:** ${name}  
+**Email:** ${email}  
+**Subject:** ${subject}  
+**Timestamp:** ${new Date().toISOString()}
+
+**Message:**
+${message}
+
+---
+*Automatically generated from portfolio contact form*
+            `;
+
+            try {
+              const result = await github.rest.issues.create({
+                owner: '${{ secrets.CONTACTS_REPO_OWNER }}',
+                repo: '${{ secrets.CONTACTS_REPO }}',
+                title: `Contact: ${subject.substring(0, 50)}${subject.length > 50 ? '...' : ''}`,
+                body: issueBody,
+                labels: ['contact-form', 'portfolio']
+              });
+              
+              console.log('Issue created successfully:', result.data.html_url);
+            } catch (error) {
+              console.error('Error creating issue:', error);
+              throw error;
+            }
