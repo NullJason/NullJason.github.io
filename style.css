@@ -56,6 +56,18 @@ body {
     box-shadow: var(--shadow);
 }
 
+.loading.error {
+    color: #dc2626;
+    background: #fef2f2;
+    padding: 2rem;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+}
+
+.loading.error small {
+    opacity: 0.7;
+}
+
 .nav-container {
     max-width: 1200px;
     margin: 0 auto;
