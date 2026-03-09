@@ -7,6 +7,7 @@ const hamburger = document.querySelector('.hamburger');
 const filterButtons = document.querySelectorAll('.filter-btn');
 const projectsContainer = document.getElementById('projects-container');
 
+
 // mobile navi toggle
 hamburger.addEventListener('click', () => {
     navMenu.classList.toggle('active');
@@ -53,35 +54,7 @@ async function countTotalRepositories() {
         return -1;
     }
 }
-function animateStatsOnce() {
-    const stats = document.querySelectorAll('.stat-number');
-    let hasAnimated = false;
-    
-    const statsObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting && !hasAnimated) {
-                hasAnimated = true;
-                
-                const projectCount = document.getElementById('project-count');
-                const projectTarget = parseInt(projectCount.getAttribute('data-count')) + 3;
-                animateCounter(projectCount, projectTarget, '');
-                
-                const yearsElement = document.getElementById('years-coding');
-                animateCounter(yearsElement, calculateYearsCoding(), '');
 
-                const headacheEle = document.getElementById('headaches');
-                animateCounter(headacheEle, 100, '%');
-                                
-                statsObserver.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.5 });
-    
-    const statsContainer = document.querySelector('.about-stats');
-    if (statsContainer) {
-        statsObserver.observe(statsContainer);
-    }
-}
 
 function animateCounter(element, target, suffix = '') {
     const duration = 2000;
@@ -99,24 +72,6 @@ function animateCounter(element, target, suffix = '') {
     }, 1000 / steps);
 }
 
-async function initializeStats() {
-    try {
-        const totalRepos = await countTotalRepositories();
-        const projectCount = document.getElementById('project-count');
-        projectCount.setAttribute('data-count', totalRepos);
-        projectCount.textContent = '0';
-        
-        const yearsElement = document.getElementById('years-coding');
-        const years = calculateYearsCoding();
-        yearsElement.setAttribute('data-count', years);
-        yearsElement.textContent = '4'; 
-        
-        console.log('Stats initialized:', { repos: totalRepos, years: years });
-        
-    } catch (error) {
-        console.error('Error initializing stats:', error);
-    }
-}
 
 // fetch projs
 async function fetchGitHubProjects() {
@@ -408,19 +363,14 @@ function initializeAnimations() {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Portfolio initialized');
     
-    // Initialize stats first
-    await initializeStats();
     
-    // Initialize animations
+    // Init animations
     const { observeProjects } = initializeAnimations();
-    
-    // Initialize stats animation (one-time)
-    animateStatsOnce();
-    
-    // Load projects and observe them
+        
+    // Load projects and oberve them
     loadProjects().then(observeProjects);
     
-    // Smooth scrolling
+    // scrolling
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();

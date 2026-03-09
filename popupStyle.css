@@ -1,0 +1,45 @@
+
+/* The Modal Overlay (background) */
+#modalOverlay {
+    display: flex; /* Use flexbox to center the content */
+    justify-content: center;
+    align-items: center;
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    background-color: rgba(0,0,0,0.7); /* Black background with opacity */
+    visibility: visible; /* Initially visible */
+}
+
+/* Modal Content Box */
+.modal-content {
+    background-color: #fefefe;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; 
+    max-width: 500px;
+    text-align: center;
+    border-radius: 5px;
+    -webkit-user-select: none; /* Safari */
+    user-select: none;
+    position: fixed;
+}
+
+/* Class to hide the modal */
+.hidden {
+    display: none !important; /* Forces the element to be hidden */
+}
+
+#PUTimer {
+    padding: 10px;
+    background-color: lightgray;
+    -webkit-user-select: none; /* Safari */
+    user-select: none;
+    display: flex;
+    justify-content: center;
+    align-items: end;
+    position: absolute;
+}
