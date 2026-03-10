@@ -1,0 +1,716 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>MAVE — Starter: Pipeline Visualizer</title>
+    <style>
+        body {
+            font-family: system-ui, Segoe UI, Roboto, Arial;
+            margin: 12px;
+            color: #111
+        }
+
+        .container {
+            display: flex;
+            gap: 12px
+        }
+
+        textarea {
+            width: 480px;
+            height: 260px;
+            font-family: monospace;
+            padding: 8px
+        }
+
+        .side {
+            flex: 1;
+            min-width: 480px
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin: 6px 0
+        }
+
+        button {
+            padding: 6px 10px
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin: 6px 0
+        }
+
+        .panel {
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 6px;
+            background: #fff
+        }
+
+        .pipeline {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px
+        }
+
+        .stage {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            min-height: 62px;
+            background: linear-gradient(#fbfbfb, #f3f7ff)
+        }
+
+        .instr {
+            padding: 6px;
+            border-radius: 4px;
+            background: #e8f0ff;
+            margin-bottom: 6px
+        }
+
+        .bubble {
+            opacity: 0.5;
+            background: #eee
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%
+        }
+
+        td,
+        th {
+            border: 1px solid #eee;
+            padding: 6px;
+            font-family: monospace
+        }
+
+        .reg-changed {
+            background: #fffae6
+        }
+
+        .small {
+            font-size: 12px;
+            color: #666
+        }
+
+        .hit {
+            color: green;
+            font-weight: 600
+        }
+
+        .miss {
+            color: #c33;
+            font-weight: 600
+        }
+
+        .controls input[type=range] {
+            width: 240px
+        }
+
+        #memView {
+            height: 140px;
+            overflow: auto
+        }
+
+        .config {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .badge {
+            background: #eef;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-weight: 600
+        }
+    </style>
+</head>
+
+<body>
+    <h2>MAVE — Starter pipeline visualizer (toy ISA)</h2>
+    <p class="small">Type assembly on the left. Click <b>Assemble & Run</b>. Toggle Forwarding to see stalls vs
+        forwarded values.</p>
+
+    <div class="container">
+        <div>
+            <div class="panel">
+                <strong>Assembly</strong>
+                <textarea id="code"></textarea>
+                <div class="controls">
+                    <button id="assembleBtn">Assemble & Run</button>
+                    <label><input type="checkbox" id="forwarding" checked /> Forwarding</label>
+                    <label style="margin-left:8px">Mem latency: <input id="memLatency" type="number" value="2" min="1"
+                            style="width:60px" /> cycles</label>
+                </div>
+                <div class="controls">
+                    <button id="stepBack">◀ Step</button>
+                    <button id="play">▶ Play</button>
+                    <button id="pause">❚❚ Pause</button>
+                    <button id="stepFwd">Step ▶</button>
+                    <label>Speed: <input id="speed" type="range" min="0.25" max="4" step="0.25" value="1" /></label>
+                </div>
+                <div class="controls">
+                    <input id="cycleScrub" type="range" min="0" max="0" value="0" />
+                    <span id="cycleDisplay">Cycle: 0</span>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top:10px">
+                <strong>Pipeline (current cycle)</strong>
+                <div class="pipeline" id="pipelineView">
+                    <div class="stage"><strong>IF</strong>
+                        <div id="sIF"></div>
+                    </div>
+                    <div class="stage"><strong>ID</strong>
+                        <div id="sID"></div>
+                    </div>
+                    <div class="stage"><strong>EX</strong>
+                        <div id="sEX"></div>
+                    </div>
+                    <div class="stage"><strong>MEM</strong>
+                        <div id="sMEM"></div>
+                    </div>
+                    <div class="stage"><strong>WB</strong>
+                        <div id="sWB"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top:10px">
+                <strong>Registers</strong>
+                <div id="regsView"></div>
+            </div>
+        </div>
+
+        <div class="side">
+            <div class="panel">
+                <strong>Simulator stats</strong>
+                <div id="stats">
+                    <div>Cycles: <span id="statCycles">0</span></div>
+                    <div>Instructions retired: <span id="statInst">0</span></div>
+                    <div>Stalls: <span id="statStalls">0</span></div>
+                    <div>Branch mispredictions: <span id="statMispred">0</span></div>
+                </div>
+            </div>
+
+            <div class="panel" style="margin-top:10px">
+                <strong>Memory (0..63)</strong>
+                <div id="memView"></div>
+            </div>
+
+            <div class="panel" style="margin-top:10px">
+                <strong>Examples / Presets</strong>
+                <div class="row">
+                    <button id="loadLoop">Load Loop-sum</button>
+                    <button id="loadBranch">Load Branch-heavy</button>
+                    <button id="loadHazard">Load RAW Hazard</button>
+                </div>
+                <p class="small">Registers R0..R7. Word-addressed memory (index = word). LD/ ST use base + imm.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* -------------------------------
+        Toy ISA / Assembler + Simulator
+        ------------------------------- */
+
+        /* ISA notes:
+        - Registers: R0..R7 (R0 is zero)
+        - Instructions supported (text):
+        ADD rd, rs, rt
+        SUB rd, rs, rt
+        ADDI rd, rs, imm
+        LD rd, [rs + imm]
+        ST rs, [rd + imm] (store rs to Mem[rd+imm])
+        BEQ rs, rt, label (label or numeric offset)
+        J label
+        NOP
+        HALT
+        - Memory: word-addressed array
+        - PC is instruction index (0-based)
+        */
+
+        const ui = {
+            code: document.getElementById('code'),
+            assembleBtn: document.getElementById('assembleBtn'),
+            forwarding: document.getElementById('forwarding'),
+            memLatency: document.getElementById('memLatency'),
+            stepBack: document.getElementById('stepBack'),
+            play: document.getElementById('play'),
+            pause: document.getElementById('pause'),
+            stepFwd: document.getElementById('stepFwd'),
+            cycleScrub: document.getElementById('cycleScrub'),
+            cycleDisplay: document.getElementById('cycleDisplay'),
+            speed: document.getElementById('speed'),
+            sIF: document.getElementById('sIF'),
+            sID: document.getElementById('sID'),
+            sEX: document.getElementById('sEX'),
+            sMEM: document.getElementById('sMEM'),
+            sWB: document.getElementById('sWB'),
+            regsView: document.getElementById('regsView'),
+            memView: document.getElementById('memView'),
+            statCycles: document.getElementById('statCycles'),
+            statInst: document.getElementById('statInst'),
+            statStalls: document.getElementById('statStalls'),
+            statMispred: document.getElementById('statMispred'),
+            loadLoop: document.getElementById('loadLoop'),
+            loadBranch: document.getElementById('loadBranch'),
+            loadHazard: document.getElementById('loadHazard'),
+        };
+
+        const EXAMPLES = {
+            loop: `# Loop-sum: sum 8 words at mem base 10
+ADDI R1, R0, 10 # base pointer
+ADDI R2, R0, 8 # length
+ADDI R0, R0, 0 # sum=0
+LOOP:
+LD R3, [R1 + 0]
+ADD R0, R0, R3
+ADDI R1, R1, 1
+ADDI R2, R2, -1
+BEQ R2, R0, END
+J LOOP
+END:
+HALT
+`,
+            branch: `# Branch-heavy: toggles branch pattern
+ADDI R1, R0, 0
+ADDI R2, R0, 20
+ADDI R4, R0, 0
+LOOP:
+ADDI R1, R1, 1
+ADDI R3, R1, 0
+ANDI R5, R1, 1
+BEQ R5, R0, SKIP
+ADDI R4, R4, 1
+SKIP:
+BEQ R1, R2, END
+J LOOP
+END:
+HALT
+`,
+            hazard: `# RAW Hazard demo
+ADDI R1, R0, 5
+ADDI R2, R0, 10
+ADD R3, R1, R2
+SUB R4, R3, R1
+ST R4, [R0 + 12]
+HALT
+`
+        };
+
+        // fill code area with a default example
+        ui.code.value = EXAMPLES.loop;
+
+        /* Assembler */
+        function assemble(source) {
+            const lines = source.split('\n').map(l => l.split('#')[0].split(';')[0].trim()).filter(l => l !== '');
+            // two-pass: labels then instructions
+            const labels = {};
+            const instrText = [];
+            let pc = 0;
+            for (const ln of lines) {
+                if (/^[A-Za-z_]\w*:$/.test(ln)) {
+                    const lab = ln.slice(0, -1);
+                    labels[lab] = pc;
+                } else {
+                    instrText.push(ln);
+                    pc++;
+                }
+            }
+            const instrs = [];
+            pc = 0;
+            for (const ln of instrText) {
+                const toks = ln.replace(/,/g, ' ').split(/\s+/).filter(t => t !== '');
+                const op = toks[0].toUpperCase();
+                let inst = { op, raw: ln, pc };
+                const reg = s => {
+                    const r = s.toUpperCase();
+                    if (!/^R[0-7]$/.test(r)) throw new Error("Bad register: " + s);
+                    return parseInt(r.slice(1));
+                };
+                try {
+                    if (op === 'ADD' || op === 'SUB') {
+                        inst.rd = reg(toks[1]); inst.rs = reg(toks[2]); inst.rt = reg(toks[3]);
+                    } else if (op === 'ADDI' || op === 'ANDI') {
+                        inst.rd = reg(toks[1]); inst.rs = reg(toks[2]); inst.imm = parseInt(toks[3]);
+                    } else if (op === 'LD') {
+                        inst.rd = reg(toks[1]);
+                        // expect [R + imm] or [R+imm]
+                        const m = ln.match(/\[ *([Rr]\d) *[+\-] *(-?\d+) *\]/);
+                        if (!m) throw new Error("bad memory syntax: " + ln);
+                        inst.rs = reg(m[1]); inst.imm = parseInt(m[2]);
+                    } else if (op === 'ST') {
+                        inst.rs = reg(toks[1]);
+                        const m = ln.match(/\[ *([Rr]\d) *[+\-] *(-?\d+) *\]/);
+                        if (!m) throw new Error("bad memory syntax: " + ln);
+                        inst.rd = reg(m[1]); inst.imm = parseInt(m[2]);
+                    } else if (op === 'BEQ') {
+                        inst.rs = reg(toks[1]); inst.rt = reg(toks[2]); inst.label = toks[3];
+                    } else if (op === 'J') {
+                        inst.label = toks[1];
+                    } else if (op === 'NOP' || op === 'HALT') {
+                        // nothing
+                    } else {
+                        throw new Error("Unknown op: " + op);
+                    }
+                } catch (e) {
+                    throw new Error("Parse error at line: '" + ln + "': " + e.message);
+                }
+                instrs.push(inst);
+                pc++;
+            }
+            // resolve labels
+            for (const inst of instrs) {
+                if (inst.label) {
+                    if (labels.hasOwnProperty(inst.label)) inst.target = labels[inst.label];
+                    else {
+                        // allow numeric label
+                        const v = parseInt(inst.label);
+                        if (!isNaN(v)) inst.target = v;
+                        else throw new Error("Unknown label: " + inst.label);
+                    }
+                    if (inst.op === 'BEQ') {
+                        // store offset relative to next PC
+                        inst.imm = inst.target - (inst.pc + 1);
+                    } else if (inst.op === 'J') {
+                        inst.addr = inst.target;
+                    }
+                }
+            }
+            return instrs;
+        }
+
+        /* Simulator: cycle-accurate 5-stage pipeline
+        - Pipeline registers: IF/ID, ID/EX, EX/MEM, MEM/WB
+        - We capture per-cycle state objects for UI
+        */
+        function simulate(instrs, opts) {
+            const memSize = 256;
+            const regs0 = new Array(8).fill(0);
+            regs0[0] = 0;
+            const mem = new Array(memSize).fill(0);
+            // put instructions into memInstr (not used as data)
+            const instrMem = instrs.slice();
+            let PC = 0;
+            let cycles = 0;
+            let retired = 0;
+            let stalls = 0;
+            let mispred = 0;
+            const trace = [];
+
+            const ifid = { instr: null };
+            const idex = { instr: null };
+            const exmem = { instr: null };
+            const memwb = { instr: null };
+
+            function cloneState() {
+                return {
+                    cycle: cycles,
+                    pc: PC,
+                    regs: regs0.slice(),
+                    mem: mem.slice(0, 64),
+                    ifid: shallow(ifid),
+                    idex: shallow(idex),
+                    exmem: shallow(exmem),
+                    memwb: shallow(memwb),
+                    stats: { cycles, retired, stalls, mispred }
+                };
+            }
+            function shallow(p) {
+                return p.instr ? { instr: p.instr.raw, pc: p.instr.pc } : { instr: null };
+            }
+
+            let halted = false;
+
+            // helper to get register value (with forwarding if requested during EX)
+            function regVal(r) { if (r === 0) return 0; return regs0[r]; }
+
+            // Main cyc loop. For interactive demos we will run until HALT retires or until cycle limit.
+            const maxCycles = 2000;
+            while (cycles < maxCycles && !halted) {
+                // Capture state for UI (before applying this cycle's updates)
+                trace.push(cloneState());
+
+                //  compute nxt pipeline registers (classic reverse-order update)
+                // Writeback stage: commit MEM/WB
+                if (memwb.instr) {
+                    const i = memwb.instr;
+                    if (i.op === 'ADD' || i.op === 'SUB' || i.op === 'ADDI' || i.op === 'ANDI' || i.op === 'LD') {
+                        if (i.rd !== undefined && i.rd !== 0) {
+                            regs0[i.rd] = memwb.result;
+                        }
+                    }
+                    if (i.op === 'HALT') { halted = true; }
+                    retired++;
+                }
+
+                // MEM stage: exmem -> memwb
+                const next_memwb = { instr: null };
+                if (exmem.instr) {
+                    const I = exmem.instr;
+                    const next = { instr: I };
+                    if (I.op === 'LD') {
+                        // mem address is exmem.alu (already computed)
+                        const addr = exmem.alu;
+                        // simulate memory latency as 1 cycle per memLatency but here we keep it simple: just read
+                        const v = mem[addr] || 0;
+                        next.result = v;
+                        next.memAction = { type: 'LD', addr, hit: true };
+                    } else if (I.op === 'ST') {
+                        const addr = exmem.alu;
+                        mem[addr] = exmem.storeVal || 0;
+                        next.memAction = { type: 'ST', addr };
+                    } else {
+                        // ALU result forwarded
+                        next.result = exmem.alu;
+                    }
+                    next_memwb.instr = I;
+                    next_memwb.result = next.result;
+                }
+
+                // EX stage: idex -> exmem
+                const next_exmem = { instr: null };
+                if (idex.instr) {
+                    const I = idex.instr;
+                    // compute operand values with forwarding if available from exmem or memwb
+                    function operandVal(r) {
+                        if (r === 0) return 0;
+                        // forwarding: check exmem and memwb destinations
+                        if (opts.forwarding && exmem.instr && exmem.instr.rd === r && exmem.result !== undefined) {
+                            return exmem.result;
+                        }
+                        if (opts.forwarding && memwb.instr && memwb.instr.rd === r && memwb.result !== undefined) {
+                            return memwb.result;
+                        }
+                        return regs0[r];
+                    }
+                    if (I.op === 'ADD') { next_exmem.alu = operandVal(I.rs) + operandVal(I.rt); }
+                    else if (I.op === 'SUB') { next_exmem.alu = operandVal(I.rs) - operandVal(I.rt); }
+                    else if (I.op === 'ADDI') { next_exmem.alu = operandVal(I.rs) + (I.imm || 0); }
+                    else if (I.op === 'ANDI') { next_exmem.alu = operandVal(I.rs) & (I.imm || 0); }
+                    else if (I.op === 'LD' || I.op === 'ST') { next_exmem.alu = operandVal(I.rs) + (I.imm || 0); next_exmem.storeVal = regs0[I.rs]; }
+                    else if (I.op === 'BEQ') {
+                        const v1 = operandVal(I.rs), v2 = operandVal(I.rt);
+                        if (v1 === v2) {
+                            // taken — flush IF/ID and ID/EX (we will set PC)
+                            PC = I.pc + 1 + (I.imm || 0);
+                            // we will mark a misprediction if branch was previously predicted not taken --- count every taken as mispredict for current demo
+                            mispred++;
+                            // pipeline flush implemented by clearing ifid and idex next cycle; we set a flag
+                            next_exmem.branchTaken = true;
+                        }
+                    } else if (I.op === 'J') {
+                        PC = I.addr;
+                        mispred++;
+                        next_exmem.branchTaken = true;
+                    } else if (I.op === 'HALT') {
+                        // nothing extra
+                    }
+                    next_exmem.instr = I;
+                    next_exmem.result = next_exmem.alu;
+                }
+
+                // ID stage: ifid -> idex (with hazard detection)
+                const next_idex = { instr: null };
+                let stallThisCycle = false;
+                if (ifid.instr) {
+                    const I = ifid.instr;
+                    // hazard detection (RAW): check if ID sources depend on EX stage destination and forwarding disabled
+                    function usesReg(i, r) {
+                        if (!i || r === undefined) return false;
+                        if (i.op === 'ADD' || i.op === 'SUB') { return i.rs === r || i.rt === r; }
+                        if (i.op === 'ADDI' || i.op === 'ANDI') { return i.rs === r; }
+                        if (i.op === 'LD') { return i.rs === r; }
+                        if (i.op === 'ST') { return i.rs === r || i.rd === r; } // store uses base (rd) and store register (rs)
+                        if (i.op === 'BEQ') { return i.rs === r || i.rt === r; }
+                        return false;
+                    }
+                    if (!opts.forwarding) {
+                        // check EX destination - if it will write rd and is not R0
+                        if (idex.instr && idex.instr.rd !== undefined) {
+                            const d = idex.instr.rd;
+                            if (usesReg(I, d)) { stallThisCycle = true; }
+                        }
+                        if (exmem.instr && exmem.instr.rd !== undefined) {
+                            const d = exmem.instr.rd;
+                            if (usesReg(I, d)) { stallThisCycle = true; }
+                        }
+                    }
+                    if (stallThisCycle) {
+                        // insert bubble: do not advance IF/ID into ID/EX, instead insert NOP into idex
+                        stalls++;
+                        next_idex.instr = { op: 'NOP', raw: 'NOP', pc: -1 };
+                    } else {
+                        next_idex.instr = I;
+                    }
+                }
+
+                // IF stage: fetch instruction at PC unless a branch took and flushed
+                const next_ifid = { instr: null };
+                // if EX stage signaled branchTaken, then we must flush IF/ID (i.e., next_ifid.instr stays null) and also next_idex must be null
+                let branchFlush = false;
+                if (next_exmem.branchTaken) { branchFlush = true; }
+
+                if (!branchFlush) {
+                    const fetched = instrMem[PC];
+                    if (fetched) {
+                        next_ifid.instr = fetched;
+                        // incr for next fetch
+                        PC = PC + 1;
+                    } else {
+                        // no instruc in mem => NOP
+                        next_ifid.instr = null;
+                    }
+                } else {
+                    next_ifid.instr = null;
+                    next_idex.instr = null;
+                }
+
+                // adv pip registrs
+                memwb.instr = next_memwb.instr || null;
+                memwb.result = next_memwb.result;
+                exmem.instr = next_exmem.instr || null;
+                exmem.alu = next_exmem.alu;
+                exmem.result = next_exmem.result;
+                idex.instr = next_idex.instr || null;
+                ifid.instr = next_ifid.instr || null;
+
+                cycles++;
+                if (halted) break;
+            } 
+
+            // final capture
+            trace.push({
+                cycle: cycles, pc: PC, regs: regs0.slice(), mem: mem.slice(0, 64),
+                ifid: shallow(ifid), idex: shallow(idex), exmem: shallow(exmem), memwb: shallow(memwb),
+                stats: { cycles, retired, stalls, mispred }
+            });
+            return trace;
+        }
+
+        /* ----------------
+        UI / Playback functions
+        ------------------ */
+
+        let currentTrace = [];
+        let currentIndex = 0;
+        let playTimer = null;
+
+        function renderCycle(idx) {
+            const S = currentTrace[idx] || {};
+            ui.cycleDisplay.textContent = "Cycle: " + (S.cycle ?? idx);
+            ui.statCycles.textContent = S.stats ? S.stats.cycles : 0;
+            ui.statInst.textContent = S.stats ? S.stats.retired : 0;
+            ui.statStalls.textContent = S.stats ? S.stats.stalls : 0;
+            ui.statMispred.textContent = S.stats ? S.stats.mispred : 0;
+
+            function setStage(el, stage) {
+                el.innerHTML = '';
+                if (stage && stage.instr) {
+                    const d = document.createElement('div');
+                    d.className = 'instr';
+                    d.textContent = stage.instr;
+                    el.appendChild(d);
+                } else {
+                    const d = document.createElement('div');
+                    d.className = 'instr bubble';
+                    d.textContent = '—';
+                    el.appendChild(d);
+                }
+            }
+            setStage(ui.sIF, S.ifid);
+            setStage(ui.sID, S.idex);
+            setStage(ui.sEX, S.exmem);
+            setStage(ui.sMEM, S.memwb);
+            setStage(ui.sWB, {}); // simple view; memwb is shown in MEM stage area
+
+            // registers table
+            ui.regsView.innerHTML = '';
+            const tbl = document.createElement('table');
+            const header = document.createElement('tr');
+            header.innerHTML = '<th>Reg</th><th>Value</th>';
+            tbl.appendChild(header);
+            if (S.regs) {
+                for (let i = 0; i < 8; i++) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>R${i}</td><td class="${i !== 0 && (currentTrace[idx - 1] && currentTrace[idx - 1].regs && currentTrace[idx - 1].regs[i] !== S.regs[i]) ? 'reg-changed' : ''}">${S.regs[i] || 0}</td>`;
+                    tbl.appendChild(tr);
+                }
+            }
+            ui.regsView.appendChild(tbl);
+
+            // mem view
+            ui.memView.innerHTML = '';
+            if (S.mem) {
+                const t = document.createElement('table');
+                const head = document.createElement('tr');
+                head.innerHTML = '<th>Addr</th><th>Value</th>';
+                t.appendChild(head);
+                for (let i = 0; i < Math.min(S.mem.length, 64); i++) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${i}</td><td>${S.mem[i] || 0}</td>`;
+                    t.appendChild(tr);
+                }
+                ui.memView.appendChild(t);
+            }
+        }
+
+        function stopPlay() { if (playTimer) { clearInterval(playTimer); playTimer = null; } }
+        function startPlay() {
+            stopPlay();
+            const sp = parseFloat(ui.speed.value);
+            playTimer = setInterval(() => {
+                if (currentIndex < currentTrace.length - 1) {
+                    currentIndex++;
+                    ui.cycleScrub.value = currentIndex;
+                    renderCycle(currentIndex);
+                } else { stopPlay(); }
+            }, 500 / sp);
+        }
+
+        /* Buttons & events */
+        ui.assembleBtn.onclick = () => {
+            let code = ui.code.value;
+            let instrs = null;
+            try {
+                instrs = assemble(code);
+            } catch (e) {
+                alert("Assemble error: " + e.message);
+                return;
+            }
+            const opts = { forwarding: ui.forwarding.checked, memLatency: parseInt(ui.memLatency.value || 2) };
+            currentTrace = simulate(instrs, opts);
+            currentIndex = 0;
+            ui.cycleScrub.max = Math.max(0, currentTrace.length - 1);
+            ui.cycleScrub.value = 0;
+            renderCycle(0);
+        };
+
+        ui.stepFwd.onclick = () => { if (currentTrace.length) { currentIndex = Math.min(currentTrace.length - 1, currentIndex + 1); ui.cycleScrub.value = currentIndex; renderCycle(currentIndex); } };
+        ui.stepBack.onclick = () => { if (currentTrace.length) { currentIndex = Math.max(0, currentIndex - 1); ui.cycleScrub.value = currentIndex; renderCycle(currentIndex); } };
+        ui.play.onclick = () => { startPlay(); };
+        ui.pause.onclick = () => { stopPlay(); };
+        ui.cycleScrub.oninput = (e) => { currentIndex = parseInt(e.target.value); renderCycle(currentIndex); };
+
+        ui.loadLoop.onclick = () => { ui.code.value = EXAMPLES.loop; };
+        ui.loadBranch.onclick = () => { ui.code.value = EXAMPLES.branch; };
+        ui.loadHazard.onclick = () => { ui.code.value = EXAMPLES.hazard; };
+
+        // initial assemble so UI has something
+        ui.assembleBtn.click();
+
+    </script>
+</body>
+
+</html>

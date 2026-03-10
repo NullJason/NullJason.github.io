@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Showcase</title>
+    <style>
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .project-item {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .project-item:hover {
+            transform: scale(1.05);
+        }
+
+        .project-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .project-info {
+            padding: 15px;
+        }
+
+        .project-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .project-desc {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%;
+            background-color: rgba(0,0,0,0.8); 
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 700px;
+            width: 90%;
+            position: relative;
+            text-align: center;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .modal-long-desc {
+            margin-bottom: 20px;
+        }
+
+        .modal-actions button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Web Projects</h1>
+    <p>This page is a work in progress!</p>
+    <div class="grid-container" id="project-grid">
+        <!-- Project items will be dynamically here by js -->
+    </div>
+
+    <div id="project-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <img id="modal-image" class="modal-image" src="" alt="Project Image">
+            <h2 id="modal-title" class="modal-title"></h2>
+            <p id="modal-long-desc" class="modal-long-desc"></p>
+            <div class="modal-actions">
+                <button onclick="playProject()">Play Project</button>
+                <button onclick="shareProject()">Share Link</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const projects = [
+            {
+                id: 1,
+                title: "Dodeca Drop",
+                shortDesc: "Break 2D geometry",
+                longDesc: "Why",
+                link: "dodecaDrop.html",
+                imageUrl: "",
+                largeImageUrl: "",
+                shareUrl: ""
+            },
+            {
+                id: 2,
+                title: "Geometry Sim",
+                shortDesc: "3D Version of Dodeca Drop",
+                longDesc: "yay (unavailable as of rn)",
+                link: "geometrySim.html",
+                imageUrl: "",
+                largeImageUrl: "",
+                shareUrl: ""
+            },
+            {
+                id: 3,
+                title: "CPU Simulator",
+                shortDesc: "microarch visual explorer (MAVE)",
+                longDesc: "interactive cpu visuals & toy isa, wip project",
+                link: "cpuVisualizer.html",
+                imageUrl: "",
+                largeImageUrl: "",
+                shareUrl: ""
+            },
+            
+        ];
+
+        const grid = document.getElementById('project-grid');
+        const modal = document.getElementById('project-modal');
+        const modalImage = document.getElementById('modal-image');
+        const modalTitle = document.getElementById('modal-title');
+        const modalLongDesc = document.getElementById('modal-long-desc');
+        let currentShareUrl = '';
+        let currentProjectLink = '';
+
+
+        function createProjectItem(project) {
+            const item = document.createElement('div');
+            item.classList.add('project-item');
+            item.innerHTML = `
+                <img src="${project.imageUrl}" alt="${project.title}">
+                <div class="project-info">
+                    <div class="project-title">${project.title}</div>
+                    <p class="project-desc">${project.shortDesc}</p>
+                </div>
+            `;
+            item.onclick = () => openModal(project);
+            grid.appendChild(item);
+        }
+
+        function populateGrid() {
+            projects.forEach(createProjectItem);
+        }
+
+        function openModal(project) {
+            modalImage.src = project.largeImageUrl;
+            modalTitle.textContent = project.title;
+            modalLongDesc.textContent = project.longDesc;
+            currentShareUrl = project.shareUrl;
+            currentProjectLink = project.link;   
+            modal.style.display = 'flex';
+        }
+
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        function playProject() {
+            if (currentProjectLink) {
+                window.location.href = currentProjectLink;
+            }
+        }
+
+        function shareProject() {
+            if (navigator.share) {
+                navigator.share({
+                    title: modalTitle.textContent,
+                    text: modalLongDesc.textContent,
+                    url: window.location.origin + currentShareUrl,
+                }).catch(console.error);
+            } else {
+                alert('Share not supported on this browser. Link: ' + window.location.origin + currentShareUrl);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', populateGrid);
+    </script>
+
+</body>
+</html>

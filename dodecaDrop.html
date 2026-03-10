@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Geometric Shatter — Small Game</title>
+    <style>
+        :root {
+            --hud-bg: rgba(4, 8, 20, 0.7);
+            --accent: #6ee7b7;
+            --muted: #9aa8c3
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: linear-gradient(#061021, #081827);
+            color: #e8f1ff;
+            font-family: system-ui, Segoe UI, Roboto, Arial
+        }
+
+        
+        #container{
+            width:500px;
+            height:500px;
+            margin:auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0);
+        }
+
+        .content {
+            max-width: 760px;
+            margin: 140px auto;
+            padding: 24px;
+            background: transparent;
+            color: inherit
+        }
+
+        h1 {
+            margin-top: 0
+        }
+
+        /* Game overlay */
+        #gameRoot {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 100000;
+            display: block
+        }
+
+        canvas#gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+            pointer-events: auto
+        }
+
+        /* HUD */
+        .hud {
+            position: fixed;
+            left: 14px;
+            top: 14px;
+            background: var(--hud-bg);
+            backdrop-filter: blur(6px);
+            padding: 10px;
+            border-radius: 10px;
+            pointer-events: auto;
+            z-index: 100001
+        }
+
+        .hud .score {
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--accent)
+        }
+
+        .hud small {
+            color: var(--muted);
+            display: block;
+            margin-top: 4px
+        }
+
+        /* Shop */
+        .shop {
+            position: fixed;
+            right: 14px;
+            top: 14px;
+            width: 320px;
+            background: var(--hud-bg);
+            padding: 12px;
+            border-radius: 10px;
+            pointer-events: auto;
+            z-index: 100001
+        }
+
+        .shop h3 {
+            margin: 0 0 8px 0;
+            font-size: 16px
+        }
+
+        .upgrade {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01))
+        }
+
+        .upgrade .meta {
+            flex: 1;
+            margin-left: 8px
+        }
+
+        .upgrade button {
+            background: linear-gradient(90deg, #1a8, #08d);
+            border: none;
+            color: #012;
+            padding: 8px 10px;
+            border-radius: 6px;
+            cursor: pointer
+        }
+
+        .upgrade button[disabled] {
+            opacity: .4;
+            cursor: not-allowed;
+            background: #123
+        }
+
+        .controls {
+            position: fixed;
+            left: 14px;
+            bottom: 14px;
+            background: var(--hud-bg);
+            padding: 10px;
+            border-radius: 10px;
+            pointer-events: auto;
+            z-index: 100001
+        }
+
+        .message {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 22px;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 8px 12px;
+            border-radius: 9px;
+            color: #fff;
+            z-index: 100001
+        }
+
+        /* simple cosmetic */
+        .badge {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            opacity: .03;
+            font-size: 80px;
+            pointer-events: none
+        }
+    </style>
+</head>
+
+<body>
+    <div id="gameRoot" aria-hidden="false">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+        <div id="container"></div>
+
+        <script type="module">
+
+        import * as THREE from "https://unpkg.com/three@0.159.0/build/three.module.js";
+
+        const container = document.getElementById("container");
+
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(
+            75,
+            container.clientWidth/container.clientHeight,
+            0.1,
+            1000
+        );
+        camera.position.z = 3;
+        const renderer = new THREE.WebGLRenderer({
+            antialias:true,
+            alpha:true
+        });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setClearColor(0x000000,0);
+        container.appendChild(renderer.domElement);
+
+        const geometry = new THREE.DodecahedronGeometry(1);
+
+        const material = new THREE.MeshBasicMaterial({
+            color:0x00ffff,
+            transparent:true,
+            opacity:0.05
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        /* glowing edges, very coool */
+        const edges = new THREE.EdgesGeometry(geometry);
+        const edgeMaterial = new THREE.LineBasicMaterial({
+            color:0x00ffff
+        });
+        const edgeLines = new THREE.LineSegments(edges, edgeMaterial);
+        scene.add(edgeLines);
+
+        function animate(){
+            requestAnimationFrame(animate);
+
+            mesh.rotation.x += 0.01;
+            mesh.rotation.y += 0.01;
+
+            edgeLines.rotation.x = mesh.rotation.x;
+            edgeLines.rotation.y = mesh.rotation.y;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        </script>
+    <!-- HUD / Shop / Controls -->
+    <div class="hud" id="hud" style="pointer-events:auto">
+        <div class="score" id="score">Score: 0</div>
+        <small id="info">Level: 1 • Shapes destroyed: 0 • Planck: 0</small>
+    </div>
+
+    <div class="shop" id="shop" style="pointer-events:auto">
+        <h3>Shop</h3>
+        <div id="upgrades"></div>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.04);margin:8px 0" />
+        <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+            <div>Points: <strong id="currency">0</strong></div>
+            <button id="resetBtn">Reset</button>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:var(--muted)">Buy upgrades to modify spawn rate, gravity and
+            special effects. Buying all unlocks Prestige.</div>
+    </div>
+
+    <div class="controls" id="controls" style="pointer-events:auto">
+        <button id="pauseBtn">Pause</button>
+        <button id="clearBtn">Clear Debris</button>
+    </div>
+
+    <div id="msg" class="message" style="display:none"></div>
+    <div class="badge">GEOMETRY :)</div>
+
+    <script>
+        /* ===========================
+           GAME: Geometric Shatter
+           Single-file implementation — configure via GAME.cfg
+           =========================== */
+        const GAME = {
+            cfg: {
+                spawnIntervalMs: 900,      // initial spawn rate
+                gravity: 0.5,              // px/frame^2
+                debrisLifetime: 2000,      // ms
+                debrisCount: 10,
+                maxPoints: 8,              // initial max polygon vertices
+                minPoints: 4,
+                canvasFriction: 0.995,
+                spawnXPadding: 40,
+                blackHoleChance: 0.01,     // per spawn
+                darkMatterChance: 0.06,    // per spawn (cosmic strings unlocks)
+                planckReward: 1000,
+                scorePerVertexBase: 1,
+                maxShapes: 60
+            },
+            state: {
+                running: true,
+                score: 0,
+                currency: 0,
+                planck: 0,
+                shapesDestroyed: 0,
+                lastSpawn: 0,
+                time: 0,
+                mouse: { x: 0, y: 0, px: 0, py: 0, vx: 0, vy: 0, down: false }
+            },
+            upgrades: [
+                { id: 'pointDuplicator', name: 'Point Duplicator', desc: 'Multiply points gained from shapes', level: 0, max: 6, costBase: 50, costMul: 2, effect: (lvl) => ({ scoreMult: 1 + lvl }) },
+                { id: 'accelerator', name: 'Accelerator', desc: 'Increase gravity; maxed = shapes shatter on impact', level: 0, max: 6, costBase: 80, costMul: 2.25, effect: (lvl) => ({ gravity: GAME.cfg.gravity + lvl * 0.6, groundShatter: lvl >= 6 }) },
+                { id: 'qEntangle', name: 'Q-Entanglement', desc: 'Chance to chain-shatter nearby shapes', level: 0, max: 8, costBase: 70, costMul: 2, effect: (lvl) => ({ chance: 0.05 + lvl * 0.04, radius: 40 + lvl * 10, extra: Math.floor(lvl / 2) }) },
+                { id: 'nthDim', name: 'Nth-Dimension', desc: 'Increase max points & spawn rate', level: 0, max: 8, costBase: 120, costMul: 3, effect: (lvl) => ({ maxPoints: GAME.cfg.maxPoints + lvl * 2, spawnMs: Math.max(200, GAME.cfg.spawnIntervalMs - lvl * 80) }) },
+                { id: 'cosmicStrings', name: 'Cosmic Strings', desc: 'Generate rare dark matter shapes', level: 0, max: 3, costBase: 200, costMul: 4, effect: (lvl) => ({ enable: lvl > 0, darkChance: 0.02 + lvl * 0.03 }) },
+                { id: 'blackHole', name: 'Black Hole', desc: 'Enable rare super-accelerated shapes', level: 0, max: 3, costBase: 500, costMul: 6, effect: (lvl) => ({ enable: lvl > 0, bhChance: 0.005 + lvl * 0.01 }) }
+            ],
+            entities: {
+                shapes: [],
+                debris: []
+            }
+        };
+
+        /* ---------- Canvas & resize ---------- */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d', { alpha: true });
+        function resizeCanvas() {
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+        }
+        addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        /* ---------- Utils ---------- */
+        function rand(min = 0, max = 1) { return min + Math.random() * (max - min) }
+        function now() { return performance.now() }
+
+        /* ---------- Shape model ---------- */
+        class Shape {
+            constructor(x, y, vertices, opts = {}) {
+                this.x = x; this.y = y;
+                this.vx = rand(-0.4, 0.4);
+                this.vy = rand(0.5, 1.6);
+                this.ax = 0; this.ay = 0;
+                this.vertices = vertices;
+                this.radius = 12 + vertices * 6; // approx size by vertices
+                this.rotation = rand(0, Math.PI * 2);
+                this.omega = rand(-0.03, 0.03);
+                this.type = opts.type || 'normal'; // 'normal','dark','blackhole'
+                this.hp = vertices; // simple health
+                this.pointValue = vertices * GAME.cfg.scorePerVertexBase;
+                if (this.type === 'dark') { this.pointValue *= 3; }
+                if (this.type === 'blackhole') { this.pointValue *= 6; this.vy += 6; }
+                this.spawnT = now();
+                this.color = this.type === 'dark' ? '#bb33ff' : (this.type === 'blackhole' ? '#ffdd33' : '#7fb3ff');
+                this.broken = false;
+            }
+            applyPhysics(dt) {
+                // gravity modified by accelerator upgrade
+                let g = GAME.cfg.gravity;
+                const upAccel = getUpgrade('accelerator');
+                if (upAccel && upAccel.level > 0) g = GAME.cfg.gravity + upAccel.level * 0.6;
+                this.vy += g * (dt / 16);
+                this.vx *= GAME.cfg.canvasFriction;
+                this.vy *= GAME.cfg.canvasFriction;
+                this.x += this.vx * (dt / 16);
+                this.y += this.vy * (dt / 16);
+                this.rotation += this.omega * (dt / 16);
+                // ground collision
+                if (this.y + this.radius > canvas.height - 6) {
+                    if (upAccel && upAccel.level >= upAccel.max) {
+                        // if accelerator maxed: shatter on ground
+                        this.shatter('impact');
+                    } else {
+                        // bounce a bit
+                        this.y = canvas.height - 6 - this.radius;
+                        this.vy *= -0.45;
+                        this.vx *= 0.8;
+                    }
+                }
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                // fill polygon
+                ctx.beginPath();
+                for (let i = 0; i < this.vertices; i++) {
+                    const a = i / this.vertices * Math.PI * 2;
+                    const r = this.radius * (0.95 + 0.08 * Math.sin(a * 3 + this.spawnT * 0.002));
+                    const px = Math.cos(a) * r;
+                    const py = Math.sin(a) * r;
+                    if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                // style
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = (this.type === 'dark') ? 0.85 : 0.9;
+                ctx.fill();
+                // stroke
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#ffffff22';
+                ctx.stroke();
+                // small label
+                ctx.fillStyle = '#00000088';
+                ctx.font = 'bold 12px system-ui';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.pointValue, 0, 4);
+                ctx.restore();
+            }
+            damage(dmg, source) {
+                if (this.broken) return;
+                this.hp -= dmg;
+                if (this.hp <= 0) this.shatter(source);
+            }
+            shatter(reason = '') {
+                if (this.broken) return;
+                this.broken = true;
+                // award points
+                const upDD = getUpgrade('pointDuplicator');
+                const mult = 1 + (upDD ? upDD.level : 0);
+                const points = Math.floor(this.pointValue * mult);
+                GAME.state.score += points;
+                GAME.state.currency += points;
+                GAME.state.shapesDestroyed++;
+                // planck reward for blackhole
+                if (this.type === 'blackhole') {
+                    GAME.state.planck++;
+                    // big bonus
+                    GAME.state.score += GAME.cfg.planckReward;
+                    GAME.state.currency += GAME.cfg.planckReward;
+                    showMessage('You destroyed a Black Hole! +Planck Length & bonus points');
+                }
+                // spawn debris at shape position
+                spawnShatterDebris(this.x, this.y, Math.min(18, this.vertices * 3));
+                // q-entanglement chain: chance to shatter nearby shapes
+                const q = getUpgrade('qEntangle');
+                if (q && q.level > 0) {
+                    const eff = q.effect(q.level);
+                    if (Math.random() < eff.chance) {
+                        // find nearby shapes and shatter some
+                        let nearby = GAME.entities.shapes.filter(s => !s.broken && distance(s.x, s.y, this.x, this.y) < eff.radius);
+                        nearby = shuffle(nearby).slice(0, 1 + eff.extra);
+                        nearby.forEach(s => { s.shatter('qchain'); });
+                    }
+                }
+                // remove shape visually (we'll filter later)
+                // particle explosion
+                for (let i = 0; i < 14; i++) {
+                    spawnParticle(this.x + rand(-20, 20), this.y + rand(-20, 20), {
+                        vx: rand(-6, 6), vy: rand(-6, 2), life: 600 + Math.random() * 600, col: '#fff'
+                    });
+                }
+            }
+        }
+
+        /* ---------- Debris / cursor shatter ---------- */
+        class Debris {
+            constructor(x, y, vx, vy, size = 6, life = GAME.cfg.debrisLifetime) {
+                this.x = x; this.y = y; this.vx = vx; this.vy = vy; this.size = size; this.life = life; this.start = now();
+                this.col = `hsl(${Math.floor(rand(180, 220))},80%,70%)`;
+            }
+            apply(dt) {
+                this.vy += GAME.cfg.gravity * (dt / 16);
+                this.vx *= 0.996; this.vy *= 0.996;
+                this.x += this.vx * (dt / 16);
+                this.y += this.vy * (dt / 16);
+            }
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.vx * 0.03 + this.vy * 0.02);
+                ctx.fillStyle = this.col;
+                ctx.globalAlpha = Math.max(0, 1 - (now() - this.start) / this.life);
+                ctx.beginPath();
+                ctx.moveTo(-this.size, -this.size / 2);
+                ctx.lineTo(this.size, 0);
+                ctx.lineTo(-this.size, this.size / 2);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+            expired() { return (now() - this.start) > this.life; }
+        }
+
+        /* ---------- Particles for explosions ---------- */
+        function spawnParticle(x, y, opts = {}) {
+            const p = {
+                x, y,
+                vx: opts.vx || rand(-2, 2),
+                vy: opts.vy || rand(-2, 0),
+                life: opts.life || 500,
+                start: now(),
+                col: opts.col || '#fff',
+                size: opts.size || (2 + Math.random() * 4)
+            };
+            GAME.entities.debris.push(p);
+        }
+
+        /* ---------- Utilities continued ---------- */
+        function distance(x1, y1, x2, y2) { return Math.hypot(x1 - x2, y1 - y2); }
+        function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]] } return a; }
+        function getUpgrade(id) { return GAME.upgrades.find(u => u.id === id); }
+        function costFor(u) { return Math.floor(u.costBase * Math.pow(u.costMul, u.level)); }
+
+        /* ---------- Spawn logic ---------- */
+        function spawnShape() {
+            if (GAME.entities.shapes.length > GAME.cfg.maxShapes) return;
+            // get nthDim effect
+            const nth = getUpgrade('nthDim');
+            let maxP = GAME.cfg.maxPoints;
+            let spawnMs = GAME.cfg.spawnIntervalMs;
+            if (nth && nth.level > 0) {
+                const eff = nth.effect(nth.level);
+                maxP = eff.maxPoints;
+                spawnMs = eff.spawnMs;
+            }
+            // cosmic strings dark matter
+            const cs = getUpgrade('cosmicStrings');
+            const darkChance = (cs && cs.level > 0) ? (cs.effect(cs.level).darkChance || 0) : 0;
+            // black hole upgrade
+            const bh = getUpgrade('blackHole');
+            const bhChance = (bh && bh.level > 0) ? (bh.effect(bh.level).bhChance || 0) : 0;
+
+            const x = rand(GAME.cfg.spawnXPadding, canvas.width - GAME.cfg.spawnXPadding);
+            const y = -40;
+            const vertices = Math.floor(rand(GAME.cfg.minPoints, maxP + 1));
+            let type = 'normal';
+            if (Math.random() < (darkChance)) type = 'dark';
+            else if (Math.random() < (bhChance)) type = 'blackhole';
+            GAME.entities.shapes.push(new Shape(x, y, vertices, { type }));
+            GAME.state.lastSpawn = now();
+        }
+
+        /* ---------- Shatter debris spawn from cursor or shape ---------- */
+        function spawnShatterDebris(cx, cy, count) {
+            const m = GAME.state.mouse;
+            // use mouse velocity as swing force
+            const swing = Math.hypot(m.vx, m.vy) * 0.25 + 1.2;
+            for (let i = 0; i < count; i++) {
+                const ang = rand(0, Math.PI * 2);
+                const speed = rand(1, 5) * swing * rand(0.6, 1.4);
+                const vx = Math.cos(ang) * speed + (m.vx * 0.4);
+                const vy = Math.sin(ang) * speed + (m.vy * 0.2) - rand(0, 2);
+                GAME.entities.debris.push(new Debris(cx + rand(-6, 6), cy + rand(-6, 6), vx, vy, rand(3, 9), GAME.cfg.debrisLifetime));
+            }
+        }
+
+        /* ---------- Cursor shatter event ---------- */
+        function cursorShatter(x, y) {
+            // spawn a ring of debris pieces that respond to mouse swing
+            spawnShatterDebris(x, y, GAME.cfg.debrisCount + Math.floor(Math.random() * 8));
+            // small screen quake (visual feedback)
+            shakeScreen(120, 6);
+        }
+
+        /* ---------- Screen shake ---------- */
+        let shake = { t: 0, amp: 0 };
+        function shakeScreen(duration, amp) {
+            shake.t = now() + duration;
+            shake.amp = Math.max(shake.amp, amp);
+        }
+
+        /* ---------- Message ---------- */
+        let msgTimer = 0;
+        function showMessage(text, ms = 2400) {
+            const el = document.getElementById('msg');
+            el.textContent = text; el.style.display = 'block';
+            clearTimeout(msgTimer);
+            msgTimer = setTimeout(() => { el.style.display = 'none'; }, ms);
+        }
+
+        /* ---------- Collision detection: debris -> shapes ---------- */
+        function handleCollisions() {
+            const shapes = GAME.entities.shapes;
+            const debris = GAME.entities.debris;
+            for (let i = debris.length - 1; i >= 0; i--) {
+                const d = debris[i];
+                if (d instanceof Debris) {
+                    // Debris object
+                    for (let j = shapes.length - 1; j >= 0; j--) {
+                        const s = shapes[j];
+                        if (s.broken) continue;
+                        if (distance(d.x, d.y, s.x, s.y) < s.radius) {
+                            // damage proportional to speed
+                            const spd = Math.hypot(d.vx, d.vy);
+                            const damage = Math.max(1, Math.floor(spd * 0.6));
+                            s.damage(damage, 'debris');
+                            // remove debris piece immediately
+                            debris.splice(i, 1);
+                            break;
+                        }
+                    }
+                } else {
+                    // simple particle p
+                    for (let j = shapes.length - 1; j >= 0; j--) {
+                        const s = shapes[j];
+                        if (s.broken) continue;
+                        if (distance(d.x, d.y, s.x, s.y) < s.radius) {
+                            const spd = Math.hypot(d.vx, d.vy);
+                            const damage = Math.max(1, Math.floor(spd * 0.35));
+                            s.damage(damage, 'particle');
+                        }
+                    }
+                }
+            }
+        }
+
+        /* ---------- Main loop ---------- */
+        let lastFrame = now();
+        function loop() {
+            if (!GAME.state.running) { requestAnimationFrame(loop); lastFrame = now(); return; }
+            const t = now();
+            const dt = Math.min(48, t - lastFrame);
+            lastFrame = t;
+            GAME.state.time = t;
+
+            // spawn shapes based on spawn rate
+            const nth = getUpgrade('nthDim'); let spawnMs = GAME.cfg.spawnIntervalMs;
+            if (nth && nth.level > 0) spawnMs = nth.effect(nth.level).spawnMs;
+            if (t - GAME.state.lastSpawn > spawnMs) spawnShape();
+
+            // background clear
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // small vignette
+            ctx.fillStyle = 'rgba(3,7,12,0.24)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // apply shake transform
+            ctx.save();
+            if (shake.t > t) {
+                const s = (Math.random() * 2 - 1) * shake.amp;
+                ctx.translate(s, (Math.random() * 2 - 1) * shake.amp);
+                shake.amp *= 0.96;
+            } else { shake.amp = 0; }
+
+            // update shapes
+            for (let i = GAME.entities.shapes.length - 1; i >= 0; i--) {
+                const s = GAME.entities.shapes[i];
+                if (s.broken) { GAME.entities.shapes.splice(i, 1); continue; }
+                s.applyPhysics(dt);
+                s.draw(ctx);
+            }
+
+            // update debris (Debris class objects)
+            for (let i = GAME.entities.debris.length - 1; i >= 0; i--) {
+                const d = GAME.entities.debris[i];
+                if (d instanceof Debris) {
+                    d.apply(dt);
+                    if (d.expired() || d.y > canvas.height + 60) { GAME.entities.debris.splice(i, 1); continue; }
+                    d.draw(ctx);
+                } else {
+                    // particle p
+                    const p = d;
+                    p.vy += GAME.cfg.gravity * (dt / 16);
+                    p.x += p.vx * (dt / 16); p.y += p.vy * (dt / 16);
+                    ctx.globalAlpha = Math.max(0, 1 - (t - p.start) / p.life);
+                    ctx.fillStyle = p.col;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                    ctx.globalAlpha = 1;
+                    if (t - p.start > p.life) GAME.entities.debris.splice(i, 1);
+                }
+            }
+
+            // collisions
+            handleCollisions();
+
+            // HUD render overlay items (cursor)
+            ctx.restore();
+
+            // render cursor (small reticle)
+            const m = GAME.state.mouse;
+            ctx.save();
+            ctx.translate(m.x, m.y);
+            ctx.rotate((m.vx + m.vy) * 0.005);
+            ctx.globalAlpha = 0.95;
+            // cursor shape
+            ctx.beginPath();
+            ctx.moveTo(-8, -8); ctx.lineTo(8, 0); ctx.lineTo(-8, 8); ctx.closePath();
+            ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.12; ctx.fill();
+            ctx.strokeStyle = '#88ddff'; ctx.lineWidth = 1.5; ctx.stroke();
+            ctx.restore();
+
+            // small footer info update
+            document.getElementById('score').textContent = 'Score: ' + Math.floor(GAME.state.score);
+            document.getElementById('currency').textContent = Math.floor(GAME.state.currency);
+            document.getElementById('info').textContent = `Level: 1 • Shapes: ${GAME.state.shapesDestroyed} • Planck: ${GAME.state.planck}`;
+
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+
+        /* ---------- Input handling ---------- */
+        canvas.addEventListener('mousemove', (ev) => {
+            const rec = canvas.getBoundingClientRect();
+            const mx = ev.clientX - rec.left;
+            const my = ev.clientY - rec.top;
+            const m = GAME.state.mouse;
+            m.vx = mx - m.x; m.vy = my - m.y;
+            m.px = m.x; m.py = m.y;
+            m.x = mx; m.y = my;
+            // small smoothing
+            m.vx *= 0.8; m.vy *= 0.8;
+        });
+        canvas.addEventListener('mousedown', (ev) => {
+            // left click shatters cursor
+            const rec = canvas.getBoundingClientRect();
+            const mx = ev.clientX - rec.left;
+            const my = ev.clientY - rec.top;
+            cursorShatter(mx, my);
+            GAME.state.mouse.down = true;
+            // try to physically hit shapes if click intersects
+            for (let i = GAME.entities.shapes.length - 1; i >= 0; i--) {
+                const s = GAME.entities.shapes[i];
+                if (!s.broken && distance(mx, my, s.x, s.y) < s.radius) {
+                    s.shatter('click');
+                    break;
+                }
+            }
+        });
+        window.addEventListener('mouseup', () => GAME.state.mouse.down = false);
+
+        /* ---------- Shop UI build ---------- */
+        const upgradesRoot = document.getElementById('upgrades');
+        function renderShop() {
+            upgradesRoot.innerHTML = '';
+            GAME.upgrades.forEach(u => {
+                const el = document.createElement('div'); el.className = 'upgrade';
+                const left = document.createElement('div'); left.style.display = 'flex'; left.style.alignItems = 'center';
+                const meta = document.createElement('div'); meta.className = 'meta';
+                const title = document.createElement('div'); title.textContent = `${u.name} (Lv ${u.level}/${u.max})`; title.style.fontWeight = '700';
+                const desc = document.createElement('div'); desc.textContent = u.desc; desc.style.fontSize = '12px'; desc.style.color = 'var(--muted)';
+                meta.appendChild(title); meta.appendChild(desc);
+                const cost = costFor(u);
+                const btn = document.createElement('button');
+                btn.textContent = `Buy ${cost}`;
+                btn.disabled = (GAME.state.currency < cost) || (u.level >= u.max);
+                btn.onclick = () => {
+                    if (GAME.state.currency >= cost && u.level < u.max) {
+                        GAME.state.currency -= cost;
+                        u.level++;
+                        // apply immediate effects where needed
+                        if (u.id === 'nthDim') {
+                            // increase allowed max points
+                            // handled during spawn
+                        }
+                        if (u.id === 'accelerator' && u.level >= u.max) {
+                            showMessage('Accelerator maxed — shapes now shatter on ground');
+                        }
+                        renderShop();
+                        showMessage(`${u.name} purchased (Lv ${u.level})`);
+                    }
+                };
+                el.appendChild(left);
+                el.appendChild(meta);
+                el.appendChild(btn);
+                upgradesRoot.appendChild(el);
+            });
+            // if all maxed, show prestige unlock
+            const allMaxed = GAME.upgrades.every(u => u.level >= u.max);
+            if (allMaxed) {
+                const prestige = document.createElement('div');
+                prestige.style.marginTop = '8px';
+                prestige.innerHTML = `<button id="prestigeBtn" style="padding:8px 10px;border-radius:8px">Enter Prestige Shop</button>`;
+                upgradesRoot.appendChild(prestige);
+                prestige.querySelector('#prestigeBtn').onclick = () => openPrestige();
+            }
+        }
+        renderShop();
+        document.getElementById('resetBtn').onclick = () => location.reload();
+        document.getElementById('pauseBtn').onclick = (e) => { GAME.state.running = !GAME.state.running; e.target.textContent = GAME.state.running ? 'Pause' : 'Resume'; };
+        document.getElementById('clearBtn').onclick = () => { GAME.entities.debris = []; showMessage('Cleared debris'); };
+
+        /* ---------- Prestige ---------- */
+        function openPrestige() {
+            if (!confirm('Prestige shop: convert 50% of currency into Prestige Points and reset?')) return;
+            const prestigePoints = Math.floor(GAME.state.currency * 0.5);
+            GAME.state.currency = 0;
+            // as a simple prestige effect we boost base score multiplier
+            GAME.cfg.scorePerVertexBase += Math.max(1, Math.floor(prestigePoints / 500));
+            showMessage(`Prestiged! +${Math.floor(GAME.cfg.scorePerVertexBase)} to base score multiplier`);
+            // reset game lightly
+            GAME.entities.shapes = []; GAME.entities.debris = [];
+            GAME.state.score = 0; GAME.state.shapesDestroyed = 0; GAME.state.planck = 0;
+        }
+
+        /* ---------- Small helpers ---------- */
+        function shuffleInPlace(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]] } return a; }
+
+        /* ---------- Keyboard shortcuts for testing ---------- */
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'p') { document.getElementById('pauseBtn').click(); showMessage('Toggled pause'); }
+            if (e.key === 's') { spawnShape(); showMessage('Spawned shape'); }
+            if (e.key === 'd') { spawnShatterDebris(innerWidth / 2, innerHeight / 2, 20); showMessage('Debris'); }
+        });
+
+        /* ---------- collision and housekeeping run periodically ---------- */
+        setInterval(() => {
+            // spawn rate modifications by nth dimension are checked in spawn logic
+            // clean shapes that go way off
+            GAME.entities.shapes = GAME.entities.shapes.filter(s => s && !s.broken && s.y < canvas.height + 400);
+            // update shop UI currency display
+            document.getElementById('currency').textContent = Math.floor(GAME.state.currency);
+            renderShop();
+        }, 600);
+
+        /* ---------- random helpers used above ---------- */
+        function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]] } return a; }
+
+        /* ---------- End of file ----------
+           You can tweak constants in GAME.cfg for spawn rate, gravity, 
+           debris lifetimes, and other balancing.
+           Future improvements you can add:
+           - persistence via localStorage
+           - more visual polish (shaders / WebGL)
+           - player progression UI and clearer prestige path
+           - audio feedback for shatter & shop
+        */
+    </script>
+</body>
+
+</html>

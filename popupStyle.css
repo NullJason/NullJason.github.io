@@ -5,7 +5,7 @@
     justify-content: center;
     align-items: center;
     position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
+    z-index: 100; /* Sit on top */
     left: 0;
     top: 0;
     width: 100%; /* Full width */
@@ -26,6 +26,7 @@
     -webkit-user-select: none; /* Safari */
     user-select: none;
     position: fixed;
+    color: black;
 }
 
 /* Class to hide the modal */
@@ -34,12 +35,18 @@
 }
 
 #PUTimer {
-    padding: 10px;
-    background-color: lightgray;
+    border-radius: 40%;
+    background-color:blanchedalmond;
     -webkit-user-select: none; /* Safari */
     user-select: none;
     display: flex;
     justify-content: center;
-    align-items: end;
+    align-items: center;
     position: absolute;
+    width: 42px;
+    height: 42px;
+    font-size: 8pt;
+    text-align: center;
+    top: 5px;
+    left: 5px;
 }

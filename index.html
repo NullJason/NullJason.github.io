@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,16 +8,18 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="popupStyle.css">
     <link rel="stylesheet" href="dynamicStyle.css">
+    <link rel="stylesheet" href="dodeca.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body class>
     <div id="modalOverlay">
         <!-- Modal Content Box -->
         <div class="modal-content">
-            <div id="PUTimer">
-                <p>:) </p>
+            <div id="PUTimer" >                
+                Hi
             </div>
-            <h2 style = "font-family: 'Courier New', Courier, monospace;">Welcome to my abode!</h2>
+            <h2 style="font-family: 'Courier New', Courier, monospace;">Welcome to my abode!</h2>
             <p><i>It is currently under construction but feel free to click around!</i></p>
             <p style="font-size:10pt;">Click to dismiss.</p>
         </div>
@@ -34,14 +37,15 @@
                 <li><a href="#skills" class="nav-link">Skills</a></li>
                 <li><a href="#projects" class="nav-link">Projects</a></li>
                 <li><a href="#contact" class="nav-link">Contact</a></li>
-                <li><div style="display: flex; justify-content: center; align-items: center;">
-                    <button id="theme-toggle" class="nav-link" >
-                    <i class="fas fa-moon" id="moon-icon"></i>
-                    <i class="fas fa-sun" id="sun-icon" style="display: none;"></i>
-                    </button>
+                <li>
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                        <button id="theme-toggle" class="nav-link">
+                            <i class="fas fa-moon" id="moon-icon"></i>
+                            <i class="fas fa-sun" id="sun-icon" style="display: none;"></i>
+                        </button>
                     </div>
                 </li>
-                
+
             </ul>
 
             <div class="hamburger">
@@ -68,16 +72,18 @@
             <div class="intro-img-container">
                 <p style="font-size: 26px; font-weight: bolder;"><i>Shortcut</i></p>
                 <div class="headshot-container">
-                        <img src="headshot.png" class="headshot">
-                    </div>
+                    <img src="headshot.png" class="headshot">
+                </div>
                 <div class="intro-contacts">
                     <div class="intro-contact-item">
-                        <a href="https://github.com/NullJason" class="contact-image-link" target="_blank" rel="noopener">
+                        <a href="https://github.com/NullJason" class="contact-image-link" target="_blank"
+                            rel="noopener">
                             <i class="fab fa-github"></i>
                         </a>
                     </div>
                     <div class="intro-contact-item">
-                        <a href="https://linkedin.com/in/jason-wang-170973325" class="contact-image-link" target="_blank" rel="noopener">
+                        <a href="https://linkedin.com/in/jason-wang-170973325" class="contact-image-link"
+                            target="_blank" rel="noopener">
                             <i class="fab fa-linkedin" style="width: auto; height: 100%;"></i>
                         </a>
                     </div>
@@ -99,11 +105,14 @@
                 <div class="about-text">
                     <p>Hello and welcome to my page! <br>
                         I'm a Junior Computer Science Undergrad working towards my degree at Brooklyn College!<br><br>
-                        I'm interested in Web Dev, Building Software & Design, Learning new Programming Languages & Libraries, Game Design & Development, Data Storing & Retrieval, and Machine Learning amoung other topics.<br><br>
+                        I'm interested in Web Dev, Building Software & Design, Learning new Programming Languages &
+                        Libraries, Game Design & Development, Data Storing & Retrieval, and Machine Learning amoung
+                        other topics.<br><br>
                         Personally, I'm a big fan of good food! Try this desert - Bing Fan 冰饭! <br>
                         I also like badminton, table tennis, and swimming!<br><br>
                         Of Course, I'm also a fan of new Skills & Info, <br>
-                        so if you would like to force feed me information about the cloud, computers, or just in general, <a href="#contact" class="nav-link">Contact me</a>!
+                        so if you would like to force feed me information about the cloud, computers, or just in
+                        general, <a href="#contact" class="nav-link">Contact me</a>!
                     </p>
                 </div>
             </div>
@@ -124,9 +133,9 @@
                         <span class="skill-item">Lua</span>
                     </div>
                 </div>
-                
-              
-                
+
+
+
                 <div class="skill-category">
                     <h3>Tools & Technologies</h3>
                     <div class="skill-items">
@@ -146,7 +155,7 @@
             <div class="projects-filter">
                 <button class="filter-btn active" data-filter="all">All</button>
                 <button class="filter-btn" data-filter="gamedev">Game_Dev</button>
-                <button class="filter-btn" data-filter="other">Other</button> 
+                <button class="filter-btn" data-filter="other">Other</button>
             </div>
             <div id="projects-container" class="projects-grid">
                 <div class="loading">Loading projects from GitHub...</div>
@@ -157,39 +166,48 @@
     <!-- contacts -->
     <section id="contact" class="contact theme-element">
         <div class="container">
-            <h2 class="section-title">Get In Touch</h2>
-            <div class="contact-content">
-                <div class="contact-info">
-                    <h3>Hello!</h3>
-                    <p>I'm always interested in new opportunities and collaborations. Feel free to reach out!</p>
-                    
-                    <div class="contact-methods">
-                        <div class="contact-method">
-                            <i class="fas fa-envelope"></i>
-                            <div>
-                                <h4>Email</h4>
-                                <a href="mailto:your.email@example.com" class="contact-link">informnovember@gmail.com</a>
+            <div id="box" class="box-overlay" aria-hidden="true">
+                <div id="liquid" class="liquid"></div>
+                <div id="boxContent" class="box-content">
+                    <h2 class="section-title">Get In Touch</h2>
+                    <div class="contact-content">
+                        <div class="contact-info">
+                            <h3>Hello!</h3>
+                            <p>I'm always interested in new opportunities and collaborations. Feel free to reach out!
+                            </p>
+
+                            <div class="contact-methods">
+                                <div class="contact-method">
+                                    <i class="fas fa-envelope"></i>
+                                    <div>
+                                        <h4>Email</h4>
+                                        <a href="mailto:your.email@example.com"
+                                            class="contact-link">informnovember@gmail.com</a>
+                                    </div>
+                                </div>
+                                <div class="contact-method">
+                                    <i class="fab fa-github"></i>
+                                    <div>
+                                        <h4>GitHub</h4>
+                                        <a href="https://github.com/NullJason" class="contact-link" target="_blank"
+                                            rel="noopener">github.com/NullJason</a>
+                                    </div>
+                                </div>
+                                <div class="contact-method">
+                                    <i class="fab fa-linkedin"></i>
+                                    <div>
+                                        <h4>LinkedIn</h4>
+                                        <a href="https://linkedin.com/in/jason-wang-170973325" class="contact-link"
+                                            target="_blank" rel="noopener">linkedin.com/in/jason-wang-170973325</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="contact-method">
-                            <i class="fab fa-github"></i>
-                            <div>
-                                <h4>GitHub</h4>
-                                <a href="https://github.com/NullJason" class="contact-link" target="_blank" rel="noopener">github.com/NullJason</a>
-                            </div>
-                        </div>
-                        <div class="contact-method">
-                            <i class="fab fa-linkedin"></i>
-                            <div>
-                                <h4>LinkedIn</h4>
-                                <a href="https://linkedin.com/in/jason-wang-170973325" class="contact-link" target="_blank" rel="noopener">linkedin.com/in/jason-wang-170973325</a>
-                            </div>
-                        </div>
+
+
+
                     </div>
                 </div>
-                
-                
-                </form>
             </div>
         </div>
     </section>
@@ -213,8 +231,20 @@
         </div>
     </footer>
 
+    <div id="overlay" aria-hidden="true">
+        <div id="three-container" class="hidden" role="presentation">
+        </div>
+    </div>
+
+    <div id="ctxMenu" role="menu" aria-hidden="true">
+        <!-- Links will be populated from cfg.menuLinks -->
+    </div>
+
     <script src="script.js"></script>
     <script src="popupEvent.js"></script>
     <script src="dynamicEvent.js"></script>
+    <script src="https://unpkg.com/three@0.160.1/build/three.min.js"></script>
+    <script src="dodeca.js"></script>
 </body>
+
 </html>

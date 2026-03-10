@@ -6,18 +6,18 @@ let darkMode = true;
 
 // Function to set the theme
 function setTheme(mode) {
-    darkMode = mode;
+  darkMode = mode;
   if (darkMode == true) {
     for (const elem of themeElements) {
-        elem.classList.add('dark-mode');
+      elem.classList.add('dark-mode');
     }
-    
+
     moonIcon.style.display = 'none';
     sunIcon.style.display = 'inline';
     localStorage.setItem('theme', 'dark');
   } else {
     for (const elem of themeElements) {
-        elem.classList.remove('dark-mode');
+      elem.classList.remove('dark-mode');
     }
     moonIcon.style.display = 'inline';
     sunIcon.style.display = 'none';
