@@ -285,7 +285,8 @@
                                 <div style="margin-bottom:8px" class="small muted">Save State: <span id="saveState">not saved</span></div>
                                 <div style="display:flex;gap:8px">
                                     <button id="exportBtn" class="btn">Export</button>
-                                    <label id="importFile" class="btn" style="cursor:pointer; margin:0;">Import</label>
+                                    <button id="importFile" class="btn" style="cursor:pointer; margin:0;">Import</button>
+                                    <input type="file" id="fileInput" style="display:none">
                                     <button id="resetBtn" class="btn" style="background:#ff6b6b">Wipe Save</button>
                                 </div>
                             </div>
@@ -1073,9 +1074,14 @@
             const a = document.createElement('a'); a.href = url; a.download = 'geomshatter-save.json'; a.click();
             URL.revokeObjectURL(url);
         });
-        document.getElementById('importFile').addEventListener('change', (ev) => {
+        document.getElementById('importFile').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', (ev) => {
             const f = ev.target.files[0];
             if (!f) return;
+            
             const r = new FileReader();
             r.onload = () => {
                 try {
