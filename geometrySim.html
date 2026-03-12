@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+<!--Developed by NullJason, nulljason.github.io-->
 
 <head>
     <meta charset="utf-8" />
@@ -25,6 +26,25 @@
             font-family: Inter, system-ui, Segoe UI, Arial
         }
 
+        .devGuy {
+            position: fixed;
+            top: 10px;
+            right: 10px;            
+            background-color: rgba(0, 0, 0, 0.06); 
+            color: rgba(0, 128, 255, 0.3);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: sans-serif;
+            font-size: 12px;
+            user-select: none;
+            z-index: 1;
+            transition: all .3 ease;
+        }
+        .devGuy:hover{
+            background-color: rgba(0,0,0,.3);
+            color:rgba(255, 255, 255, .7)
+        }
+        
         #wrap {
             position: absolute;
             inset: 0;
@@ -236,7 +256,9 @@
             padding: 8px;
             border-radius: 8px;
             background: rgba(4, 8, 12, 0.6);
-            font-size: 13px
+            font-size: 13px;
+            color:inherit;
+            border: inherit;
         }
 
         input[type=file] {
@@ -259,6 +281,10 @@
 </head>
 
 <body>
+    <div class="devGuy">
+        Developed by <a href="https://nulljason.github.io/" style="color: inherit; text-decoration: inherit;"><b>&copy;NullJason</b></a>
+    </div>
+
     <div id="wrap"></div>
 
     <div id="ui">
@@ -310,7 +336,7 @@
         </div>
 
     <div id="messages"></div>
-    <div id="hud-bottom">Tip: Swing to shatter. Use WASD to move around. Open Menu for Upgrades & Saves.</div>
+    <button id="hud-bottom" onclick="this.style.display='none';">Tip: Swing to shatter. Use WASD to move around. Open Menu for Upgrades & Saves.</button>
 
     <script type="module">
         import * as THREE from 'https://unpkg.com/three@0.159.0/build/three.module.js';
@@ -1093,7 +1119,7 @@
         });
         document.getElementById('resetBtn').addEventListener('click', resetSave);
 
-        console.log("1. reconfigure parsec as part of upgrade stats instead of outside. 2. an object hitting the grid causes another to fly, free feature lmfao")
+        console.log("1. reconfigure parsec as part of upgrade stats instead of outside. \n2. an object hitting the grid causes another to fly, free feature lmfao \n3. add a upgrade which adds walls that prevents certain objects from flying away.")
         
 
         const messages = document.getElementById('messages');
