@@ -508,7 +508,7 @@
         const particleMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
         function spawnGroundParticles(pos, force) {
-            const count = Math.min(20, Math.floor(force)); // Limit max particles
+            const count = Math.min(10, Math.floor(force)); // Limit max particles
             for(let i = 0; i < count; i++) {
                 const mesh = new THREE.Mesh(particleGeo, particleMat);
                 mesh.position.copy(pos);
@@ -531,6 +531,7 @@
         groundBody.addEventListener('collide', (ev) => {
             const velocity = ev.contact.getImpactVelocityAlongNormal();
             // Only trigger bend on somewhat forceful impacts
+            if (debrisObjects.includes(ev.body)) {return;}
             if (Math.abs(velocity) > 10) {
                 const contactX = ev.contact.bi.position.x + ev.contact.ri.x;
                 const contactZ = ev.contact.bi.position.z + ev.contact.ri.z;
@@ -538,12 +539,12 @@
                 groundImpacts.push({
                     x: contactX,
                     z: contactZ,
-                    force: Math.min(Math.abs(velocity), 35), // Cap the force
+                    force: Math.min(ev.body.mass*Math.abs(velocity), 35), // Cap the force
                     time: 0
                 });
                 
                 // Spawn particles exactly at the contact point
-                spawnGroundParticles(new THREE.Vector3(contactX, -49.5, contactZ), Math.abs(velocity));
+                spawnGroundParticles(new THREE.Vector3(contactX, -49.5, contactZ), Math.abs(velocity/2));
             }
         });
 
@@ -918,7 +919,8 @@
                 near.forEach((n, i) => setTimeout(() => shatterObject(n, { impulse: new THREE.Vector3((Math.random() - 0.5) * 6, Math.random() * 3 + 1, (Math.random() - 0.5) * 6) }), 80 + i * 60));
             }
 
-            // FIX: Replaced massive triangle loop with controlled debris generation
+            // FIX: Replaced massive triangle loop with controlled debris particle generation
+            // Triangular debris.
             const mesh = objRef.mesh;
             const shardCount = Math.min(8, Math.max(3, Math.floor(basePoints / 2)));
 
@@ -1239,46 +1241,6 @@
                 }
             }
             groundMesh.geometry.attributes.position.needsUpdate = true;
-
-            // // --- UPDATE GRID BENDING ---
-            // const positions = groundMesh.geometry.attributes.position.array;
-            // const original = groundMesh.geometry.userData.originalPositions;
-            
-            // // 1. Reset vertices to original flat state every frame
-            // for(let i = 0; i < positions.length; i += 3) {
-            //     positions[i + 2] = original[i + 2]; // Local Z axis is up/down after rotation
-            // }
-
-            // // 2. Apply active impacts
-            // for (let j = groundImpacts.length - 1; j >= 0; j--) {
-            //     const impact = groundImpacts[j];
-            //     impact.time += dt * 4.0; // Ripple speed
-                
-            //     // Remove impact once animation finishes
-            //     if (impact.time > Math.PI) {
-            //         groundImpacts.splice(j, 1);
-            //         continue;
-            //     }
-                
-            //     // Downward math wave: starts at 0, goes negative (down), returns to 0
-            //     const wave = -Math.sin(impact.time) * Math.exp(-impact.time * 0.5);
-                
-            //     for(let i = 0; i < positions.length; i += 3) {
-            //         const vx = original[i];
-            //         const vy = original[i + 1]; // Plane's local Y acts as world Z
-                    
-            //         const dx = vx - impact.x;
-            //         const dz = vy - impact.z;
-            //         const distSq = dx * dx + dz * dz;
-                    
-            //         if (distSq < 1600) { // Limit effect radius to optimize and contain visual
-            //             const influence = Math.exp(-distSq / 200);
-            //             // Displace vertex downward
-            //             positions[i + 2] += influence * wave * impact.force * 0.8; 
-            //         }
-            //     }
-            // }
-            // groundMesh.geometry.attributes.position.needsUpdate = true;
 
             // --- UPDATE PARTICLES ---
             for (let i = particles.length - 1; i >= 0; i--) {
