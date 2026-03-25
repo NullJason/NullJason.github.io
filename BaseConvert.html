@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MAVE - Data Representation Lab</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            background: #1e1e1e;
+            color: #eee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        #top-header {
+            width: 100%;
+            height: 50px;
+            background: #252526;
+            border-bottom: 1px solid #444;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .data-panel {
+            background: #252526;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        input {
+            padding: 8px;
+            font-size: 16px;
+            background: #1e1e1e;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover { background: #0098ff; }
+
+        /* IEEE 754 Visualizer Styles */
+        .bit-box {
+            display: inline-block;
+            width: 14px;
+            text-align: center;
+            border: 1px solid #555;
+            padding: 5px 2px;
+            margin: 1px;
+            font-family: monospace;
+            font-size: 14px;
+            background: #1e1e1e;
+        }
+        .bit-sign { border-color: #e74c3c; color: #e74c3c; } /* Red */
+        .bit-exp { border-color: #2ecc71; color: #2ecc71; }  /* Green */
+        .bit-frac { border-color: #0098ff; color: #0098ff; } /* Blue */
+        
+        .math-breakdown {
+            background: #1e1e1e; 
+            padding: 15px; 
+            border-radius: 4px; 
+            border: 1px solid #333;
+            font-family: monospace; 
+            font-size: 14px;
+            line-height: 1.6;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="top-header">
+        <h2 style="margin: 0; font-size: 20px; color: white;">MAVE - Data Rep Lab</h2>
+    </div>
+    <div class="data-panel">
+        <h3 style="margin-top: 0;">Universal Base Converter</h3>
+        <p style="font-size: 14px; color: #aaa;">Convert data between different numerical bases (Base 2 through Base 36).</p>
+        
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <input type="text" id="base-input" value="255" style="width: 200px;">
+            <span>from Base</span>
+            <input type="number" id="base-from" value="10" min="2" max="36" style="width: 60px;">
+            <span>to Base</span>
+            <input type="number" id="base-to" value="2" min="2" max="36" style="width: 60px;">
+            <button id="btn-convert">Convert</button>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #1e1e1e; border: 1px solid #333; border-radius: 4px;">
+            <span style="color: #aaa; font-size: 14px;">Result:</span>
+            <h2 id="base-result" style="margin: 10px 0 0 0; color: #0098ff; font-family: monospace; word-break: break-all;">11111111</h2>
+        </div>
+    </div>
+
+    <div class="data-panel">
+        <h3 style="margin-top: 0;">Floating-Point Architecture Visualizer</h3>
+        
+        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+            <input type="number" id="float-input" value="-0.84375" step="any" style="width: 150px; padding: 8px; font-size: 16px; background: #1e1e1e; color: white; border: 1px solid #555;">
+            
+            <select id="float-format" style="padding: 8px; font-size: 14px; background: #1e1e1e; color: white; border: 1px solid #555; border-radius: 4px; cursor: pointer;">
+                <option value="ieee32">32-bit IEEE 754 Standard (Implied 1.x)</option>
+                <option value="text32">32-bit Textbook Standard (No Implied 1, 0.1x)</option>
+                <option value="text11" selected>11-bit Classroom Example (5-Exp, 5-Frac)</option>
+            </select>
+        </div>
+
+        <div id="float-visuals" style="margin-bottom: 15px;"></div>
+
+        <div class="math-breakdown">
+            <div id="float-formula"></div>
+            <hr style="border-color: #333; margin: 10px 0;">
+            <div id="float-math-breakdown"></div>
+        </div>
+    </div>
+
+    <script>
+       const btnConvert = document.getElementById('btn-convert');
+    const inputStr = document.getElementById('base-input');
+    const baseFrom = document.getElementById('base-from');
+    const baseTo = document.getElementById('base-to');
+    const resultDisplay = document.getElementById('base-result');
+
+    function convertBase() {
+        const val = inputStr.value.trim();
+        const from = parseInt(baseFrom.value, 10);
+        const to = parseInt(baseTo.value, 10);
+        
+        try {
+            // Validate bases
+            if (from < 2 || from > 36 || to < 2 || to > 36) {
+                throw new Error("Bases must be between 2 and 36.");
+            }
+
+            // Parse the string into a native decimal integer using the 'from' base
+            const parsedDecimal = parseInt(val, from);
+            
+            if (isNaN(parsedDecimal)) {
+                throw new Error("Invalid characters for the selected starting base.");
+            }
+
+            // Convert the decimal integer to the 'to' base string
+            const resultStr = parsedDecimal.toString(to).toUpperCase();
+            
+            resultDisplay.style.color = '#0098ff'; // Normal blue color
+            resultDisplay.textContent = resultStr;
+        } catch (e) {
+            resultDisplay.style.color = '#e74c3c'; // Red for errors
+            resultDisplay.textContent = e.message;
+        }
+    }
+
+    // Run conversion when button is clicked or when user hits 'Enter'
+    btnConvert.addEventListener('click', convertBase);
+    inputStr.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') convertBase();
+    });
+
+
+   // --- ADVANCED FLOATING POINT LOGIC ---
+    const floatInput = document.getElementById('float-input');
+    const formatSelect = document.getElementById('float-format');
+    const visContainer = document.getElementById('float-visuals');
+    const breakdown = document.getElementById('float-math-breakdown');
+    const formulaDisplay = document.getElementById('float-formula');
+
+    function updateFloat() {
+        const num = parseFloat(floatInput.value);
+        const format = formatSelect.value;
+        if (isNaN(num)) return;
+
+        // Default to standard 32-bit IEEE variables
+        let expLen = 8, fracLen = 23, bias = 127;
+        let isImplied1 = true;
+
+        // Override variables based on the selected architecture
+        if (format === 'text32') {
+            isImplied1 = false;
+        } else if (format === 'text11') {
+            expLen = 5; 
+            fracLen = 5; 
+            bias = 15; // Custom bias for 5-bit exponent
+            isImplied1 = false;
+        }
+
+        let signBit = num < 0 || (1/num === -Infinity) ? '1' : '0';
+        let absNum = Math.abs(num);
+        let expBits = '', fracBits = '';
+        let expActual = 0, expDec = 0, fracDec = 0;
+
+        // Handle exact 0
+        if (absNum === 0) {
+            expBits = '0'.repeat(expLen);
+            fracBits = '0'.repeat(fracLen);
+            expActual = -bias;
+        } else if (isImplied1 && format === 'ieee32') {
+            // STANDARD IEEE 32-BIT (Real Hardware Extraction)
+            const buffer = new ArrayBuffer(4);
+            const view = new DataView(buffer);
+            view.setFloat32(0, num, false);
+            let bin = "";
+            for (let i = 0; i < 4; i++) bin += view.getUint8(i).toString(2).padStart(8, '0');
+            
+            expBits = bin.substring(1, 9);
+            fracBits = bin.substring(9, 32);
+            expDec = parseInt(expBits, 2);
+            expActual = expDec - bias;
+            
+            for (let i = 0; i < fracLen; i++) {
+                if (fracBits[i] === '1') fracDec += Math.pow(2, -(i + 1));
+            }
+        } else {
+            // TEXTBOOK NORMALIZATION (0.1xxxx * 2^e)
+            // 1. Find power of 2 so that 0.5 <= f < 1.0
+            let e = Math.floor(Math.log2(absNum)) + 1;
+            let f = absNum / Math.pow(2, e); 
+
+            expActual = e;
+            expDec = e + bias;
+
+            // Clamp exponent to available bits to prevent UI crash on massive numbers
+            let maxExp = (1 << expLen) - 1;
+            if (expDec < 0) expDec = 0; 
+            if (expDec > maxExp) expDec = maxExp; 
+
+            expBits = expDec.toString(2).padStart(expLen, '0');
+
+            // 2. Extract Fraction Bits (multiply by 2^fracLen)
+            let fInt = Math.floor(f * Math.pow(2, fracLen));
+            fracBits = fInt.toString(2).padStart(fracLen, '0');
+
+            // 3. Re-calculate decimal fraction for the breakdown display
+            for (let i = 0; i < fracLen; i++) {
+                if (fracBits[i] === '1') fracDec += Math.pow(2, -(i + 1));
+            }
+        }
+
+        // --- RENDER VISUALS ---
+        visContainer.innerHTML = '';
+        const createBox = (b, cls, tooltip) => `<div class="bit-box ${cls}" title="${tooltip}">${b}</div>`;
+
+        visContainer.innerHTML += createBox(signBit, 'bit-sign', 'Sign Bit');
+        visContainer.innerHTML += `<span style="margin: 0 8px;"> </span>`;
+        for(let i=0; i<expLen; i++) visContainer.innerHTML += createBox(expBits[i], 'bit-exp', 'Exponent');
+        visContainer.innerHTML += `<span style="margin: 0 8px;"> </span>`;
+        for(let i=0; i<fracLen; i++) visContainer.innerHTML += createBox(fracBits[i], 'bit-frac', 'Fraction / Significand');
+
+        // --- RENDER MATH BREAKDOWN ---
+        const signMult = signBit === '1' ? -1 : 1;
+        const calcBase = isImplied1 ? 1 : 0; // Toggles the math between 1.x and 0.1x
+        
+        formulaDisplay.innerHTML = `<strong>Formula:</strong> (-1)<sup style="color:#e74c3c;">Sign</sup> &times; (${calcBase} + <span style="color:#0098ff;">Significand</span>) &times; 2<sup>(<span style="color:#2ecc71;">Exponent</span> - ${bias})</sup>`;
+
+        let breakdownHTML = `
+            <div><strong>Sign:</strong> <span style="color:#e74c3c;">${signBit}</span> &rarr; ${signMult}</div>
+            <div><strong>Exponent:</strong> <span style="color:#2ecc71;">${expBits}</span> &rarr; ${expDec} - ${bias} (bias) = <strong>${expActual}</strong></div>
+            <div><strong>Significand:</strong> <span style="color:#0098ff;">${fracBits}</span> &rarr; <strong>${fracDec.toFixed(5)}</strong></div>
+            <br>
+        `;
+
+        let finalVal = signMult * (calcBase + fracDec) * Math.pow(2, expActual);
+        breakdownHTML += `<div><strong>Calculation:</strong> ${signMult} &times; (${calcBase} + ${fracDec.toFixed(5)}) &times; 2<sup>${expActual}</sup> = <strong style="color:#0098ff; font-size:16px;">${finalVal}</strong></div>`;
+
+        breakdown.innerHTML = breakdownHTML;
+    }
+
+    floatInput.addEventListener('input', updateFloat);
+    formatSelect.addEventListener('change', updateFloat);
+
+    // Initialize on page load
+    updateFloat();
+    </script>
+</body>
+</html>

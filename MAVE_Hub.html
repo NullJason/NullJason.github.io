@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>MAVE - MacroArchitecture Visual Explorer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            /* Dark Mode (Default) */
+            --bg-base: #0f1115;
+            --text-main: #eeeeee;
+            --text-muted: #aaaaaa;
+            --card-bg: rgba(25, 28, 35, 0.7);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --accent: #0098ff;
+            --accent-hover: #33aaff;
+            --glass-blur: blur(12px);
+        }
+
+        [data-theme="light"] {
+            /* Light Mode */
+            --bg-base: #f0f2f5;
+            --text-main: #111111;
+            --text-muted: #555555;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-border: rgba(0, 0, 0, 0.1);
+            --accent: #007acc;
+            --accent-hover: #005f9e;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        /* Three.js Background Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+        }
+
+        /* Layout */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 50px;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--card-border);
+            background: var(--card-bg);
+        }
+
+        header h1 {
+            margin: 0;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        header h1 strong {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* Theme Toggle Button */
+        #theme-toggle {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        #theme-toggle:hover {
+            background: var(--card-border);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .intro p {
+            font-size: 18px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 10px auto;
+        }
+
+        /* Curriculum Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        /* Interactive Cards */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 25px;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            border-color: var(--accent);
+        }
+
+        .card-level {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .card h2 {
+            margin: 0 0 15px 0;
+            font-size: 22px;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 14px;
+            flex-grow: 1;
+        }
+
+        .card-footer {
+            margin-top: 20px;
+            font-weight: bold;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .disabled-card {
+            opacity: 0.6;
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+        .disabled-card:hover {
+            transform: none;
+            border-color: var(--card-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .site-footer {
+            background-color: #121212; 
+            color: #ffffff;
+            text-align: center;
+            padding: 20px 0;
+            font-size: 14px;
+            width: 100%;
+        }
+
+        .site-footer p {
+            margin: 0;
+        }
+
+        .site-footer a {
+            color: inherit;            
+            font-weight: bold;         
+            text-decoration: none;     
+            cursor: pointer;           
+        }
+
+        .site-footer a:hover,
+        .site-footer a:focus {
+            text-decoration: underline; 
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <header>
+        <h1><strong>MAVE</strong> Hub!</h1>
+        <button id="theme-toggle">☀️ Light Mode</button>
+    </header>
+
+    <div class="container">
+        <div class="intro">
+            <h2>MacroArchitecture Visual Explorer</h2>
+            <p>Dive into the architecture of a computer, big and small. This project will provide a logical, step-by-step progression from the microscopic behavior of binary data to the macroscopic layout of full computer systems.</p>
+        </div>
+
+        <div class="grid">
+            <a href="HardwareGameVisualizer.html" class="card">
+                <div class="card-level">Level 0 • The Basics</div>
+                <h2>Macro Architecture Visualizer</h2>
+                <p>See the big picture. Play interactive minigames and watch real-time data buses transfer information across the motherboard between the CPU, RAM, GPU, and specialized hardware.</p>
+                <div class="card-footer">
+                    <span>Hardware, Buses, I/O</span>
+                    <span>Launch ➔</span>
+                </div>
+            </a>
+            
+            <a href="BaseConvert.html" class="card">
+                <div class="card-level">Level 1 • The Foundation</div>
+                <h2>Data Representation Lab</h2>
+                <p>Computers don't understand text or decimals; they only understand electrical states. Learn how to convert between Base-2 (Binary) and Base-16 (Hexadecimal), and visualize how real hardware stores complex decimal fractions using the IEEE 754 standard.</p>
+                <div class="card-footer">
+                    <span>Base Math, Floating-Point</span>
+                    <span>Launch ➔</span>
+                </div>
+            </a>
+
+            <a href="LogicCreator.html" class="card">
+                <div class="card-level">Level 2 • Micro-Logic</div>
+                <h2>Logic Gate Sandbox</h2>
+                <p>Build the brain of a computer from scratch. Drag and drop basic logic gates (AND, OR, XOR) to construct complex 8-bit components like Adders, Multiplexers, and D-Type Flip-Flops that grant the system memory.</p>
+                <div class="card-footer">
+                    <span>Boolean Logic, Arithmetic, Memory</span>
+                    <span>Launch ➔</span>
+                </div>
+            </a>
+
+            <a href="cpuVisualizer.html" class="card">
+                <div class="card-level">Level 3 • Processing</div>
+                <h2>RISC Pipeline Visualizer</h2>
+                <p>Dive inside the CPU core. Write assembly code and watch it execute cycle-by-cycle through the classic 5-stage RISC pipeline (Fetch, Decode, Execute, Memory, Writeback). Understand stalls, data hazards, and branching. Understand why we use RISC instead of CISC.</p>
+                <div class="card-footer">
+                    <span>ISA, Pipelining, Hazards</span>
+                    <span>Launch ➔</span>
+                </div>
+            </a>
+
+            <a href="cpuVisualizerManual.html" class="card" style="border-left: 4px solid var(--accent);">
+                <div class="card-level">Documentation</div>
+                <h2>User Manual</h2>
+                <p>The official documentation for the MAVE, contains condensed details of all the topics and terms between the various simulators. Also contains details that could not fit into the tool. Example of content: the manual has a glossary of all supported Assembly operations, detailed breakdowns of pipeline stages, and explanations of system statistics like CPI and Branch Mispredictions.</p>
+                <div class="card-footer">
+                    <span>Read Docs ➔</span>
+                </div>
+            </a>
+
+            <div class="card disabled-card" title="Currently in development">
+                <div class="card-level">& More...</div>
+                <h2>More Levels in development</h2>
+                <p>TBA: text explaining & describing the various functions and reasoning in the visualizers. </p>
+                <div class="card-footer" style="color: var(--text-muted);">
+                    <span>Under Construction ⚙️</span>
+                </div>
+            </div>
+
+            <!-- <div class="card disabled-card" title="Currently in development">
+                <div class="card-level">Level 4 • Memory Hierarchy (Coming Soon)</div>
+                <h2>L1/L2 Cache Simulator</h2>
+                <p>Bridge the gap between fast CPUs and slow RAM. Configure cache sizes, block sizes, and set-associativity to see how spatial and temporal locality impact Read/Write hits and misses. recent class session with fragmentation and these topics!</p>
+                <div class="card-footer" style="color: var(--text-muted);">
+                    <span>Concepts: Associativity, Locality</span>
+                    <span>Under Construction ⚙️</span>
+                </div>
+            </div> -->
+
+        </div>
+    </div>
+
+    <script>
+        // --- Theme Toggle Logic ---
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const body = document.documentElement;
+        let isDark = true;
+
+        themeToggleBtn.addEventListener('click', () => {
+            isDark = !isDark;
+            if (isDark) {
+                body.setAttribute('data-theme', 'dark');
+                themeToggleBtn.innerText = '☀️ Light Mode';
+                updateThreeJSColors(0x0f1115, 0x0098ff, 0xaaaaaa);
+            } else {
+                body.setAttribute('data-theme', 'light');
+                themeToggleBtn.innerText = '🌙 Dark Mode';
+                updateThreeJSColors(0xf0f2f5, 0x007acc, 0x888888);
+            }
+        });
+
+        // --- Three.js Background Animation ---
+        const canvas = document.getElementById('bg-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0f1115);
+        scene.fog = new THREE.FogExp2(0x0f1115, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+        camera.position.z = 200;
+
+        // Create Particles (Nodes)
+        const particleCount = 200;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const velocities = [];
+
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 600;     // x
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 600; // y
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 400; // z
+            velocities.push({
+                x: (Math.random() - 0.5) * 0.5,
+                y: (Math.random() - 0.5) * 0.5,
+                z: (Math.random() - 0.5) * 0.5
+            });
+        }
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const material = new THREE.PointsMaterial({
+            color: 0x0098ff,
+            size: 3,
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        // Create Connections (Lines)
+        const lineMaterial = new THREE.LineBasicMaterial({
+            color: 0xaaaaaa,
+            transparent: true,
+            opacity: 0.15
+        });
+        
+        // Use a generic buffer for lines, we update it every frame
+        const lineGeometry = new THREE.BufferGeometry();
+        const lines = new THREE.LineSegments(lineGeometry, lineMaterial);
+        scene.add(lines);
+
+        // Function to update colors when theme changes
+        function updateThreeJSColors(bgColor, pointColor, lineColor) {
+            scene.background.setHex(bgColor);
+            scene.fog.color.setHex(bgColor);
+            material.color.setHex(pointColor);
+            lineMaterial.color.setHex(lineColor);
+        }
+
+        // Animation Loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const posAttribute = geometry.attributes.position;
+            const currentPositions = posAttribute.array;
+            
+            // Temporary array to hold line endpoints
+            const linePositions = [];
+
+            // Move particles
+            for (let i = 0; i < particleCount; i++) {
+                currentPositions[i * 3] += velocities[i].x;
+                currentPositions[i * 3 + 1] += velocities[i].y;
+                currentPositions[i * 3 + 2] += velocities[i].z;
+
+                // Bounce off invisible boundaries
+                if (Math.abs(currentPositions[i * 3]) > 300) velocities[i].x *= -1;
+                if (Math.abs(currentPositions[i * 3 + 1]) > 300) velocities[i].y *= -1;
+                if (Math.abs(currentPositions[i * 3 + 2]) > 200) velocities[i].z *= -1;
+
+                // Check distance to other particles to draw lines
+                for (let j = i + 1; j < particleCount; j++) {
+                    const dx = currentPositions[i * 3] - currentPositions[j * 3];
+                    const dy = currentPositions[i * 3 + 1] - currentPositions[j * 3 + 1];
+                    const dz = currentPositions[i * 3 + 2] - currentPositions[j * 3 + 2];
+                    const distSq = dx*dx + dy*dy + dz*dz;
+
+                    // If close enough, draw a connecting line
+                    if (distSq < 4000) {
+                        linePositions.push(
+                            currentPositions[i * 3], currentPositions[i * 3 + 1], currentPositions[i * 3 + 2],
+                            currentPositions[j * 3], currentPositions[j * 3 + 1], currentPositions[j * 3 + 2]
+                        );
+                    }
+                }
+            }
+            
+            // Update line geometry
+            lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+            posAttribute.needsUpdate = true;
+
+            // Slowly rotate the whole network
+            particles.rotation.y += 0.001;
+            lines.rotation.y += 0.001;
+
+            renderer.render(scene, camera);
+        }
+
+        // Handle Window Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+
+
+<footer class="site-footer">
+    <p hre>&copy;  <span id="year">year</span> <a href="https://nulljason.github.io/">NullJason</a> </p>
+    <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+
+</footer>
+
+</html>

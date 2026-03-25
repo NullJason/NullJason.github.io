@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MAVE - Macro Hardware Visualizer</title>
+    <style>
+        body {
+            margin: 0; font-family: system-ui, sans-serif; background: #111; color: #eee;
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+
+        #top-header {
+            height: 50px; background: #222; border-bottom: 1px solid #444;
+            display: flex; align-items: center; padding: 0 20px; box-sizing: border-box;
+        }
+
+        #main-container {
+            display: flex; flex-grow: 1; width: 100%;
+        }
+
+        /* Left Side: Motherboard */
+        #motherboard-panel {
+            flex: 2; position: relative; border-right: 1px solid #444; background: #0a0a0c;
+        }
+
+        #mb-canvas {
+            display: block; width: 100%; height: 100%;
+        }
+
+        /* Right Side: The "Monitor" */
+        #monitor-panel {
+            flex: 1; min-width: 400px; background: #1a1a1a; display: flex;
+            flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box;
+        }
+
+        .monitor-bezel {
+            background: #333; padding: 15px; border-radius: 8px; border: 2px solid #222;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        #game-canvas {
+            background: #000; border: 2px solid #555; display: block;
+        }
+
+        .controls-info {
+            margin-top: 20px; background: #222; padding: 15px; border-radius: 6px;
+            font-size: 14px; color: #aaa; width: 100%; box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="top-header">
+        <h2 style="margin: 0; color: #0098ff;">MAVE Hardware</h2>
+        <span style="margin-left: 20px; color: #aaa;">Watch the data flow as you play.</span>
+    </div>
+
+    <div id="main-container">
+        <div id="motherboard-panel">
+            <canvas id="mb-canvas"></canvas>
+        </div>
+
+        <div id="monitor-panel">
+            <h3 style="margin-top: 0;">System Monitor</h3>
+            <div class="monitor-bezel">
+                <canvas id="game-canvas" width="300" height="300"></canvas>
+            </div>
+            
+            <div class="controls-info">
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
+                    <select id="app-selector" style="padding: 6px; background: #111; color: white; border: 1px solid #555; border-radius: 4px;">
+                        <option value="snake">App: Neon Snake</option>
+                        <option value="gravity">App: Orbital Gravity Sim</option>
+                        <option value="pong">App: Cyber Pong (vs ML)</option>
+                        <option value="life">App: Game of Life</option>
+                    </select>
+                    <button id="btn-state" style="padding: 6px 12px; background: #2ecc71; color: #111; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;">Start System</button>
+                    <button id="btn-full-game" style="display: none; padding: 6px 12px; background: #9b59b6; color: white; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;">Launch Full Game</button>
+                </div>
+                
+                <div id="app-stats-panel" style="margin-bottom: 15px; padding: 10px; background: #0a0a0c; border: 1px solid #333; border-radius: 4px; border-left: 4px solid #0098ff;">
+                    <strong id="stat-title" style="color: #0098ff; text-transform: uppercase; font-size: 12px;">System Stats</strong>
+                    <div id="stat-content" style="font-family: monospace; font-size: 16px; margin-top: 5px; color: #fff;">READY</div>
+                </div>
+
+                <strong>Hardware Activity Key:</strong> 
+                <ul style="margin-top: 5px; padding-left: 20px;">
+                    <li><span style="color:#e74c3c">Red:</span> Interrupts (Keyboard/Mouse)</li>
+                    <li><span style="color:#2ecc71">Green:</span> Memory Read/Write (RAM)</li>
+                    <li><span style="color:#0098ff">Blue:</span> Framebuffer (GPU)</li>
+                    <li><span style="color:#1abc9c">Teal:</span> Network Packets (WIFI)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================
+           PART 1: MOTHERBOARD VISUALIZER ENGINE
+        ========================================= */
+        const mbCanvas = document.getElementById('mb-canvas');
+        const mbCtx = mbCanvas.getContext('2d');
+        let mbWidth, mbHeight;
+        let pulses = []; // Holds the animated data dots
+
+        // Hardware Components layout
+        // The Expanded Hardware Map
+       // The Expanded Hardware Map
+        const hw = {
+            clk:  { label: "CLK", x: 0.35, y: 0.4, w: 40, h: 40, color: '#f1c40f', shape: 'arc' },
+            cpu:  { label: "CPU", x: 0.5, y: 0.5, w: 90, h: 90, color: '#f39c12', shape: 'rect' },
+            ram:  { label: "RAM", x: 0.75, y: 0.25, w: 70, h: 120, color: '#2ecc71', shape: 'rect' },
+            gpu:  { label: "GPU", x: 0.75, y: 0.75, w: 100, h: 100, color: '#0098ff', shape: 'rect' },
+            disp: { label: "MONITOR", x: 0.92, y: 0.9, w: 80, h: 60, color: '#00ffff', shape: 'rect' },
+            kbd:  { label: "INPUT", x: 0.1, y: 0.8, w: 70, h: 50, color: '#e74c3c', shape: 'rect' },
+            disk: { label: "SSD", x: 0.1, y: 0.25, w: 70, h: 100, color: '#9b59b6', shape: 'rect' },
+            dma:  { label: "DMA", x: 0.48, y: 0.25, w: 60, h: 50, color: '#e84393', shape: 'rect' }, // NEW DMA CHIP
+            snd:  { label: "AUDIO", x: 0.3, y: 0.8, w: 70, h: 60, color: '#e67e22', shape: 'rect' },
+            nic:  { label: "WIFI", x: 0.1, y: 0.1, w: 70, h: 70, color: '#1abc9c', shape: 'rect' }
+        };
+
+        
+
+        
+
+        function resizeMB() {
+            mbWidth = mbCanvas.parentElement.clientWidth;
+            mbHeight = mbCanvas.parentElement.clientHeight;
+            mbCanvas.width = mbWidth;
+            mbCanvas.height = mbHeight;
+        }
+        window.addEventListener('resize', resizeMB);
+        resizeMB();
+
+        // API to spawn a data pulse between components
+        function spawnPulse(fromKey, toKey, color) {
+            const startX = hw[fromKey].x * mbWidth;
+            const startY = hw[fromKey].y * mbHeight;
+            const endX = hw[toKey].x * mbWidth;
+            const endY = hw[toKey].y * mbHeight;
+            
+            pulses.push({
+                x1: startX, y1: startY, x2: endX, y2: endY,
+                progress: 0, color: color, speed: 0.02 + Math.random() * 0.02
+            });
+        }
+
+        function drawMotherboard() {
+            mbCtx.clearRect(0, 0, mbWidth, mbHeight);
+
+            // Draw Motherboard Traces (Buses)
+            mbCtx.lineWidth = 4;
+            mbCtx.strokeStyle = '#222';
+            const connections = [
+            ['clk', 'cpu'],    
+            ['cpu', 'ram'],    
+            ['cpu', 'gpu'],    
+            ['gpu', 'disp'],   
+            ['kbd', 'cpu'],    
+            ['cpu', 'snd'],    
+            ['cpu', 'nic'],
+            ['cpu', 'dma'],    // CPU tells DMA what to fetch
+            ['disk', 'dma'],   // DMA pulls from SSD
+            ['dma', 'ram']     // DMA pushes straight to RAM
+        ];
+            
+            connections.forEach(pair => {
+                const c1 = hw[pair[0]]; const c2 = hw[pair[1]];
+                mbCtx.beginPath();
+                mbCtx.moveTo(c1.x * mbWidth, c1.y * mbHeight);
+                mbCtx.lineTo(c2.x * mbWidth, c2.y * mbHeight);
+                mbCtx.stroke();
+            });
+
+            // Draw Pulses
+            for (let i = pulses.length - 1; i >= 0; i--) {
+                let p = pulses[i];
+                p.progress += p.speed;
+                if (p.progress >= 1) { pulses.splice(i, 1); continue; }
+
+                const currentX = p.x1 + (p.x2 - p.x1) * p.progress;
+                const currentY = p.y1 + (p.y2 - p.y1) * p.progress;
+
+                mbCtx.beginPath();
+                mbCtx.arc(currentX, currentY, 6, 0, Math.PI * 2);
+                mbCtx.fillStyle = p.color;
+                mbCtx.shadowColor = p.color;
+                mbCtx.shadowBlur = 10;
+                mbCtx.fill();
+                mbCtx.shadowBlur = 0; // reset
+            }
+
+            // Draw Components
+            for (let key in hw) {
+                const c = hw[key];
+                const cx = c.x * mbWidth;
+                const cy = c.y * mbHeight;
+                
+                mbCtx.fillStyle = '#111';
+                mbCtx.strokeStyle = c.color;
+                mbCtx.lineWidth = 3;
+
+                mbCtx.beginPath();
+                if (c.shape === 'arc') {
+                    mbCtx.arc(cx, cy, c.w/2, 0, Math.PI * 2);
+                } else {
+                    mbCtx.rect(cx - c.w/2, cy - c.h/2, c.w, c.h);
+                }
+                mbCtx.fill();
+                mbCtx.stroke();
+
+                mbCtx.fillStyle = c.color;
+                mbCtx.font = 'bold 14px sans-serif';
+                mbCtx.textAlign = 'center';
+                mbCtx.textBaseline = 'middle';
+                mbCtx.fillText(c.label, cx, cy);
+            }
+            requestAnimationFrame(drawMotherboard);
+        }
+        drawMotherboard(); // Start loop
+
+
+        /* =========================================
+           PART 2: MODULAR OPERATING SYSTEM & APPS
+        ========================================= */
+        const gameCanvas = document.getElementById('game-canvas');
+        const gCtx = gameCanvas.getContext('2d');
+        
+        let isPaused = true;
+        let systemState = 'STOPPED';
+        let currentAppId = 'snake';
+        let keys = {};
+
+        // Audio System
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep(freq, type, duration) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.frequency.value = freq;
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        const statContent = document.getElementById('stat-content');
+        const statTitle = document.getElementById('stat-title');
+
+        // --- THE UPGRADED APPLICATIONS ---
+        const apps = {
+            // 1. NEON SNAKE
+            snake: {
+                highScore: 0, score: 0,
+                init() {
+                    this.snake = [{x: 10, y: 10}]; this.velocity = {x: 0, y: 0}; this.score = 0;
+                    this.apple = {x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20)};
+                    statTitle.innerText = "SNAKE LOCAL DATA";
+                    statContent.innerHTML = `Score: 0 &nbsp;&nbsp;|&nbsp;&nbsp; High Score: <span style="color:#f1c40f">${this.highScore}</span>`;
+                },
+                input(e, type) {
+                    if(type === 'keydown') {
+                        if(e.key==='ArrowUp' && this.velocity.y!==1) this.velocity={x:0, y:-1};
+                        if(e.key==='ArrowDown' && this.velocity.y!==-1) this.velocity={x:0, y:1};
+                        if(e.key==='ArrowLeft' && this.velocity.x!==1) this.velocity={x:-1, y:0};
+                        if(e.key==='ArrowRight' && this.velocity.x!==-1) this.velocity={x:1, y:0};
+                    }
+                },
+                tick() {
+                    let head = {x: this.snake[0].x + this.velocity.x, y: this.snake[0].y + this.velocity.y};
+                    if(head.x<0||head.x>=20||head.y<0||head.y>=20) { playBeep(150, 'sawtooth', 0.5); spawnPulse('cpu','snd','#e67e22'); this.init(); return; }
+                    this.snake.unshift(head);
+                    
+                    if(head.x===this.apple.x && head.y===this.apple.y) {
+                        playBeep(600, 'square', 0.1); spawnPulse('cpu','snd','#e67e22');
+                        this.score++;
+                        if (this.score > this.highScore) { this.highScore = this.score; spawnPulse('cpu','nic','#1abc9c'); }
+                        statContent.innerHTML = `Score: ${this.score} &nbsp;&nbsp;|&nbsp;&nbsp; High Score: <span style="color:#f1c40f">${this.highScore}</span>`;
+                        this.apple = {x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20)};
+                        for(let i=0; i<3; i++) spawnPulse('cpu','ram','#2ecc71');
+                    } else { this.snake.pop(); }
+                },
+                draw() {
+                    gCtx.fillStyle = 'rgba(0,0,0,0.3)'; gCtx.fillRect(0,0,300,300); // Motion blur
+                    
+                    // Glowing Apple
+                    gCtx.shadowBlur = 15; gCtx.shadowColor = '#e74c3c'; gCtx.fillStyle = '#e74c3c';
+                    gCtx.fillRect(this.apple.x*15, this.apple.y*15, 14, 14);
+                    
+                    // Glowing Snake
+                    gCtx.shadowColor = '#2ecc71'; gCtx.fillStyle = '#2ecc71';
+                    this.snake.forEach(p => gCtx.fillRect(p.x*15, p.y*15, 14, 14));
+                    gCtx.shadowBlur = 0; // Reset
+                }
+            },
+
+            // 2. ORBITAL GRAVITY SIMULATOR
+            gravity: {
+                bodies: [], bodyCount: 3,
+                init() {
+                    // Fixed Central Sun and faster planets so they don't fly off
+                    this.bodies = [
+                        {x: 150, y: 150, vx: 0, vy: 0, mass: 2500, color: '#f1c40f', size: 12, fixed: true}, // SUN
+                        {x: 150, y: 50,  vx: 5, vy: 0, mass: 10,   color: '#3498db', size: 5, fixed: false},
+                        {x: 150, y: 220, vx:-6, vy: 0, mass: 20,   color: '#e74c3c', size: 7, fixed: false}
+                    ];
+                    this.bodyCount = 3;
+                    statTitle.innerText = "ASTROPHYSICS ENGINE";
+                    statContent.innerHTML = `Active Celestial Bodies: <span style="color:#0098ff">${this.bodyCount}</span> <br><small style="color:#aaa; font-size:10px;">(Click monitor to spawn planets)</small>`;
+                },
+                input(e, type) {
+                    if (type === 'mousedown') {
+                        // Spawn a new planet where the user clicks
+                        let rColor = `hsl(${Math.random()*360}, 100%, 60%)`;
+                        let rVelX = (Math.random() * 8) - 4;
+                        let rVelY = (Math.random() * 8) - 4;
+                        this.bodies.push({x: e.offsetX, y: e.offsetY, vx: rVelX, vy: rVelY, mass: Math.random()*15+5, color: rColor, size: Math.random()*4+3, fixed: false});
+                        this.bodyCount++;
+                        statContent.innerHTML = `Active Celestial Bodies: <span style="color:#0098ff">${this.bodyCount}</span> <br><small style="color:#aaa; font-size:10px;">(Click monitor to spawn planets)</small>`;
+                    }
+                },
+                tick() {
+                    spawnPulse('cpu','ram','#2ecc71'); spawnPulse('cpu','gpu','#0098ff');
+                    for(let i=0; i<this.bodies.length; i++) {
+                        for(let j=0; j<this.bodies.length; j++) {
+                            if(i===j) continue;
+                            let b1 = this.bodies[i], b2 = this.bodies[j];
+                            let dx = b2.x - b1.x, dy = b2.y - b1.y;
+                            let distSq = dx*dx + dy*dy;
+                            if(distSq < 20) continue; // Collision buffer
+                            let force = (0.15 * b1.mass * b2.mass) / distSq;
+                            let dist = Math.sqrt(distSq);
+                            if (!b1.fixed) {
+                                b1.vx += (force * dx/dist) / b1.mass; 
+                                b1.vy += (force * dy/dist) / b1.mass;
+                            }
+                        }
+                    }
+                    this.bodies.forEach(b => { if(!b.fixed) { b.x += b.vx; b.y += b.vy; } });
+                },
+                draw() {
+                    gCtx.fillStyle = 'rgba(0,0,0,0.15)'; gCtx.fillRect(0,0,300,300); // Long beautiful trails
+                    this.bodies.forEach(b => {
+                        gCtx.shadowBlur = 15; gCtx.shadowColor = b.color;
+                        gCtx.beginPath(); gCtx.arc(b.x, b.y, b.size, 0, Math.PI*2);
+                        gCtx.fillStyle = b.color; gCtx.fill();
+                    });
+                    gCtx.shadowBlur = 0;
+                }
+            },
+
+            // 3. CYBER PONG ONLINE (Fake ML)
+            pong: {
+                p1y: 120, p2y: 120, bx: 150, by: 150, bvx: -7, bvy: 4, p1Score: 0, p2Score: 0,
+                init() { 
+                    this.p1y=120; this.p2y=120; this.bx=150; this.by=150; 
+                    // Randomize serve direction
+                    this.bvx = Math.random() > 0.5 ? 7 : -7; 
+                    this.bvy = (Math.random() * 6) - 3;
+                    statTitle.innerText = "NETWORK MATCH (VS ML)";
+                    statContent.innerHTML = `Player: <span style="color:#2ecc71">${this.p1Score}</span> &nbsp;&nbsp;|&nbsp;&nbsp; ML CPU: <span style="color:#e74c3c">${this.p2Score}</span>`;
+                },
+                input(e, type) {}, // Keys polled in tick()
+                tick() {
+                    // P1 Fast Paddle
+                    if(keys['ArrowUp'] && this.p1y > 0) this.p1y -= 8;
+                    if(keys['ArrowDown'] && this.p1y < 240) this.p1y += 8;
+
+                    if(Math.random() < 0.25) spawnPulse('nic', 'cpu', '#1abc9c'); 
+                    if(Math.random() < 0.25) spawnPulse('cpu', 'nic', '#1abc9c'); 
+
+                    // ML Paddle (Much faster now, but still beatable)
+                    if(this.p2y + 30 < this.by - 10 && this.p2y < 240) this.p2y += 6;
+                    else if(this.p2y + 30 > this.by + 10 && this.p2y > 0) this.p2y -= 6;
+
+                    // Ball Physics
+                    this.bx += this.bvx; this.by += this.bvy;
+                    if(this.by <= 0 || this.by >= 290) { this.bvy *= -1; playBeep(200, 'triangle', 0.05); } // Wall bounce
+                    
+                    // Paddle Hits (Added "English" curve based on where ball hits paddle)
+                    if(this.bx <= 20 && this.by > this.p1y && this.by < this.p1y+60) { 
+                        this.bvx *= -1; this.bx=20; 
+                        this.bvy += ((this.by - (this.p1y + 30)) * 0.1); // Curve it!
+                        playBeep(400, 'sine', 0.1); spawnPulse('cpu','snd','#e67e22');
+                    }
+                    if(this.bx >= 270 && this.by > this.p2y && this.by < this.p2y+60) { 
+                        this.bvx *= -1; this.bx=270; 
+                        this.bvy += ((this.by - (this.p2y + 30)) * 0.1);
+                        playBeep(400, 'sine', 0.1); spawnPulse('cpu','snd','#e67e22');
+                    }
+
+                    // Score Logic
+                    if(this.bx < 0) { this.p2Score++; playBeep(100, 'sawtooth', 0.5); this.init(); }
+                    if(this.bx > 300) { this.p1Score++; playBeep(800, 'square', 0.3); this.init(); }
+                    spawnPulse('cpu','gpu','#0098ff');
+                },
+                draw() {
+                    gCtx.fillStyle = 'rgba(0,0,0,0.4)'; gCtx.fillRect(0,0,300,300);
+                    
+                    // Cyber Glow
+                    gCtx.shadowBlur = 10;
+                    gCtx.shadowColor = '#00ffff'; gCtx.fillStyle = '#00ffff';
+                    gCtx.fillRect(10, this.p1y, 10, 60); // P1
+                    
+                    gCtx.shadowColor = '#ff00ff'; gCtx.fillStyle = '#ff00ff';
+                    gCtx.fillRect(280, this.p2y, 10, 60); // P2 (ML)
+                    
+                    gCtx.shadowColor = '#fff'; gCtx.fillStyle = '#fff';
+                    gCtx.fillRect(this.bx, this.by, 10, 10); // Ball
+                    
+                    for(let i=0; i<300; i+=20) gCtx.fillRect(148, i, 4, 10); // Net
+                    gCtx.shadowBlur = 0;
+                }
+            },
+
+            // 4. GAME OF LIFE
+            life: {
+                grid: [], cols: 30, rows: 30, gen: 0,
+                init() {
+                    this.grid = new Array(this.cols).fill(null).map(() => new Array(this.rows).fill(0).map(() => Math.random() > 0.8 ? 1 : 0));
+                    this.gen = 0;
+                    statTitle.innerText = "CELLULAR AUTOMATA RAM";
+                    statContent.innerHTML = `Generations Calc: <span style="color:#2ecc71">${this.gen}</span> <br><small style="color:#aaa; font-size:10px;">(Click monitor to randomly mutate)</small>`;
+                },
+                input(e, type) {
+                    if (type === 'mousedown') {
+                        // Drop a random cluster of life where clicked
+                        let gx = Math.floor(e.offsetX / 10);
+                        let gy = Math.floor(e.offsetY / 10);
+                        for(let i=-2; i<=2; i++) {
+                            for(let j=-2; j<=2; j++) {
+                                if (gx+i >= 0 && gx+i < this.cols && gy+j >= 0 && gy+j < this.rows) {
+                                    this.grid[gx+i][gy+j] = Math.random() > 0.3 ? 1 : 0;
+                                }
+                            }
+                        }
+                    }
+                },
+                tick() {
+                    for(let i=0; i<4; i++) { spawnPulse('ram','cpu','#2ecc71'); spawnPulse('cpu','ram','#2ecc71'); }
+                    spawnPulse('cpu','gpu','#0098ff');
+
+                    let next = this.grid.map(arr => [...arr]);
+                    for(let x=0; x<this.cols; x++) {
+                        for(let y=0; y<this.rows; y++) {
+                            let neighbors = 0;
+                            for(let i=-1; i<=1; i++) {
+                                for(let j=-1; j<=1; j++) {
+                                    if(i===0 && j===0) continue;
+                                    let nx = (x+i+this.cols) % this.cols; let ny = (y+j+this.rows) % this.rows;
+                                    neighbors += this.grid[nx][ny];
+                                }
+                            }
+                            if(this.grid[x][y] === 1 && (neighbors < 2 || neighbors > 3)) next[x][y] = 0;
+                            else if(this.grid[x][y] === 0 && neighbors === 3) next[x][y] = 1;
+                        }
+                    }
+                    this.grid = next;
+                    this.gen++;
+                    statContent.innerHTML = `Generations Calc: <span style="color:#2ecc71">${this.gen}</span> <br><small style="color:#aaa; font-size:10px;">(Click monitor to randomly mutate)</small>`;
+                },
+                draw() {
+                    gCtx.fillStyle = 'rgba(0,0,0,0.5)'; gCtx.fillRect(0,0,300,300);
+                    gCtx.shadowBlur = 8;
+                    // Color shifts based on generation count
+                    let hue = (this.gen * 2) % 360;
+                    gCtx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+                    gCtx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                    
+                    for(let x=0; x<this.cols; x++) {
+                        for(let y=0; y<this.rows; y++) {
+                            if(this.grid[x][y]) gCtx.fillRect(x*10+1, y*10+1, 8, 8);
+                        }
+                    }
+                    gCtx.shadowBlur = 0;
+                }
+            }
+        };
+
+        // --- SYSTEM OS LOOP ---
+        function osTick() {
+            if (!isPaused) {
+                apps[currentAppId].tick();
+                apps[currentAppId].draw();
+                // Screen refresh pulse
+                setTimeout(() => spawnPulse('gpu', 'disp', '#00ffff'), 50);
+            }
+        }
+        setInterval(osTick, 100); // 10 FPS OS Clock
+
+        // System Clock Hardware Heartbeat (Independent)
+        setInterval(() => spawnPulse('clk', 'cpu', '#f1c40f'), 500);
+
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                spawnPulse('kbd', 'cpu', '#e74c3c'); 
+                apps[currentAppId].input(e, 'keydown');
+            }
+        });
+        window.addEventListener('keyup', e => keys[e.key] = false);
+
+        // Map mouse clicks directly to the game canvas
+        gameCanvas.addEventListener('mousedown', e => {
+            spawnPulse('kbd', 'cpu', '#e74c3c'); // Mouse counts as hardware input!
+            apps[currentAppId].input(e, 'mousedown');
+        });
+        
+        const btnState = document.getElementById('btn-state');
+        const btnFullGame = document.getElementById('btn-full-game');
+        const appSelector = document.getElementById('app-selector');
+
+        appSelector.addEventListener('change', (e) => {
+            currentAppId = e.target.value;
+            apps[currentAppId].init();
+            apps[currentAppId].draw();
+            
+            // Toggle the "Full Game" button for Gravity
+            if (currentAppId === 'gravity') {
+                btnFullGame.style.display = 'block';
+            } else {
+                btnFullGame.style.display = 'none';
+            }
+        });
+
+        btnFullGame.addEventListener('click', () => {
+            const url = '2DUniSandboxSim.html'; 
+    
+            const newTab = window.open(url, '_blank');
+            
+            if (newTab) {
+                newTab.focus();
+            }
+        });
+
+        btnState.addEventListener('click', () => {
+            if (systemState === 'STOPPED') {
+                systemState = 'RUNNING'; isPaused = false;
+                btnState.textContent = 'Pause System'; btnState.style.background = '#e74c3c'; btnState.style.color = '#fff';
+                
+                // DMA Boot Sequence
+                spawnPulse('cpu', 'dma', '#f39c12');
+                setTimeout(() => {
+                    for(let i=0; i<5; i++) {
+                        setTimeout(() => {
+                            spawnPulse('disk', 'dma', '#e84393');
+                            setTimeout(() => spawnPulse('dma', 'ram', '#e84393'), 200);
+                        }, i*150);
+                    }
+                }, 300);
+
+            } else if (systemState === 'RUNNING') {
+                systemState = 'PAUSED'; isPaused = true;
+                btnState.textContent = 'Resume System'; btnState.style.background = '#f39c12';
+                spawnPulse('cpu', 'ram', '#2ecc71');
+            } else if (systemState === 'PAUSED') {
+                systemState = 'RUNNING'; isPaused = false;
+                btnState.textContent = 'Pause System'; btnState.style.background = '#e74c3c';
+                spawnPulse('ram', 'cpu', '#2ecc71');
+            }
+        });
+
+        // Initialize first app
+        apps[currentAppId].init();
+        apps[currentAppId].draw();
+    </script>
+</body>
+</html>

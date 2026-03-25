@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAVE: User Manual & Info</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --panel: rgba(14, 20, 34, 0.96);
+            --panel-soft: rgba(15, 23, 42, 0.78);
+            --line: rgba(255, 255, 255, 0.08);
+            --line-2: rgba(102, 168, 255, 0.22);
+            --text: #e5eef9;
+            --muted: #9fb0c6;
+            --accent: #66a8ff;
+            --accent-2: #8b5cf6;
+            --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+            --radius: 18px;
+            --sidebar-w: 290px;
+            --sidebar-collapsed: 18px;
+            --content-max: 1080px;
+            --transition: 260ms cubic-bezier(.2, .8, .2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(102, 168, 255, 0.12), transparent 28%),
+                radial-gradient(circle at top right, rgba(139, 92, 246, 0.10), transparent 25%),
+                linear-gradient(180deg, #070b14 0%, #0b1020 100%);
+            overflow-x: hidden;
+        }
+
+        .progress-wrap {
+            position: fixed;
+            inset: 0 0 auto 0;
+            height: 4px;
+            z-index: 1005;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            box-shadow: 0 0 18px rgba(102, 168, 255, 0.6);
+        }
+
+        /* Back button sits behind the sidebar panel */
+        .back-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 900;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            color: var(--text);
+            text-decoration: none;
+            background: rgba(17, 24, 39, 0.72);
+            backdrop-filter: blur(14px);
+            box-shadow: var(--shadow);
+            transition: transform var(--transition), border-color var(--transition), background var(--transition);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(102, 168, 255, 0.45);
+            background: rgba(17, 24, 39, 0.92);
+        }
+
+        /* Arrow hint */
+        .edge-hint {
+            position: fixed;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 995;
+            width: 34px;
+            height: 72px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(180deg, rgba(102, 168, 255, 0.18), rgba(17, 24, 39, 0.25));
+            border: 1px solid rgba(102, 168, 255, 0.24);
+            color: #eaf2ff;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+            transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease;
+            pointer-events: none;
+            opacity: 1;
+        }
+
+        .edge-hint.hidden {
+            opacity: 0;
+            transform: translateY(-50%) translateX(-8px);
+            filter: blur(1px);
+        }
+
+        .edge-trigger {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 18px;
+            height: 100vh;
+            z-index: 998;
+            background: transparent;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-w);
+            height: 100vh;
+            z-index: 1000;
+            padding: 18px 16px;
+            background: linear-gradient(180deg, rgba(17, 24, 39, 0.97), rgba(12, 16, 28, 0.99));
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 16px 0 50px rgba(0, 0, 0, 0.26);
+            transform: translateX(calc(-1 * (var(--sidebar-w) - var(--sidebar-collapsed))));
+            transition: transform 320ms cubic-bezier(.2, .8, .2, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow: hidden;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: var(--sidebar-collapsed);
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(90deg, rgba(102, 168, 255, 0.08), transparent);
+            border-left: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 6px 6px 0 6px;
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            color: #f3f8ff;
+            line-height: 1.2;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.82);
+        }
+
+        .search-box input {
+            width: 100%;
+            border: 0;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .search-box input::placeholder {
+            color: #7f8ca6;
+        }
+
+        .toc {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow-y: auto;
+            padding-right: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+        }
+
+        .toc::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .toc::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.30);
+            border-radius: 999px;
+        }
+
+        .toc a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 14px;
+            line-height: 1.35;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: background var(--transition), border-color var(--transition), transform var(--transition), color var(--transition);
+        }
+
+        .toc a:hover {
+            background: rgba(102, 168, 255, 0.10);
+            border-color: rgba(102, 168, 255, 0.18);
+            color: #fff;
+            transform: translateX(2px);
+        }
+
+        .toc a.active {
+            background: rgba(102, 168, 255, 0.16);
+            border-color: rgba(102, 168, 255, 0.32);
+            color: #fff;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 10px 6px 0 6px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .content {
+            width: min(var(--content-max), calc(100vw - 64px));
+            margin: 0 auto;
+            margin-left: 72px;
+            padding: 92px 24px 60px;
+        }
+
+        .hero {
+            padding: 24px 4px 18px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        h1 {
+            margin: 14px 0 10px;
+            font-size: clamp(30px, 4vw, 48px);
+            line-height: 1.06;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            margin: 0;
+            max-width: 78ch;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.75;
+        }
+
+
+
+        /* Flatter manual layout instead of boxed cards */
+        .manual-section {
+            margin: 26px 0 28px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.10);
+        }
+
+        .manual-section:first-of-type {
+            margin-top: 18px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 0 12px;
+            font-size: 22px;
+            font-weight: 850;
+            letter-spacing: -0.01em;
+            color: #eef6ff;
+        }
+
+        .section-title::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: linear-gradient(180deg, var(--accent), var(--accent-2));
+            box-shadow: 0 0 14px rgba(102, 168, 255, 0.55);
+            flex: none;
+        }
+
+        .section-lead {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.75;
+            margin: 0 0 18px;
+            max-width: 86ch;
+        }
+
+        .content-columns {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px 36px;
+            margin: 12px 0 0;
+        }
+
+        .item {
+            padding: 14px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .item:first-child,
+        .item:nth-child(2) {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        .item strong {
+            display: inline;
+            color: #f4f8ff;
+            font-weight: 800;
+        }
+
+        .item span {
+            color: var(--text);
+            line-height: 1.72;
+            font-size: 15px;
+        }
+
+        .subhead {
+            margin: 22px 0 8px;
+            font-size: 16px;
+            font-weight: 800;
+            color: #dbeafe;
+            letter-spacing: 0.01em;
+        }
+
+        ul {
+            margin: 8px 0 0 20px;
+            padding: 0 0 0 10px;
+        }
+
+        li {
+            margin: 8px 0;
+            line-height: 1.72;
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        code {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(96, 165, 250, 0.18);
+            color: #fda4af;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: 0.95em;
+            line-height: 1.5;
+            white-space: nowrap;
+        }
+
+        .callout {
+            margin: 18px 0 0;
+            padding-left: 14px;
+            border-left: 3px solid rgba(102, 168, 255, 0.75);
+            color: #dce7f7;
+            line-height: 1.75;
+            background: linear-gradient(90deg, rgba(102, 168, 255, 0.10), transparent);
+        }
+
+        .pipeline-wrap {
+            margin-top: 16px;
+            padding: 16px 0 2px;
+        }
+
+        .pipeline-track {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .stage {
+            position: relative;
+            min-height: 108px;
+            border-radius: 18px;
+            padding: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+                rgba(17, 24, 39, 0.88);
+            overflow: hidden;
+        }
+
+        .stage::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 0%, rgba(102, 168, 255, 0.10) 50%, transparent 100%);
+            transform: translateX(-130%);
+            animation: sweep 3.6s infinite;
+        }
+
+        .stage:nth-child(2)::before {
+            animation-delay: .25s;
+        }
+
+        .stage:nth-child(3)::before {
+            animation-delay: .5s;
+        }
+
+        .stage:nth-child(4)::before {
+            animation-delay: .75s;
+        }
+
+        .stage:nth-child(5)::before {
+            animation-delay: 1s;
+        }
+
+        .stage-label {
+            position: relative;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: rgba(102, 168, 255, 0.14);
+            border: 1px solid rgba(102, 168, 255, 0.22);
+            color: #f8fbff;
+            font-weight: 900;
+            letter-spacing: 0.3px;
+            margin-bottom: 10px;
+        }
+
+        .stage-title {
+            position: relative;
+            z-index: 1;
+            font-size: 15px;
+            font-weight: 800;
+            color: #f7fbff;
+            margin-bottom: 8px;
+        }
+
+        .stage-desc {
+            position: relative;
+            z-index: 1;
+            font-size: 13px;
+            line-height: 1.55;
+            color: var(--muted);
+        }
+
+        @keyframes sweep {
+            0% {
+                transform: translateX(-130%);
+            }
+
+            45% {
+                transform: translateX(120%);
+            }
+
+            100% {
+                transform: translateX(120%);
+            }
+        }
+
+        .pipeline-note {
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.75;
+        }
+
+        .stats-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px 32px;
+            margin-top: 10px;
+        }
+
+        .stat {
+            padding: 14px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .stat strong {
+            display: block;
+            color: #eff6ff;
+            margin-bottom: 6px;
+            font-size: 15px;
+        }
+
+        .stat span {
+            color: var(--text);
+            line-height: 1.72;
+            font-size: 15px;
+        }
+
+        .hidden-match {
+            display: none !important;
+        }
+
+        .search-highlight {
+            background: rgba(245, 158, 11, 0.20);
+            box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.22);
+            border-radius: 6px;
+            padding: 0 2px;
+        }
+
+        .divider {
+            margin: 18px 0 0;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), transparent);
+        }
+
+        @media (max-width: 920px) {
+            .content {
+                width: 100%;
+                margin-left: 0;
+                padding: 86px 16px 40px;
+            }
+
+            .content-columns,
+            .stats-list,
+            .pipeline-track {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                width: min(88vw, 320px);
+                transform: translateX(calc(-1 * (min(88vw, 320px) - var(--sidebar-collapsed))));
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="progress-wrap" aria-hidden="true">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <a class="back-btn" href="cpuVisualizer.html" aria-label="Back to cpuVisualizer.html">← Back</a>
+    <div class="edge-hint" id="edgeHint" aria-hidden="true">❯</div>
+    <div class="edge-trigger" id="edgeTrigger" aria-hidden="true"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-handle" aria-hidden="true"></div>
+
+        <div class="brand">
+            <div class="brand-title">MAVE Manual</div>
+        </div>
+
+        <div class="search-box" role="search" aria-label="Search manual">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M21 21l-4.35-4.35" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" />
+                <circle cx="10.5" cy="10.5" r="6.5" stroke="#cbd5e1" stroke-width="2" />
+            </svg>
+            <input id="searchInput" type="text" placeholder="Search sections and text..." />
+        </div>
+
+
+        <nav class="toc" id="toc">
+            <a href="#how-to-use">How to Use the CPU Simulator</a>
+            <a href="#supported-assembly">Supported Assembly Instructions (Toy ISA)</a>
+            <a href="#pipeline">The Classic 5-Stage RISC Pipeline</a>
+            <a href="#statistics">Simulator Statistics Glossary</a>
+        </nav>
+
+        <div class="sidebar-footer">
+            Press <span class="kbd">Ctrl</span> + <span class="kbd">K</span> to focus search.
+        </div>
+    </aside>
+
+    <main class="content" id="content">
+        <section class="hero">
+            <h1>MAVE User Manual</h1>
+            <p>
+                Hover left for search.
+                The CPU Visualizer has 8 registers and 64 memory locations which is typical of a simple, 8-bit or 16-bit
+                educational or early microcontroller-style architecture.
+            </p>
+            <p> More information will be added soon.
+                Features listed here may or may not be implemented as of yet.
+            </p>
+
+        </section>
+
+        <section class="manual-section" id="big-picture">
+            <h2 class="section-title">The Big Picture: Macro-Architecture</h2>
+            <p class="section-lead">
+                A computer is a system of specialized components communicating across a motherboard. When you play a
+                game or run a program, data flows constantly between them:
+            </p>
+            <div class="content-columns">
+                <div class="item">
+                    CPU (Central Processing Unit): The brain. It fetches instructions, performs calculations, and
+                    coordinates the rest of the system. </div>
+                <div class="item">
+                    RAM (Random Access Memory): The short-term workspace. It holds the data and code the CPU is
+                    currently actively using. </div>
+                <div class="item">
+                    GPU (Graphics Processing Unit): A specialized processor designed to handle rendering images and
+                    complex parallel math (like drawing a video game screen). </div>
+                <div class="item">
+                    Storage (SSD/HDD): The long-term vault where files live when the computer is turned off. </div>
+                <div class="item">
+                    Motherboard (Buses): The physical highway (data, address, and control buses) that allows all these
+                    components to send electrical signals to one another </div>
+            </div>
+            <div class="divider"></div>
+        </section>
+
+        <section class="manual-section" id="isa">
+            <h2 class="section-title">What is an ISA?</h2>
+            <p class="section-lead">
+                ISA stands for Instruction Set Architecture. It is the bridge between the hardware (the physical
+                silicon) and the software (your code). You can think of it as the CPU's vocabulary. It defines exactly
+                what commands the processor understands (like ADD, LOAD, JUMP), how memory is accessed, and what
+                registers are available. Two CPUs can have completely different internal physical designs
+                (microarchitectures) but run the same software if they share the same ISA (like x86 or ARM). Another way to view it is that it is the
+                SPECIFICATION of what you promise that your computer will do. It defines things such as the number of registers that will be available, and what each of the opcodes does.
+            </p>
+        </section>
+
+        </section>
+
+        <section class="manual-section" id="data-rep">
+            <h2 class="section-title">Data Representation</h2>
+            <p class="section-lead">
+                Computers only understand electricity being ON (1) or OFF (0). Everything must be converted to binary.
+            </p>
+            <div class="content-columns">
+                <div class="item">
+                    <span><strong>Base Systems::</strong> We use Base-10 (Decimal). Computers use Base-2 (Binary) and
+                        often display data in Base-16
+                        (Hexadecimal) because it's easier for humans to read long binary strings (one Hex digit
+                        perfectly
+                        represents four binary bits).</span>
+                </div>
+                <div class="item">
+                    <span><strong>IEEE 754 Floating-Point: </strong>
+                        How computers handle fractions and massive numbers. It splits a 32-bit (single
+                        precision) or 64-bit (double precision) sequence into three parts:
+
+                        <ol>
+                            <li>Sign bit: 0 for positive, 1 for negative.</li>
+
+                            <li>Exponent: Shifts the decimal point.</li>
+
+                            <li>Significand (Mantissa/Fraction): The actual digits of the number.</li>
+                        </ol>
+                    </span>
+                </div>
+
+                <div class="item">
+                    <span><strong>The Implicit Leading 1:</strong> In standard normalized binary floating-point, the
+                        number always starts with a 1.
+                        Because it always starts with a 1, hardware designers decided not to waste a bit storing it. It
+                        is
+                        "hidden" or "implicit," giving us an extra bit of accuracy for free. The formula for evaluating
+                        this is:
+                        <div style="text-align: center; font-family: serif; font-size: 1.2em;">
+                            (-1)<sup>sign</sup> &times; (1 + fraction) &times; 2<sup>exponent - bias</sup>
+                        </div>
+                        The converter offers 3 conversion formats, including no implicit 1.
+                    </span>
+                </div>
+            </div>
+
+        </section>
+<section class="manual-section" id="micro-level">
+            <h2 class="section-title">The Micro-Level: Transistors & Logic Gates</h2>
+<ol>
+    <li>
+        <strong>Transistors:</strong> In modern CMOS circuits, transistors act as electrically controlled gates. Applying a voltage opens or closes the path for current, creating 1s and 0s.
+    </li>
+    <li>
+        <strong>Logic Gates:</strong> By wiring a few transistors together, we create Logic Gates—circuits that make simple decisions.
+        <ul>
+            <li>AND: Outputs 1 only if both inputs are 1.</li>
+            <li>OR: Outputs 1 if either input is 1.</li>
+            <li>NOT: Flips a 1 to a 0, or a 0 to a 1.</li>
+            <li>XOR (Exclusive OR): Outputs 1 only if the inputs are different.</li>
+        </ul>
+    </li>
+    <li>
+        <strong>Pre-made Operations (Adders):</strong> By combining gates, we build math. For example, a "Half-Adder" connects an XOR gate and an AND gate to add two binary bits together and calculate a "carry" bit.
+    </li>
+</ol>
+</section>
+
+        <section class="manual-section" id="how-to-use">
+            <h2 class="section-title">How to Use the CPU Simulator</h2>
+
+            <div class="content-columns">
+                <div class="item">
+                    <span><strong>Write Assembly:</strong> Open the Assembly Editor popup to write your program. You can
+                        also hover over the "Examples" button to load pre-written educational programs.</span>
+                </div>
+                <div class="item">
+                    <span><strong>Configure Architecture:</strong> Adjust parameters like cache size, memory latency,
+                        and branch predictor type in the Configuration Panel.</span>
+                </div>
+                <div class="item">
+                    <span><strong>Run &amp; Step:</strong> Click "Assemble &amp; Run" to compile your code. Use the
+                        playback controls (Play, Pause, Step Forward, Step Back) to move through the execution cycle by
+                        cycle.</span>
+                </div>
+                <div class="item">
+                    <span><strong>Analyze:</strong> Watch the datapath visualizer on the left to see data flow, track
+                        the 5-stage pipeline at the bottom, and monitor performance graphs and memory states on the
+                        right.</span>
+                </div>
+            </div>
+            <div class="divider"></div>
+        </section>
+
+        <section class="manual-section" id="supported-assembly">
+            <h2 class="section-title">Supported Assembly Instructions (Toy ISA)</h2>
+
+            <div class="subhead">Arithmetic/Logic</div>
+            <ul>
+                <li><code>ADD rd, rs, rt</code> (rd = rs + rt)</li>
+                <li><code>SUB rd, rs, rt</code> (rd = rs - rt)</li>
+                <li><code>ADDI rd, rs, imm</code> (rd = rs + imm)</li>
+                <li><code>ANDI rd, rs, imm</code> (rd = rs &amp; imm)</li>
+            </ul>
+
+            <div class="subhead">Memory</div>
+            <ul>
+                <li><code>LD rd, [rs + imm]</code> (Load word into rd from memory address rs + imm)</li>
+                <li><code>ST rs, [rd + imm]</code> (Store word from rs into memory address rd + imm)</li>
+            </ul>
+
+            <div class="subhead">Control Flow</div>
+            <ul>
+                <li><code>BEQ rs, rt, label</code> (Branch to label if rs == rt)</li>
+                <li><code>J label</code> (Unconditional jump)</li>
+            </ul>
+
+            <div class="subhead">System</div>
+            <ul>
+                <li><code>NOP</code> (No operation)</li>
+                <li><code>HALT</code> (Stop execution)</li>
+            </ul>
+            <div class="divider"></div>
+        </section>
+
+        <section class="manual-section" id="pipeline">
+            <h2 class="section-title">The Classic 5-Stage RISC Pipeline</h2>
+            <p class="section-lead">
+                Pipelining improves CPU performance by allowing multiple instructions to be processed simultaneously,
+                much like an assembly line in a factory.
+                Instead of waiting for one instruction to finish entirely before starting the next, a pipelined CPU
+                divides the work into stages:
+            </p>
+
+            <div class="pipeline-wrap">
+                <div class="pipeline-track">
+                    <div class="stage">
+                        <div class="stage-label">IF</div>
+                        <div class="stage-title">Instruction Fetch</div>
+                        <div class="stage-desc">Retrieves the next instruction from memory using the Program Counter
+                            (PC).</div>
+                    </div>
+                    <div class="stage">
+                        <div class="stage-label">ID</div>
+                        <div class="stage-title">Instruction Decode</div>
+                        <div class="stage-desc">Translates the instruction into control signals and reads the required
+                            values from the register file.</div>
+                    </div>
+                    <div class="stage">
+                        <div class="stage-label">EX</div>
+                        <div class="stage-title">Execute</div>
+                        <div class="stage-desc">The Arithmetic Logic Unit (ALU) performs mathematical operations,
+                            logical operations, or calculates memory addresses.</div>
+                    </div>
+                    <div class="stage">
+                        <div class="stage-label">MEM</div>
+                        <div class="stage-title">Memory Access</div>
+                        <div class="stage-desc">If the instruction is a Load or Store, the CPU reads from or writes to
+                            the data memory (or cache).</div>
+                    </div>
+                    <div class="stage">
+                        <div class="stage-label">WB</div>
+                        <div class="stage-title">Writeback</div>
+                        <div class="stage-desc">The final result is written back into the destination register.</div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="pipeline-note">
+
+            </p>
+            <div class="divider"></div>
+        </section>
+
+        <section class="manual-section" id="statistics">
+            <h2 class="section-title">Simulator Statistics Glossary</h2>
+            <p class="section-lead">
+                These counters help users connect what they see in the pipeline and memory views with real
+                performance effects.
+                They are especially useful when discussing hazards, stalls, and prediction behavior.
+            </p>
+
+            <div class="stats-list">
+                <div class="stat">
+                    <strong>Cycles:</strong>
+                    <span>The total number of clock cycles that have elapsed since execution started.</span>
+                </div>
+                <div class="stat">
+                    <strong>Instructions Retired:</strong>
+                    <span>The number of instructions that have successfully completed all 5 stages of the
+                        pipeline.</span>
+                </div>
+                <div class="stat">
+                    <strong>Stalls (Bubbles):</strong>
+                    <span>Cycles wasted because an instruction had to wait for a hazard to resolve (e.g., waiting for
+                        data from memory or an older instruction).</span>
+                </div>
+                <div class="stat">
+                    <strong>Branch Mispredictions:</strong>
+                    <span>Occurs when the CPU guesses the wrong path for a branch (like an if statement). The pipeline
+                        must be "flushed" (emptied) of the wrong instructions, costing time. This is caused by unpredictable, random data or changing branch patterns which the branch prediction unit (BPU) in a CPU fails to see a pattern.</span>
+                </div>
+                <div class="stat">
+                    <strong>Cache Misses:</strong>
+                    <span>Occurs when the CPU looks for data in the fast, temporary CPU Cache memory but doesn't find it,
+                        forcing it to wait to fetch the data from the slower Main Memory (DRAM).</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        (function () {
+            const sidebar = document.getElementById('sidebar');
+            const edgeTrigger = document.getElementById('edgeTrigger');
+            const edgeHint = document.getElementById('edgeHint');
+            const searchInput = document.getElementById('searchInput');
+            const progressBar = document.getElementById('progressBar');
+            const sections = [...document.querySelectorAll('.manual-section')];
+            const tocLinks = [...document.querySelectorAll('.toc a')];
+            let closeTimer = null;
+
+            function openSidebar() {
+                sidebar.classList.add('open');
+                edgeHint.classList.add('hidden');
+                if (closeTimer) {
+                    clearTimeout(closeTimer);
+                    closeTimer = null;
+                }
+            }
+
+            function scheduleCloseSidebar() {
+                if (closeTimer) clearTimeout(closeTimer);
+                closeTimer = setTimeout(() => {
+                    sidebar.classList.remove('open');
+                    if (!searchInput.matches(':focus')) {
+                        edgeHint.classList.remove('hidden');
+                    }
+                }, 170);
+            }
+
+            edgeTrigger.addEventListener('mouseenter', openSidebar);
+            edgeTrigger.addEventListener('mousemove', openSidebar);
+            edgeTrigger.addEventListener('click', openSidebar);
+            sidebar.addEventListener('mouseenter', openSidebar);
+            sidebar.addEventListener('mouseleave', scheduleCloseSidebar);
+
+            function updateProgress() {
+                const doc = document.documentElement;
+                const scrollTop = doc.scrollTop || document.body.scrollTop;
+                const scrollHeight = (doc.scrollHeight || document.body.scrollHeight) - doc.clientHeight;
+                const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+                progressBar.style.width = pct + '%';
+            }
+            window.addEventListener('scroll', updateProgress, { passive: true });
+            updateProgress();
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const id = entry.target.id;
+                    const link = tocLinks.find(a => a.getAttribute('href') === '#' + id);
+                    if (!link) return;
+                    if (entry.isIntersecting) {
+                        tocLinks.forEach(a => a.classList.remove('active'));
+                        link.classList.add('active');
+                    }
+                });
+            }, { root: null, rootMargin: '-35% 0px -55% 0px', threshold: 0.01 });
+
+            sections.forEach(sec => observer.observe(sec));
+
+            function normalize(str) {
+                return (str || '').toLowerCase().trim();
+            }
+
+            function clearHighlights(root) {
+                const nodes = root.querySelectorAll('.search-highlight');
+                nodes.forEach(node => {
+                    const parent = node.parentNode;
+                    parent.replaceChild(document.createTextNode(node.textContent), node);
+                    parent.normalize();
+                });
+            }
+
+            function highlightText(node, term) {
+                if (!term) return;
+
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const idx = node.data.toLowerCase().indexOf(term);
+                    if (idx === -1) return;
+
+                    const span = document.createElement('span');
+                    span.className = 'search-highlight';
+
+                    const before = node.data.slice(0, idx);
+                    const match = node.data.slice(idx, idx + term.length);
+                    const after = node.data.slice(idx + term.length);
+
+                    const frag = document.createDocumentFragment();
+                    if (before) frag.appendChild(document.createTextNode(before));
+                    span.textContent = match;
+                    frag.appendChild(span);
+                    if (after) frag.appendChild(document.createTextNode(after));
+
+                    node.parentNode.replaceChild(frag, node);
+                } else if (node.nodeType === Node.ELEMENT_NODE &&
+                    !['SCRIPT', 'STYLE', 'INPUT', 'TEXTAREA'].includes(node.tagName) &&
+                    !node.classList.contains('search-highlight')) {
+                    [...node.childNodes].forEach(child => highlightText(child, term));
+                }
+            }
+
+            function applySearch() {
+                const term = normalize(searchInput.value);
+
+                sections.forEach(section => {
+                    clearHighlights(section);
+                    const text = normalize(section.textContent);
+                    const match = !term || text.includes(term);
+                    section.classList.toggle('hidden-match', !match);
+
+                    if (match && term) {
+                        highlightText(section, term);
+                    }
+                });
+
+                tocLinks.forEach(link => {
+                    const match = !term || normalize(link.textContent).includes(term);
+                    link.classList.toggle('hidden-match', !match);
+                });
+            }
+
+            searchInput.addEventListener('input', applySearch);
+
+            window.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                    openSidebar();
+                }
+                if (e.key === 'Escape') {
+                    sidebar.classList.remove('open');
+                    if (!searchInput.matches(':focus')) {
+                        edgeHint.classList.remove('hidden');
+                    }
+                }
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (e.clientX <= 18) {
+                    openSidebar();
+                } else if (e.clientX > 360 && !sidebar.matches(':hover') && !searchInput.matches(':focus')) {
+                    scheduleCloseSidebar();
+                }
+            }, { passive: true });
+
+            searchInput.addEventListener('focus', openSidebar);
+            searchInput.addEventListener('blur', () => {
+                if (!sidebar.matches(':hover')) {
+                    edgeHint.classList.remove('hidden');
+                }
+            });
+
+            applySearch();
+        })();
+    </script>
+</body>
+
+</html>

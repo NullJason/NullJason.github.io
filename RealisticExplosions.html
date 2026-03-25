@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Space VFX - High Fidelity</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.159.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.159.0/examples/jsm/"
+            }
+        }    
+    </script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        
+        /* Hamburger Menu & UI */
+        #ui-wrapper {
+            position: absolute; top: 20px; left: 20px; z-index: 10;
+        }
+        
+        #hamburger {
+            width: 40px; height: 40px; background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #444; border-radius: 8px; cursor: pointer;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
+            transition: background 0.2s;
+        }
+        
+        #hamburger:hover { background: rgba(50, 50, 50, 0.9); }
+        
+        .bar { width: 24px; height: 3px; background: white; border-radius: 2px; }
+        
+        #menu-content {
+            display: none; margin-top: 10px; background: rgba(0, 0, 0, 0.85);
+            padding: 15px; border-radius: 8px; border: 1px solid #333;
+            color: white; width: 220px; backdrop-filter: blur(5px);
+        }
+        
+        /* Show menu when wrapper is hovered */
+        #ui-wrapper:hover #menu-content { display: block; }
+        
+        select {
+            background: #111; color: #fff; border: 1px solid #555;
+            padding: 8px 12px; border-radius: 4px; font-size: 14px; margin-top: 10px;
+            width: 100%; cursor: pointer; outline: none;
+        }
+        
+        select:hover { border-color: #888; }
+    </style>
+</head>
+<body>
+    <div id="ui-wrapper">
+        <div id="hamburger">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+        <div id="menu-content">
+            <div><strong>Event Selector</strong></div>
+            <select id="eventType">
+                <option value="supernova">Supernova (Endless Expansion)</option>
+                <option value="blackhole">Black Hole Collapse</option>
+            </select>
+            <div style="margin-top: 10px; font-size: 11px; color: #aaa;">
+                Options block clicks. Click empty space to trigger.
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { AfterimagePass } from 'three/addons/postprocessing/AfterimagePass.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // --- 1. Audio Engine ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playExplosionSound(duration = 3, pitch = 1) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const bufferSize = audioCtx.sampleRate * duration;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * (duration/2))); 
+            }
+            const noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = buffer; noiseSource.playbackRate.value = pitch;
+            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(400, audioCtx.currentTime); 
+            filter.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + duration);
+            const gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(2.0, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            noiseSource.connect(filter); filter.connect(gainNode); gainNode.connect(audioCtx.destination);
+            noiseSource.start();
+        }
+
+        // --- 2. Procedural Soft Particle Texture ---
+        function createParticleTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64; canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            gradient.addColorStop(0, 'rgba(255,255,255,1)');
+            gradient.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+            gradient.addColorStop(0.5, 'rgba(255,255,255,0.2)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = gradient; ctx.fillRect(0,0,64,64);
+            return new THREE.CanvasTexture(canvas);
+        }
+        const particleTexture = createParticleTexture();
+
+        // --- 3. Scene & Post-Processing Setup ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+        camera.position.z = 80;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: false });
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        document.body.appendChild(renderer.domElement);
+
+        const renderScene = new RenderPass(scene, camera);
+        
+        // Afterimage Pass is the secret to "Meteor Trails"
+        const afterimagePass = new AfterimagePass(0.85); // 0.85 controls trail length. Closer to 1 = longer trails.
+        
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2.0, 0.4, 0.85);
+        bloomPass.threshold = 0; bloomPass.radius = 1.0;
+
+        const composer = new EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(afterimagePass); // Add trails
+        composer.addPass(bloomPass);      // Add glow on top of trails
+
+        let screenShake = 0; let flashIntensity = 0;
+        const activeEvents = [];
+
+        class Shockwave {
+            constructor(x, y, z) {
+                const geo = new THREE.SphereGeometry(1, 64, 64);
+                const mat = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0.8,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    side: THREE.DoubleSide
+                });
+                this.mesh = new THREE.Mesh(geo, mat);
+                this.mesh.position.set(x, y, z);
+                scene.add(this.mesh);
+                this.life = 1.0;
+            }
+            update(delta) {
+                this.life -= delta * 2.0; // Fades out in half a second
+                this.mesh.scale.addScalar(delta * 150); // Expands incredibly fast
+                this.mesh.material.opacity = Math.max(0, this.life);
+                if (this.life <= 0) {
+                    scene.remove(this.mesh);
+                    this.mesh.geometry.dispose();
+                    this.mesh.material.dispose();
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        class Supernova {
+            constructor(x, y, z) {
+                this.count = 25000;
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(this.count * 3);
+                const colors = new Float32Array(this.count * 3);
+                this.velocities = [];
+
+                for (let i = 0; i < this.count; i++) {
+                    positions[i * 3] = x; positions[i * 3 + 1] = y; positions[i * 3 + 2] = z;
+
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos((Math.random() * 2) - 1);
+                    const speedMultiplier = Math.pow(Math.random(), 3); 
+                    const speed = speedMultiplier * 10.0 + 0.1;
+
+                    this.velocities.push(new THREE.Vector3(
+                        Math.sin(phi) * Math.cos(theta) * speed,
+                        Math.sin(phi) * Math.sin(theta) * speed,
+                        Math.cos(phi) * speed
+                    ));
+
+                    // Quasar Color Palette: Deep Purples, Magentas, Blues, and Bright Whites
+                    let r, g, b;
+                    const colorRoll = Math.random();
+                    if (speedMultiplier < 0.1) { r=1; g=1; b=1; } // Core: Bright White
+                    else if (colorRoll < 0.3) { r=0.2; g=0.5; b=1.0; } // Blue
+                    else if (colorRoll < 0.6) { r=0.8; g=0.1; b=1.0; } // Deep Purple
+                    else if (colorRoll < 0.9) { r=1.0; g=0.2; b=0.6; } // Magenta/Pink
+                    else { r=1.0; g=0.8; b=0.2; } // Gold flecks
+
+                    colors[i * 3] = r; colors[i * 3 + 1] = g; colors[i * 3 + 2] = b;
+                }
+
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+                const material = new THREE.PointsMaterial({
+                    size: 1.5, map: particleTexture, vertexColors: true,
+                    transparent: true, opacity: 1.0, blending: THREE.AdditiveBlending, depthWrite: false
+                });
+
+                this.points = new THREE.Points(geometry, material);
+                scene.add(this.points);
+
+                this.life = 60.0; 
+                screenShake = 3.0; flashIntensity = 4.0; 
+                playExplosionSound(8.0, 0.4); 
+            }
+
+            update(delta) {
+                this.life -= delta;
+                const posAttr = this.points.geometry.attributes.position;
+                const positions = posAttr.array;
+                
+                this.points.material.opacity = Math.min(1.0, this.life / 10.0); 
+
+                for (let i = 0; i < this.velocities.length; i++) {
+                    let v = this.velocities[i];
+                    positions[i * 3] += v.x * delta * 15;
+                    positions[i * 3 + 1] += v.y * delta * 15;
+                    positions[i * 3 + 2] += v.z * delta * 15;
+                }
+                posAttr.needsUpdate = true;
+                
+                if (this.life <= 0) { scene.remove(this.points); return false; }
+                return true;
+            }
+        }
+
+        class BlackHolePhase {
+            constructor(x, y, z) {
+                this.pos = new THREE.Vector3(x, y, z);
+                this.phase = "accretion"; 
+                this.timer = 0;
+
+                // 1. Core Pitch Black Sphere (depthWrite: true makes it hide particles behind it!)
+                const coreGeo = new THREE.SphereGeometry(3.5, 64, 64);
+                const coreMat = new THREE.MeshBasicMaterial({ color: 0x000000, depthWrite: true });
+                this.blackHole = new THREE.Mesh(coreGeo, coreMat);
+                
+                // 2. White Outline (Event Horizon Edge)
+                const outlineGeo = new THREE.SphereGeometry(3.8, 64, 64); 
+                const outlineMat = new THREE.MeshBasicMaterial({ 
+                    color: 0xffffff, side: THREE.BackSide, transparent: true, opacity: 0.6
+                });
+                this.outline = new THREE.Mesh(outlineGeo, outlineMat);
+
+                this.holeGroup = new THREE.Group();
+                this.holeGroup.add(this.blackHole);
+                this.holeGroup.add(this.outline);
+                this.holeGroup.position.copy(this.pos);
+                scene.add(this.holeGroup);
+
+                // 3. Volumetric Accretion Disk with True Orbit Data
+                this.diskCount = 18000;
+                const geo = new THREE.BufferGeometry();
+                const pos = new Float32Array(this.diskCount * 3);
+                const col = new Float32Array(this.diskCount * 3);
+                
+                this.orbitData = []; // Store specific radius and angle for true physics
+
+                for(let i = 0; i < this.diskCount; i++) {
+                    const distNormalized = Math.pow(Math.random(), 2);
+                    const radius = 4.0 + (distNormalized * 25); 
+                    const angle = Math.random() * Math.PI * 2;
+                    
+                    // Volumetric thickness: thicker on the outside, pinched at the event horizon
+                    const yOffset = (Math.random() - 0.5) * (radius * 0.15); 
+                    
+                    // Orbital mechanics: inner particles orbit much faster than outer particles
+                    const orbitSpeed = 2.0 / Math.sqrt(radius); 
+
+                    this.orbitData.push({ radius, angle, yOffset, speed: orbitSpeed });
+                    
+                    pos[i*3] = x + Math.cos(angle) * radius;
+                    pos[i*3+1] = y + yOffset;
+                    pos[i*3+2] = z + Math.sin(angle) * radius;
+
+                    // Heat map: Intense Quasar Colors
+                    let r, g, b;
+                    if (distNormalized < 0.1) { r=1; g=1; b=1; } // Event horizon white
+                    else if (distNormalized < 0.3) { r=1; g=0.8; b=0.1; } // Yellow-hot
+                    else if (distNormalized < 0.6) { r=1; g=0.3; b=0.0; } // Fiery Orange
+                    else { r=0.4; g=0.0; b=0.8; } // Deep cold purple on the outer edge
+                    
+                    col[i*3] = r; col[i*3+1] = g; col[i*3+2] = b;
+                }
+                
+                geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+                geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
+                this.diskMat = new THREE.PointsMaterial({
+                    size: 1.2, map: particleTexture, vertexColors: true,
+                    transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false
+                });
+                
+                this.disk = new THREE.Points(geo, this.diskMat);
+                
+                // Tilt the entire disk container to give it that cinematic angle
+                this.disk.rotation.set(0.4, 0.2, 0); 
+                scene.add(this.disk);
+
+                playExplosionSound(5, 2.5); 
+            }
+
+            update(delta) {
+                this.timer += delta;
+                
+                if (this.phase === "accretion") {
+                    const posAttr = this.disk.geometry.attributes.position;
+                    const positions = posAttr.array;
+
+                    // Calculate TRUE orbits (Particles move individually based on distance from center)
+                    for (let i = 0; i < this.diskCount; i++) {
+                        let data = this.orbitData[i];
+                        data.angle += data.speed * delta; // Faster near the center
+                        
+                        positions[i*3] = this.pos.x + Math.cos(data.angle) * data.radius;
+                        // Y offset remains constant relative to the tilted group
+                        positions[i*3+2] = this.pos.z + Math.sin(data.angle) * data.radius;
+                    }
+                    posAttr.needsUpdate = true;
+                    
+                    if (this.timer > 4.5) { 
+                        this.phase = "collapse";
+                        screenShake = 1.0;
+                    }
+                } 
+                else if (this.phase === "collapse") {
+                    this.holeGroup.scale.multiplyScalar(0.9);
+                    this.disk.scale.multiplyScalar(0.85);
+                    
+                    if (this.holeGroup.scale.x < 0.05) {
+                        this.phase = "shockwave";
+                        this.timer = 0; // Reset timer for the 1-second delay
+                        scene.remove(this.holeGroup); 
+                        scene.remove(this.disk);
+                        
+                        // Fire the initial shockwave bubble and a sharp cracking sound
+                        activeEvents.push(new Shockwave(this.pos.x, this.pos.y, this.pos.z));
+                        playExplosionSound(1.5, 4.0); 
+                    }
+                }
+                else if (this.phase === "shockwave") {
+                    // Wait 1 second before the final MightyExplosion
+                    if (this.timer > 1.0) {
+                        activeEvents.push(new MightyExplosion(this.pos.x, this.pos.y, this.pos.z));
+                        return false; 
+                    }
+                }
+                return true;
+            }
+        }
+
+        class MightyExplosion {
+            constructor(x, y, z) {
+                this.count = 25000;
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(this.count * 3);
+                const colors = new Float32Array(this.count * 3);
+                this.velocities = [];
+
+                for (let i = 0; i < this.count; i++) {
+                    positions[i * 3] = x; positions[i * 3 + 1] = y; positions[i * 3 + 2] = z;
+                    
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos((Math.random() * 2) - 1);
+                    
+                    // Velocity gradient
+                    const speedMultiplier = Math.pow(Math.random(), 3); 
+                    const speed = speedMultiplier * 18.0 + 0.5;
+
+                    this.velocities.push(new THREE.Vector3(
+                        Math.sin(phi) * Math.cos(theta) * speed,
+                        Math.sin(phi) * Math.sin(theta) * speed,
+                        Math.cos(phi) * speed
+                    ));
+                    colors[i * 3] = 1; colors[i * 3 + 1] = 1; colors[i * 3 + 2] = 1;
+                }
+
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+                const material = new THREE.PointsMaterial({
+                    size: 2.0, map: particleTexture, vertexColors: true,
+                    transparent: true, opacity: 1.0, blending: THREE.AdditiveBlending, depthWrite: false
+                });
+
+                this.points = new THREE.Points(geometry, material);
+                scene.add(this.points);
+                this.life = 20.0;
+                
+                screenShake = 5.0; flashIntensity = 10.0; 
+                playExplosionSound(7.0, 0.2); 
+            }
+
+            update(delta) {
+                this.life -= delta;
+                const posAttr = this.points.geometry.attributes.position;
+                const colAttr = this.points.geometry.attributes.color;
+                const positions = posAttr.array;
+                const colors = colAttr.array;
+
+                this.points.material.opacity = Math.min(1.0, this.life / 5.0);
+
+                for (let i = 0; i < this.velocities.length; i++) {
+                    let v = this.velocities[i];
+                    // NO DRAG. Constant space velocity.
+                    positions[i * 3] += v.x * delta * 15;
+                    positions[i * 3 + 1] += v.y * delta * 15;
+                    positions[i * 3 + 2] += v.z * delta * 15;
+
+                    // Color transitions based on life remaining
+                    if (this.life < 18.0) {
+                        colors[i*3+1] *= 0.995; // fade green (turns yellow to orange)
+                        colors[i*3+2] *= 0.98;  // fade blue rapidly (removes white)
+                    }
+                }
+                posAttr.needsUpdate = true; colAttr.needsUpdate = true;
+
+                if (this.life <= 0) {
+                    scene.remove(this.points); return false;
+                }
+                return true;
+            }
+        }
+
+        // --- 5. Interaction ---
+        
+        // Prevent clicks on the UI from triggering the explosion
+        document.getElementById('ui-wrapper').addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+        });
+
+        window.addEventListener('mousedown', (event) => {
+            const vector = new THREE.Vector3(
+                (event.clientX / window.innerWidth) * 2 - 1,
+                -(event.clientY / window.innerHeight) * 2 + 1, 0.5
+            );
+            vector.unproject(camera);
+            const dir = vector.sub(camera.position).normalize();
+            const distance = -camera.position.z / dir.z;
+            const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+
+            const type = document.getElementById('eventType').value;
+            if (type === 'supernova') activeEvents.push(new Supernova(pos.x, pos.y, pos.z));
+            if (type === 'blackhole') activeEvents.push(new BlackHolePhase(pos.x, pos.y, pos.z));
+        });
+
+        // --- 6. Main Render Loop ---
+        const clock = new THREE.Clock();
+        const originalCameraPos = camera.position.clone();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = Math.min(clock.getDelta(), 0.1); // Cap delta to prevent massive jumps if tab is inactive
+            
+            for (let i = activeEvents.length - 1; i >= 0; i--) {
+                if (!activeEvents[i].update(delta)) {
+                    activeEvents.splice(i, 1);
+                }
+            }
+
+            if (screenShake > 0) {
+                camera.position.x = originalCameraPos.x + (Math.random() - 0.5) * screenShake;
+                camera.position.y = originalCameraPos.y + (Math.random() - 0.5) * screenShake;
+                screenShake -= delta * 3.0; 
+            } else {
+                camera.position.copy(originalCameraPos);
+            }
+
+            if (flashIntensity > 0) {
+                bloomPass.strength = 2.0 + flashIntensity;
+                flashIntensity -= delta * 4.0; 
+            } else {
+                bloomPass.strength = 2.0; 
+            }
+            controls.update();
+            composer.render();
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

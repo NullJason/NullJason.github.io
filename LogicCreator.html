@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>MAVE - Logic Sandbox</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: system-ui, sans-serif;
+            background: #1e1e1e;
+            /* Dark mode feels more "engineering" */
+            color: #eee;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Left Panel: Tool Palette */
+        #palette {
+            width: 250px;
+            background: #252526;
+            border-right: 1px solid #333;
+            padding: 15px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        .palette-item {
+            background: #333;
+            border: 1px solid #555;
+            padding: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+            border-radius: 4px;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .palette-item:active {
+            cursor: grabbing;
+        }
+
+        /* Center Canvas */
+        #workspace {
+            flex-grow: 1;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        /* Bottom Controls */
+        #bottom-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(40, 40, 40, 0.9);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #0098ff;
+        }
+
+        .btn-toggle.active {
+            background: #d97706;
+        }
+
+        /* Orange for edit mode */
+
+        /* Right Sliding Panel */
+        #ops-panel {
+            position: fixed;
+            right: -300px;
+            /* Hidden by default */
+            top: 0;
+            width: 300px;
+            height: 100vh;
+            background: #252526;
+            border-left: 1px solid #333;
+            transition: right 0.3s ease;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 20;
+        }
+
+        #ops-panel.open {
+            right: 0;
+        }
+
+        #toggle-ops-btn {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="palette">
+        <h3>Components</h3>
+        <div class="palette-item" draggable="true" data-type="INPUT">Input Box</div>
+        <div class="palette-item" draggable="true" data-type="AND">AND Gate</div>
+        <div class="palette-item" draggable="true" data-type="OR">OR Gate</div>
+        <div class="palette-item" draggable="true" data-type="NOT">NOT Gate</div>
+        <div class="palette-item" draggable="true" data-type="XOR">XOR Gate</div>
+        <div class="palette-item" draggable="true" data-type="XOR">XOR Gate</div>
+        <div class="palette-item" draggable="true" data-type="NAND">NAND Gate</div>
+        <div class="palette-item" draggable="true" data-type="NOR">NOR Gate</div>
+        <div class="palette-item" draggable="true" data-type="XNOR">XNOR Gate</div>
+        <div class="palette-item" draggable="true" data-type="OUTPUT" style="border-color: #f1c40f;">Output Bulb</div>
+        <div class="palette-item" draggable="true" data-type="CLOCK" style="border-color: #e74c3c;">Clock Pulse</div>
+    </div>
+
+    <div id="workspace">
+        <button id="toggle-ops-btn">⚙️ Pre-made Ops</button>
+        <canvas id="gridCanvas"></canvas>
+
+        <div id="bottom-bar">
+            <button id="btn-edit" class="btn-toggle">✏️ Edit Mode</button>
+            <button id="btn-inputs">🔢 Manage Inputs</button>
+            <button id="btn-step">Step ▶</button>
+            <button id="btn-play">Play ▶▶</button>
+        </div>
+    </div>
+
+    <div id="ops-panel">
+        <button id="close-ops-btn"
+            style="position: absolute; top: 10px; right: 10px; background: transparent; color: white; border: none; font-size: 16px; cursor: pointer;">✖</button>
+                <p style="font-size: 12px; color: #aaa;">Drag a preset into the workspace.</p>
+            <h3>Single-Bit Manipulation</h3>
+        <div class="palette-item" draggable="true" data-type="HALF_ADDER">
+            Half-Adder<br><small>A + B (Sum, Carry)</small>
+        </div>
+        <div class="palette-item" draggable="true" data-type="FULL_ADDER">Full-Adder <br><small>(A, B, Cin &rarr; Sum,
+                Cout)</small></div>
+        <div class="palette-item" draggable="true" data-type="MUX_2TO1">2-to-1 MUX <br><small>(D0, D1, Sel &rarr;
+                Out)</small></div>
+        <div class="palette-item" draggable="true" data-type="DECODER_1TO2">1-to-2 Decoder <br><small>(In, Sel &rarr;
+                Out0, Out1)</small></div>
+        <h3>8-Bit Components</h3>
+        <div class="palette-item" draggable="true" data-type="MACRO_ADD8" style="border-color: #2ecc71;">8-Bit Adder <br><small>(A, B, Cin &rarr; Sum, Cout)</small></div>
+        <div class="palette-item" draggable="true" data-type="MACRO_MUX8" style="border-color: #9b59b6;">8-Bit MUX <br><small>(D0, D1, Sel &rarr; Out)</small></div>
+        <h3>Memory / State</h3>
+        <div class="palette-item" draggable="true" data-type="D_FLIP_FLOP" style="border-color: #9b59b6;">D-Flip Flop
+        </div>
+    </div>
+    <div id="input-panel"
+        style="display: none; position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); background: #252526; border: 1px solid #444; border-radius: 8px; padding: 15px; width: 300px; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; padding-bottom: 8px; margin-bottom: 10px;">
+            <h3 style="margin: 0;">Input Values (8-bit)</h3>
+            <button id="btn-toggle-base" style="font-size: 11px; padding: 4px 8px; background: #555;">Base: 10</button>
+        </div>
+        <ul id="input-list" style="list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto;">
+            <li style="color: #aaa; font-size: 12px;">Drop an input box to see it here.</li>
+        </ul>
+    </div>
+    <script>
+        const canvas = document.getElementById('gridCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let nodes = [];
+        let wires = []; // Stores {from: node, to: node}
+        let isEditMode = false;
+        let draggingNode = null;
+        let selectedNodeForWire = null; // Tracks the first node clicked in Edit Mode
+        let offsetX, offsetY;
+
+        function resize() {
+            width = canvas.parentElement.clientWidth;
+            height = canvas.parentElement.clientHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+        }
+        window.addEventListener('resize', resize);
+
+        class LogicNode {
+            constructor(x, y, type, label = "") {
+                this.id = 'node_' + Math.random().toString(36).substr(2, 9);
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.width = 60;
+                this.height = 40;
+                this.value = 0; // Stored natively as a decimal integer (0-255)
+                this.label = label;
+
+                this.storedValue = 0;
+                this.lastClk = 0;
+
+                if (this.type === 'INPUT') {
+                    this.width = 40;
+                }
+            }
+
+            draw(ctx) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (selectedNodeForWire === this) {
+                    ctx.shadowColor = '#0098ff';
+                    ctx.shadowBlur = 15;
+                }
+
+                ctx.fillStyle = '#333';
+                ctx.strokeStyle = '#888';
+                ctx.lineWidth = 2;
+
+                ctx.beginPath();
+                const drawInversionBubble = () => {
+                    ctx.moveTo(this.width + 10, this.height / 2);
+                    ctx.arc(this.width + 5, this.height / 2, 5, 0, Math.PI * 2);
+                };
+
+                const isAND = this.type === 'AND' || this.type === 'NAND';
+                const isOR = this.type === 'OR' || this.type === 'NOR';
+                const isXOR = this.type === 'XOR' || this.type === 'XNOR';
+
+                if (isAND) {
+                    ctx.moveTo(0, 0); ctx.lineTo(this.width / 2, 0); ctx.arc(this.width / 2, this.height / 2, this.height / 2, -Math.PI / 2, Math.PI / 2); ctx.lineTo(0, this.height); ctx.closePath();
+                    if (this.type === 'NAND') drawInversionBubble();
+                } else if (isOR) {
+                    ctx.moveTo(0, 0); ctx.quadraticCurveTo(this.width * 0.8, 0, this.width, this.height / 2); ctx.quadraticCurveTo(this.width * 0.8, this.height, 0, this.height); ctx.quadraticCurveTo(this.width * 0.3, this.height / 2, 0, 0);
+                    if (this.type === 'NOR') drawInversionBubble();
+                } else if (isXOR) {
+                    ctx.moveTo(10, 0); ctx.quadraticCurveTo(this.width * 0.8, 0, this.width, this.height / 2); ctx.quadraticCurveTo(this.width * 0.8, this.height, 10, this.height); ctx.quadraticCurveTo(this.width * 0.3 + 10, this.height / 2, 10, 0);
+                    ctx.moveTo(0, 0); ctx.quadraticCurveTo(this.width * 0.3, this.height / 2, 0, this.height);
+                    if (this.type === 'XNOR') drawInversionBubble();
+                } else if (this.type === 'NOT') {
+                    ctx.moveTo(0, 0); ctx.lineTo(this.width, this.height / 2); ctx.lineTo(0, this.height); ctx.closePath();
+                    drawInversionBubble();
+                } else if (this.type === 'OUTPUT') {
+                    ctx.arc(this.width / 2, this.height / 2, 20, 0, Math.PI * 2);
+                    if (this.value > 0) ctx.fillStyle = '#f1c40f'; // Lights up!
+                } else if (this.type === 'D_FLIP_FLOP') {
+                    ctx.rect(0, 0, this.width, this.height);
+                    // Draw the Clock Edge Triangle
+                    ctx.moveTo(0, this.height - 15);
+                    ctx.lineTo(10, this.height - 10);
+                    ctx.lineTo(0, this.height - 5);
+                } 
+                else if (this.type === 'ADD8' || this.type === 'CARRY8' || this.type === 'MUX8') {
+                    ctx.rect(0, 0, this.width, this.height);
+                    // Add tiny port indicators for the user
+                    ctx.fillStyle = '#888';
+                    if (this.type.includes('ADD')) {
+                        ctx.fillText("A", -5, this.height * 0.25);
+                        ctx.fillText("B", -5, this.height * 0.5);
+                        ctx.fillText("C", -5, this.height * 0.75);
+                    } else if (this.type === 'MUX8') {
+                        ctx.fillText("0", -5, this.height * 0.25);
+                        ctx.fillText("1", -5, this.height * 0.5);
+                        ctx.fillText("S", -5, this.height * 0.75);
+                    }
+                }
+                else {
+                    ctx.rect(0, 0, this.width, this.height); // INPUT or CLOCK
+                }
+                ctx.fill(); ctx.stroke();
+
+                // Draw Text/Values
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                if (this.type === 'INPUT') {
+                    ctx.font = 'bold 14px sans-serif';
+                    ctx.fillText(this.label, this.width / 2, this.height / 2);
+                } else {
+                    // Small label inside the gate
+                    ctx.font = '10px monospace';
+                    ctx.fillText(this.type, this.width / 2, this.height / 2);
+                }
+                ctx.restore();
+
+                // DRAW THE OUTPUT VALUE HOVERING ABOVE THE NODE
+                ctx.fillStyle = '#0098ff';
+                ctx.font = 'bold 12px monospace';
+                ctx.textAlign = 'center';
+                // Format based on current base
+                let displayValue = currentBase === 10 ? this.value.toString(10) : this.value.toString(2).padStart(8, '0');
+                ctx.fillText(displayValue, this.x + this.width / 2, this.y - 10);
+            }
+
+            isPointInside(x, y) {
+                return x >= this.x && x <= this.x + this.width && y >= this.y && y <= this.y + this.height;
+            }
+        }
+
+        let packets = []; // Stores the animated data points traveling on wires
+
+        // Bezier Curve Math for the animated packets
+        function getBezierXY(t, sx, sy, cp1x, cp1y, cp2x, cp2y, ex, ey) {
+            return {
+                x: Math.pow(1 - t, 3) * sx + 3 * t * Math.pow(1 - t, 2) * cp1x + 3 * t * t * (1 - t) * cp2x + t * t * t * ex,
+                y: Math.pow(1 - t, 3) * sy + 3 * t * Math.pow(1 - t, 2) * cp1y + 3 * t * t * (1 - t) * cp2y + t * t * t * ey
+            };
+        }
+
+        function drawWiresAndPackets() {
+            ctx.lineWidth = 2;
+            wires.forEach(wire => {
+                // Draw the wire itself
+                ctx.strokeStyle = '#444'; // default dark wire
+                if (wire.from.value > 0) ctx.strokeStyle = '#007acc'; // Glows if powered
+
+                ctx.beginPath();
+                const startX = wire.from.x + wire.from.width;
+                const startY = wire.from.y + wire.from.height / 2;
+                const endX = wire.to.x;
+                const endY = wire.to.y + wire.to.height / 2;
+
+                // Control points for the horizontal S-curve
+                const cp1x = startX + 40, cp1y = startY;
+                const cp2x = endX - 40, cp2y = endY;
+
+                ctx.moveTo(startX, startY);
+                ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+                ctx.stroke();
+
+                // Draw packets traveling on this specific wire
+                packets.filter(p => p.wire === wire).forEach(p => {
+                    const pos = getBezierXY(p.progress, startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY);
+
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = p.value > 0 ? '#00ff00' : '#ff0000'; // Green for data, Red for 0
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.stroke();
+
+                    // Draw the value flying with it!
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '10px monospace';
+                    ctx.fillText(currentBase === 10 ? p.value : p.value.toString(2), pos.x, pos.y - 12);
+                });
+            });
+        }
+
+        // The Main Render Loop
+        function updateCanvas() {
+            requestAnimationFrame(updateCanvas);
+
+            ctx.fillStyle = '#1e1e1e';
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.fillStyle = '#333';
+            for (let x = 0; x < width; x += 20) {
+                for (let y = 0; y < height; y += 20) {
+                    ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+
+            drawWiresAndPackets();
+            nodes.forEach(node => node.draw(ctx));
+
+            // Process animations
+            let animationFinished = false;
+            for (let i = packets.length - 1; i >= 0; i--) {
+                packets[i].progress += 0.03; // Speed of the data (higher = faster)
+                if (packets[i].progress >= 1.0) {
+                    packets.splice(i, 1); // Remove packet when it hits the gate
+                    animationFinished = true;
+                }
+            }
+
+            // If packets just finished arriving, trigger the logic calculation!
+            if (animationFinished && packets.length === 0) {
+                calculateNodeLogic();
+            }
+        }
+
+        // Start the loop and remove any old 'draw()' calls
+        updateCanvas();
+
+        // --- Drag, Drop & Edit Logic ---
+        document.querySelectorAll('.palette-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => e.dataTransfer.setData('type', e.target.getAttribute('data-type')));
+        });
+
+        canvas.addEventListener('dragover', (e) => e.preventDefault());
+
+        let inputLabelCounter = 65; // 65 is the ASCII code for 'A'
+
+        canvas.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('type');
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.round((e.clientX - rect.left) / 20) * 20;
+            const y = Math.round((e.clientY - rect.top) / 20) * 20;
+
+            // Check if dropping a Pre-made Macro
+            if (type === 'HALF_ADDER') {
+                // Spawn Nodes
+                const inputA = new LogicNode(x, y, 'INPUT', 'A');
+                const inputB = new LogicNode(x, y + 80, 'INPUT', 'B');
+                const xorGate = new LogicNode(x + 120, y, 'XOR');
+                const andGate = new LogicNode(x + 120, y + 80, 'AND');
+
+                nodes.push(inputA, inputB, xorGate, andGate);
+
+                // Spawn Wires (A->XOR, B->XOR, A->AND, B->AND)
+                wires.push({ from: inputA, to: xorGate });
+                wires.push({ from: inputB, to: xorGate });
+                wires.push({ from: inputA, to: andGate });
+                wires.push({ from: inputB, to: andGate });
+
+                updateInputPanel();
+
+                return;
+            } else if (type === 'FULL_ADDER') {
+                const iA = new LogicNode(x, y, 'INPUT', 'A');
+                const iB = new LogicNode(x, y + 60, 'INPUT', 'B');
+                const iC = new LogicNode(x, y + 120, 'INPUT', 'Cin');
+
+                const xor1 = new LogicNode(x + 100, y + 30, 'XOR');
+                const and1 = new LogicNode(x + 100, y + 90, 'AND');
+                const xor2 = new LogicNode(x + 200, y + 50, 'XOR');
+                const and2 = new LogicNode(x + 200, y + 120, 'AND');
+                const or1 = new LogicNode(x + 300, y + 100, 'OR');
+
+                const oSum = new LogicNode(x + 300, y + 50, 'OUTPUT', 'SUM');
+                const oCout = new LogicNode(x + 400, y + 100, 'OUTPUT', 'COUT');
+
+                nodes.push(iA, iB, iC, xor1, and1, xor2, and2, or1, oSum, oCout);
+                wires.push(
+                    // Half Adder 1
+                    { from: iA, to: xor1 }, { from: iB, to: xor1 }, { from: iA, to: and1 }, { from: iB, to: and1 },
+                    // Half Adder 2 (using output of HA1 and Cin)
+                    { from: xor1, to: xor2 }, { from: iC, to: xor2 }, { from: xor1, to: and2 }, { from: iC, to: and2 },
+                    // OR gate for Carry Out
+                    { from: and1, to: or1 }, { from: and2, to: or1 },
+                    // Final Outputs
+                    { from: xor2, to: oSum }, { from: or1, to: oCout }
+                );
+                return;
+            }
+            else if (type === 'MUX_2TO1') {
+                // Spawns a 2-to-1 Multiplexer built from basic gates
+                const iD0 = new LogicNode(x, y, 'INPUT', 'D0');
+                const iD1 = new LogicNode(x, y + 80, 'INPUT', 'D1');
+                const iSel = new LogicNode(x, y + 160, 'INPUT', 'SEL');
+
+                const notSel = new LogicNode(x + 100, y + 160, 'NOT');
+                const and0 = new LogicNode(x + 200, y + 20, 'AND');
+                const and1 = new LogicNode(x + 200, y + 100, 'AND');
+                const orOut = new LogicNode(x + 300, y + 60, 'OR');
+                const oOut = new LogicNode(x + 400, y + 60, 'OUTPUT', 'OUT');
+
+                nodes.push(iD0, iD1, iSel, notSel, and0, and1, orOut, oOut);
+                wires.push(
+                    // Route Select line (Inverted to AND0, Normal to AND1)
+                    { from: iSel, to: notSel }, { from: notSel, to: and0 }, { from: iSel, to: and1 },
+                    // Route Data lines
+                    { from: iD0, to: and0 }, { from: iD1, to: and1 },
+                    // Combine into OR and output
+                    { from: and0, to: orOut }, { from: and1, to: orOut }, { from: orOut, to: oOut }
+                );
+                return;
+            } else if (type === 'DECODER_1TO2') {
+                // Spawns a 1-to-2 Decoder
+                const iIn = new LogicNode(x, y, 'INPUT', 'IN');
+                const iSel = new LogicNode(x, y + 80, 'INPUT', 'SEL');
+
+                const notSel = new LogicNode(x + 100, y + 80, 'NOT');
+                const and0 = new LogicNode(x + 200, y, 'AND');
+                const and1 = new LogicNode(x + 200, y + 100, 'AND');
+                const out0 = new LogicNode(x + 300, y, 'OUTPUT', 'O0');
+                const out1 = new LogicNode(x + 300, y + 100, 'OUTPUT', 'O1');
+
+                nodes.push(iIn, iSel, notSel, and0, and1, out0, out1);
+                wires.push(
+                    // Route Select line
+                    { from: iSel, to: notSel }, { from: notSel, to: and0 }, { from: iSel, to: and1 },
+                    // Route Data In to both ANDs
+                    { from: iIn, to: and0 }, { from: iIn, to: and1 },
+                    // Attach outputs
+                    { from: and0, to: out0 }, { from: and1, to: out1 }
+                );
+                return;
+            } else if (type === 'MACRO_ADD8') {
+                // Spawns a fully wired 8-Bit Adder
+                const iA = new LogicNode(x, y, 'INPUT', 'A');
+                const iB = new LogicNode(x, y + 60, 'INPUT', 'B');
+                const iC = new LogicNode(x, y + 120, 'INPUT', 'Cin');
+                
+                const add8 = new LogicNode(x + 150, y + 20, 'ADD8');
+                const carry8 = new LogicNode(x + 150, y + 100, 'CARRY8');
+                
+                const oSum = new LogicNode(x + 300, y + 20, 'OUTPUT', 'SUM');
+                const oCout = new LogicNode(x + 300, y + 100, 'OUTPUT', 'COUT');
+                
+                nodes.push(iA, iB, iC, add8, carry8, oSum, oCout);
+                wires.push(
+                    // Wire inputs to the Sum block
+                    {from: iA, to: add8}, {from: iB, to: add8}, {from: iC, to: add8},
+                    // Wire inputs to the Carry block
+                    {from: iA, to: carry8}, {from: iB, to: carry8}, {from: iC, to: carry8},
+                    // Wire blocks to Outputs
+                    {from: add8, to: oSum}, {from: carry8, to: oCout}
+                );
+                return;
+                
+            } else if (type === 'MACRO_MUX8') {
+                // Spawns a fully wired 8-bit Multiplexer
+                const iD0 = new LogicNode(x, y, 'INPUT', 'D0');
+                const iD1 = new LogicNode(x, y + 60, 'INPUT', 'D1');
+                const iSel = new LogicNode(x, y + 120, 'INPUT', 'SEL');
+                
+                const mux8 = new LogicNode(x + 150, y + 60, 'MUX8');
+                const oOut = new LogicNode(x + 300, y + 60, 'OUTPUT', 'OUT');
+                
+                nodes.push(iD0, iD1, iSel, mux8, oOut);
+                wires.push(
+                    {from: iD0, to: mux8}, {from: iD1, to: mux8}, {from: iSel, to: mux8},
+                    {from: mux8, to: oOut}
+                );
+                return;
+            }
+
+            // --- Standard Single Gate/Input Drop Logic ---
+            let label = "";
+            if (type === 'INPUT') {
+                label = String.fromCharCode(inputLabelCounter);
+                inputLabelCounter++;
+                if (inputLabelCounter > 90) inputLabelCounter = 65;
+            }
+
+            nodes.push(new LogicNode(x, y, type, label));
+            updateInputPanel();
+
+
+        });
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault(); // Stop browser context menu
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            for (let i = nodes.length - 1; i >= 0; i--) {
+                if (nodes[i].isPointInside(mouseX, mouseY)) {
+                    const deletedNode = nodes[i];
+                    // Remove node
+                    nodes.splice(i, 1);
+                    // Remove any wires attached to this node
+                    wires = wires.filter(w => w.from !== deletedNode && w.to !== deletedNode);
+                    // Update UI if it was an input
+                    if (deletedNode.type === 'INPUT') updateInputPanel();
+                    break;
+                }
+            }
+        });
+        canvas.addEventListener('mousedown', e => {
+            const r = canvas.getBoundingClientRect();
+            const mx = e.clientX - r.left;
+            const my = e.clientY - r.top;
+
+            // Find the top-most node clicked
+            let clicked = nodes.slice().reverse().find(n => n.isPointInside(mx, my));
+
+            if (isEditMode) {
+                if (clicked) {
+                    if (!selectedNodeForWire) {
+                        selectedNodeForWire = clicked; // Select first node
+                    } else {
+                        if (selectedNodeForWire !== clicked) {
+                            // Connect or Disconnect
+                            const idx = wires.findIndex(w => (w.from === selectedNodeForWire && w.to === clicked) || (w.from === clicked && w.to === selectedNodeForWire));
+                            if (idx >= 0) wires.splice(idx, 1);
+                            else wires.push({ from: selectedNodeForWire, to: clicked });
+                        }
+                        selectedNodeForWire = null;
+                    }
+                } else {
+                    selectedNodeForWire = null; // Clicked empty space, reset
+                }
+            } else {
+                // DRAG MODE
+                if (clicked) {
+                    draggingNode = clicked;
+                    offsetX = mx - clicked.x;
+                    offsetY = my - clicked.y;
+                }
+            }
+        });
+        // --- Logic Simulator Engine ---
+        let playInterval = null;
+
+        // Triggered when the Step button is clicked
+        function stepSimulation() {
+            if (packets.length > 0) return; // Prevent spamming step while animating
+
+            // Create visual packets for every wire based on current node values
+            wires.forEach(w => {
+                packets.push({ wire: w, value: w.from.value, progress: 0 });
+            });
+
+            // Toggle Clocks
+            nodes.forEach(node => {
+                if (node.type === 'CLOCK') {
+                    node.value = node.value === 0 ? 255 : 0;
+                }
+            });
+
+            // If there are no wires, just calculate standalone logic instantly
+            if (wires.length === 0) calculateNodeLogic();
+        }
+
+        // Triggered automatically when packets arrive at their destinations
+        function calculateNodeLogic() {
+            nodes.forEach(n => {
+                // Ignore inputs and clocks, they manage their own state
+                if (['INPUT', 'CLOCK'].includes(n.type)) { 
+                    n.nextValue = n.value; 
+                    return; 
+                }
+
+                const incomingWires = wires.filter(w => w.to === n);
+                const inVals = incomingWires.map(w => w.from.value);
+
+                // If nothing is connected, output 0
+                if (inVals.length === 0) { 
+                    n.nextValue = 0; 
+                    return; 
+                }
+                
+                if (n.type === 'NOT') {
+                    n.nextValue = (~inVals[0]) & 255;
+                } else if (n.type === 'OUTPUT') {
+                    n.nextValue = inVals[0];
+                } else if (n.type === 'D_FLIP_FLOP') {
+                    if (incomingWires.length >= 2) {
+                        const sorted = incomingWires.sort((a, b) => a.from.y - b.from.y);
+                        const dVal = sorted[0].from.value;
+                        const clkVal = sorted[sorted.length - 1].from.value;
+                        // Rising edge detection
+                        if (clkVal > 0 && n.lastClk === 0) n.storedValue = dVal;
+                        n.lastClk = clkVal;
+                    }
+                    n.nextValue = n.storedValue;
+
+                } else if (n.type === 'ADD8' || n.type === 'CARRY8') {
+                    // Sort wires by vertical position: Top=A, Mid=B, Bottom=Cin
+                    const sorted = incomingWires.sort((a, b) => a.from.y - b.from.y);
+                    
+                    // Safely extract values (defaults to 0 if a wire is missing)
+                    let a = sorted.length > 0 ? sorted[0].from.value : 0;
+                    let b = sorted.length > 1 ? sorted[1].from.value : 0;
+                    let cin = sorted.length > 2 ? sorted[2].from.value : 0;
+                    
+                    let mathSum = a + b + cin;
+                    
+                    if (n.type === 'ADD8') {
+                        n.nextValue = mathSum & 255; // Wrap at 255
+                    } else {
+                        n.nextValue = mathSum > 255 ? 1 : 0; // Carry out
+                    }
+
+                } else if (n.type === 'MUX8') {
+                    // Sort wires by vertical position: Top=D0, Mid=D1, Bottom=SEL
+                    const sorted = incomingWires.sort((a, b) => a.from.y - b.from.y);
+                    let d0 = sorted.length > 0 ? sorted[0].from.value : 0;
+                    let d1 = sorted.length > 1 ? sorted[1].from.value : 0;
+                    let sel = sorted.length > 2 ? sorted[2].from.value : 0;
+                    
+                    n.nextValue = sel > 0 ? d1 : d0; 
+
+                } else {
+                    // Standard Bitwise Logic Gates (AND, OR, XOR, etc.)
+                    let res = inVals[0];
+                    for (let i = 1; i < inVals.length; i++) {
+                        if (n.type.includes('AND')) res &= inVals[i];
+                        else if (n.type.includes('OR')) res |= inVals[i];
+                        else if (n.type.includes('XOR')) res ^= inVals[i];
+                    }
+                    if (['NAND', 'NOR', 'XNOR'].includes(n.type)) res = ~res;
+                    n.nextValue = res & 255; // Clamp to 8-bit unsigned
+                }
+            });
+
+            // Apply all calculated states simultaneously
+            nodes.forEach(n => { 
+                if (!['INPUT', 'CLOCK'].includes(n.type)) n.value = n.nextValue; 
+            });
+        }
+
+        // Wire up the Step and Play buttons
+        document.getElementById('btn-step')?.addEventListener('click', () => {
+            stepSimulation();
+        });
+
+        document.getElementById('btn-play')?.addEventListener('click', (e) => {
+            if (playInterval) {
+                // Stop playing
+                clearInterval(playInterval);
+                playInterval = null;
+                e.target.textContent = 'Play ▶▶';
+                e.target.style.background = '#007acc';
+            } else {
+                // Start playing (4 ticks per second)
+                playInterval = setInterval(stepSimulation, 250);
+                e.target.textContent = 'Stop ❚❚';
+                e.target.style.background = '#c33';
+            }
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            if (draggingNode && !isEditMode) {
+                const r = canvas.getBoundingClientRect();
+                // Calculate new position, snapping to 20px grid
+                let newX = Math.round((e.clientX - r.left - offsetX) / 20) * 20;
+                let newY = Math.round((e.clientY - r.top - offsetY) / 20) * 20;
+
+                // Prevent dragging completely off-screen
+                draggingNode.x = Math.max(0, Math.min(newX, width - draggingNode.width));
+                draggingNode.y = Math.max(0, Math.min(newY, height - draggingNode.height));
+            }
+        });
+
+        window.addEventListener('mouseup', () => { draggingNode = null; });
+        // --- UI Controls ---
+        document.getElementById('btn-edit').addEventListener('click', (e) => {
+            isEditMode = !isEditMode;
+            e.target.classList.toggle('active');
+            selectedNodeForWire = null;
+
+        });
+
+        document.getElementById('toggle-ops-btn').addEventListener('click', () => {
+            document.getElementById('ops-panel').classList.toggle('open');
+        });
+
+        // --- Input Panel & Base Conversion Logic ---
+        let currentBase = 10; // Defaults to Decimal
+
+        document.getElementById('btn-inputs').addEventListener('click', () => {
+            const panel = document.getElementById('input-panel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.getElementById('btn-toggle-base').addEventListener('click', (e) => {
+            currentBase = currentBase === 10 ? 2 : 10;
+            e.target.textContent = `Base: ${currentBase}`;
+            updateInputPanel(); // Re-render inputs in the new base
+        });
+        document.getElementById('close-ops-btn')?.addEventListener('click', () => {
+            document.getElementById('ops-panel').classList.remove('open');
+        });
+
+
+        function updateInputPanel() {
+            const list = document.getElementById('input-list');
+            if (!list) return;
+
+            list.innerHTML = '';
+            const inputNodes = nodes.filter(n => n.type === 'INPUT');
+
+            if (inputNodes.length === 0) {
+                list.innerHTML = '<li style="color: #aaa; font-size: 12px;">Drop an input box to see it here.</li>';
+                return;
+            }
+
+            inputNodes.forEach(node => {
+                const li = document.createElement('li');
+                li.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; background: #333; padding: 5px 10px; border-radius: 4px; gap: 10px;';
+
+                // 1. Editable Label Box
+                const labelInput = document.createElement('input');
+                labelInput.type = 'text';
+                labelInput.value = node.label;
+                labelInput.maxLength = 2;
+                labelInput.style.cssText = 'width: 35px; padding: 4px; background: #1e1e1e; color: #0098ff; font-weight: bold; border: 1px solid #555; border-radius: 3px; text-align: center; text-transform: uppercase;';
+
+                // Update canvas instantly when label changes
+                labelInput.addEventListener('input', (e) => {
+                    node.label = e.target.value.substring(0, 2).toUpperCase();
+
+                });
+
+                // 2. Editable Value Box
+                let displayValue = currentBase === 10 ? node.value.toString(10) : node.value.toString(2).padStart(8, '0');
+                const valInput = document.createElement('input');
+                valInput.type = 'text';
+                valInput.value = displayValue;
+                valInput.style.cssText = 'width: 80px; padding: 4px; background: #1e1e1e; color: white; border: 1px solid #555; border-radius: 3px; text-align: right; font-family: monospace;';
+
+                // Handle math/base conversion safely without global inline functions
+                valInput.addEventListener('change', (e) => {
+                    let rawString = e.target.value;
+                    let parsedVal = 0;
+
+                    if (currentBase === 10) {
+                        parsedVal = parseInt(rawString, 10);
+                    } else {
+                        parsedVal = parseInt(rawString.replace(/\s/g, ''), 2);
+                    }
+
+                    // Validate and clamp to 8-bit unsigned integer (0 - 255)
+                    if (isNaN(parsedVal) || parsedVal < 0) {
+                        parsedVal = 0;
+                    } else if (parsedVal > 255) {
+                        parsedVal = 255;
+                    }
+
+                    node.value = parsedVal;
+                    updateInputPanel(); // Refresh UI to show correctly formatted/clamped value
+
+                });
+
+                li.appendChild(labelInput);
+                li.appendChild(valInput);
+                list.appendChild(li);
+            });
+        }
+
+        // Init
+        resize();
+    </script>
+</body>
+
+</html>
