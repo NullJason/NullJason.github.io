@@ -1,5 +1,3 @@
-// GitHub api config
-const GITHUB_USERNAME = 'NullJason'; 
 
 // DOM Elements
 const navMenu = document.querySelector('.nav-menu');

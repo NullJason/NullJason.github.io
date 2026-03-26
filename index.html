@@ -168,7 +168,6 @@
                 box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
                 display: flex;
                 flex-direction: column;
-                text-decoration: none;
                 color: var(--text-color, #f8fafc);
                 transition: transform 0.2s, box-shadow 0.2s;
             }
@@ -189,7 +188,7 @@
                 display: flex;
                 flex-direction: column;
             }
-            .project-title { font-size: 1.25em; font-weight: 700; margin-bottom: 8px; }
+            .project-title { font-size: 1.25em; font-weight: 700; margin-bottom: 8px; color: #f8fafc !important; /* Force color */ }
             .project-desc { font-size: 0.95em; color: var(--text-muted, #94a3b8); margin-bottom: 20px; flex-grow: 1; line-height: 1.5; }
             .tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
             .tag {
@@ -225,36 +224,23 @@
         </div>
     </div>
 </section>
-
+<script src="projectData.js"></script>
 <script>
     const container = document.getElementById('projects-container');
     const loader = document.getElementById('mini-loader');
-
-    // The manual projects as a fallback/base
-    let manualProjects = [
-        { 
-            id: 'dodeca-drop', title: "Dodeca Drop", shortDesc: "Break 2D geometry", 
-            longDesc: "A 2D physics-based puzzle game where the objective is to clear the screen by breaking geometric shapes.",
-            category: "Entertainment", imageUrl: "", tags: ["Web Project", "Physics"] 
-        },
-        { 
-            id: 'geometry-sim', title: "Geometry Sim", shortDesc: "3D Version of Dodeca Drop", 
-            longDesc: "This will be a fully 3D interactive physics simulation.",
-            category: "Entertainment", imageUrl: "", tags: ["3D", "WIP"] 
-        },
-        { 
-            id: 'cpu-sim', title: "CPU Simulator", shortDesc: "Microarch visual explorer (MAVE)", 
-            longDesc: "Interactive CPU visuals & toy ISA. A work-in-progress project aimed at teaching computer architecture fundamentals.",
-            category: "Education", imageUrl: "", tags: ["Computer Architecture", "WIP"] 
+    async function fetchProjectIcon(repoName) {
+        try {
+            const response = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${repoName}/contents/`);
+            if (!response.ok) return null;
+            const contents = await response.json();
+            
+            const iconFile = contents.find(file => file.name.toLowerCase().startsWith('projecticon.'));
+            return iconFile ? iconFile.download_url : null;
+        } catch (error) {
+            console.error(`Error fetching icon for ${repoName}:`, error);
+            return null;
         }
-    ];
-
-    // Added the categories back in here!
-    const explicitRepos = {
-        'CS3667-Game': { category: 'Entertainment', tags: ['Game Dev', 'C++'] },
-        'UniSandbox-2D-Python': { category: 'Entertainment', tags: ['Python', 'Sandbox'] },
-        'DungeonCrawler': { category: 'Entertainment', tags: ['Game', 'RPG'] }
-    };
+    }
 
     async function loadMiniProjects() {
         let allProjects = [];
@@ -286,8 +272,7 @@
                 }
 
                 if (!allProjects.find(p => p.title === repo.name)) {
-                    // Added category and longDesc so the cache is complete!
-                    allProjects.push({
+                    let newProject = {
                         id: repo.name,
                         title: repo.name,
                         shortDesc: repo.description || "No description provided.",
@@ -296,6 +281,20 @@
                         imageUrl: "", 
                         category: category,
                         tags: [...new Set(tags)]
+                    };
+                    allProjects.push(newProject);
+
+                    fetchProjectIcon(repo.name).then(iconUrl => {
+                        if (iconUrl) {
+                            newProject.imageUrl = iconUrl;
+                            sessionStorage.setItem('github_projects', JSON.stringify(allProjects));
+                            
+                            // Immediately update the image if it's currently on screen
+                            const imgElement = document.getElementById(`mini-img-${repo.name}`);
+                            if (imgElement) {
+                                imgElement.src = iconUrl;
+                            }
+                        }
                     });
                 }
             }
@@ -313,18 +312,25 @@
     function renderMiniGrid(projectsData) {
         container.innerHTML = ''; 
         
-        const displayProjects = projectsData.slice(0, 6);
+        // 1. Filter out anything categorized as 'Others'
+        const filteredProjects = projectsData.filter(project => project.category !== 'Others');
 
+        // 2. Randomize the remaining projects (Manual + Explicit)
+        const shuffledProjects = filteredProjects.sort(() => 0.5 - Math.random());
+
+        // 3. Take exactly 6 from the randomized list
+
+        const displayProjects = shuffledProjects.slice(0, 6);
         displayProjects.forEach(project => {
             const item = document.createElement('a'); 
             item.href = 'webProjects.html';
             item.className = 'project-item';
             
             const tagsHTML = project.tags.slice(0, 3).map(tag => `<span class="tag">${tag}</span>`).join(''); 
-            const imgSrc = project.imageUrl || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; // just a 1x1 transparent img... as fallback.
+            const imgSrc = project.imageUrl || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
             item.innerHTML = `
-                <img src="${imgSrc}" alt="${project.title}">
+                <img id="mini-img-${project.id}" src="${imgSrc}" alt="${project.title}">
                 <div class="project-info">
                     <div class="project-title">${project.title}</div>
                     <p class="project-desc">${project.shortDesc}</p>
