@@ -396,7 +396,6 @@
             }
         }
 
-        // Start the loop and remove any old 'draw()' calls
         updateCanvas();
 
         // --- Drag, Drop & Edit Logic ---
@@ -415,25 +414,22 @@
             const x = Math.round((e.clientX - rect.left) / 20) * 20;
             const y = Math.round((e.clientY - rect.top) / 20) * 20;
 
-            // Check if dropping a Pre-made Macro
+            // --- PRE-MADE MACROS ---
             if (type === 'HALF_ADDER') {
-                // Spawn Nodes
                 const inputA = new LogicNode(x, y, 'INPUT', 'A');
                 const inputB = new LogicNode(x, y + 80, 'INPUT', 'B');
                 const xorGate = new LogicNode(x + 120, y, 'XOR');
                 const andGate = new LogicNode(x + 120, y + 80, 'AND');
 
                 nodes.push(inputA, inputB, xorGate, andGate);
-
-                // Spawn Wires (A->XOR, B->XOR, A->AND, B->AND)
                 wires.push({ from: inputA, to: xorGate });
                 wires.push({ from: inputB, to: xorGate });
                 wires.push({ from: inputA, to: andGate });
                 wires.push({ from: inputB, to: andGate });
-
+                
                 updateInputPanel();
+                return; // <-- Stops the code from falling through to the bottom!
 
-                return;
             } else if (type === 'FULL_ADDER') {
                 const iA = new LogicNode(x, y, 'INPUT', 'A');
                 const iB = new LogicNode(x, y + 60, 'INPUT', 'B');
@@ -450,19 +446,16 @@
 
                 nodes.push(iA, iB, iC, xor1, and1, xor2, and2, or1, oSum, oCout);
                 wires.push(
-                    // Half Adder 1
                     { from: iA, to: xor1 }, { from: iB, to: xor1 }, { from: iA, to: and1 }, { from: iB, to: and1 },
-                    // Half Adder 2 (using output of HA1 and Cin)
                     { from: xor1, to: xor2 }, { from: iC, to: xor2 }, { from: xor1, to: and2 }, { from: iC, to: and2 },
-                    // OR gate for Carry Out
                     { from: and1, to: or1 }, { from: and2, to: or1 },
-                    // Final Outputs
                     { from: xor2, to: oSum }, { from: or1, to: oCout }
                 );
+                
+                updateInputPanel();
                 return;
-            }
-            else if (type === 'MUX_2TO1') {
-                // Spawns a 2-to-1 Multiplexer built from basic gates
+                
+            } else if (type === 'MUX_2TO1') {
                 const iD0 = new LogicNode(x, y, 'INPUT', 'D0');
                 const iD1 = new LogicNode(x, y + 80, 'INPUT', 'D1');
                 const iSel = new LogicNode(x, y + 160, 'INPUT', 'SEL');
@@ -475,16 +468,15 @@
 
                 nodes.push(iD0, iD1, iSel, notSel, and0, and1, orOut, oOut);
                 wires.push(
-                    // Route Select line (Inverted to AND0, Normal to AND1)
                     { from: iSel, to: notSel }, { from: notSel, to: and0 }, { from: iSel, to: and1 },
-                    // Route Data lines
                     { from: iD0, to: and0 }, { from: iD1, to: and1 },
-                    // Combine into OR and output
                     { from: and0, to: orOut }, { from: and1, to: orOut }, { from: orOut, to: oOut }
                 );
+                
+                updateInputPanel();
                 return;
+                
             } else if (type === 'DECODER_1TO2') {
-                // Spawns a 1-to-2 Decoder
                 const iIn = new LogicNode(x, y, 'INPUT', 'IN');
                 const iSel = new LogicNode(x, y + 80, 'INPUT', 'SEL');
 
@@ -496,16 +488,15 @@
 
                 nodes.push(iIn, iSel, notSel, and0, and1, out0, out1);
                 wires.push(
-                    // Route Select line
                     { from: iSel, to: notSel }, { from: notSel, to: and0 }, { from: iSel, to: and1 },
-                    // Route Data In to both ANDs
                     { from: iIn, to: and0 }, { from: iIn, to: and1 },
-                    // Attach outputs
                     { from: and0, to: out0 }, { from: and1, to: out1 }
                 );
+                
+                updateInputPanel();
                 return;
+                
             } else if (type === 'MACRO_ADD8') {
-                // Spawns a fully wired 8-Bit Adder
                 const iA = new LogicNode(x, y, 'INPUT', 'A');
                 const iB = new LogicNode(x, y + 60, 'INPUT', 'B');
                 const iC = new LogicNode(x, y + 120, 'INPUT', 'Cin');
@@ -518,17 +509,15 @@
                 
                 nodes.push(iA, iB, iC, add8, carry8, oSum, oCout);
                 wires.push(
-                    // Wire inputs to the Sum block
                     {from: iA, to: add8}, {from: iB, to: add8}, {from: iC, to: add8},
-                    // Wire inputs to the Carry block
                     {from: iA, to: carry8}, {from: iB, to: carry8}, {from: iC, to: carry8},
-                    // Wire blocks to Outputs
                     {from: add8, to: oSum}, {from: carry8, to: oCout}
                 );
+                
+                updateInputPanel();
                 return;
                 
             } else if (type === 'MACRO_MUX8') {
-                // Spawns a fully wired 8-bit Multiplexer
                 const iD0 = new LogicNode(x, y, 'INPUT', 'D0');
                 const iD1 = new LogicNode(x, y + 60, 'INPUT', 'D1');
                 const iSel = new LogicNode(x, y + 120, 'INPUT', 'SEL');
@@ -541,21 +530,22 @@
                     {from: iD0, to: mux8}, {from: iD1, to: mux8}, {from: iSel, to: mux8},
                     {from: mux8, to: oOut}
                 );
+                
+                updateInputPanel();
                 return;
             }
 
-            // --- Standard Single Gate/Input Drop Logic ---
             let label = "";
             if (type === 'INPUT') {
                 label = String.fromCharCode(inputLabelCounter);
                 inputLabelCounter++;
                 if (inputLabelCounter > 90) inputLabelCounter = 65;
+            } else if (type === 'OUTPUT') {
+                label = "OUT";
             }
 
             nodes.push(new LogicNode(x, y, type, label));
             updateInputPanel();
-
-
         });
         canvas.addEventListener('contextmenu', (e) => {
             e.preventDefault(); // Stop browser context menu
@@ -692,19 +682,26 @@
                     n.nextValue = sel > 0 ? d1 : d0; 
 
                 } else {
-                    // Standard Bitwise Logic Gates (AND, OR, XOR, etc.)
                     let res = inVals[0];
                     for (let i = 1; i < inVals.length; i++) {
-                        if (n.type.includes('AND')) res &= inVals[i];
-                        else if (n.type.includes('OR')) res |= inVals[i];
-                        else if (n.type.includes('XOR')) res ^= inVals[i];
+                        if (n.type === 'AND' || n.type === 'NAND') {
+                            res &= inVals[i];
+                        } else if (n.type === 'XOR' || n.type === 'XNOR') {
+                            res ^= inVals[i];
+                        } else if (n.type === 'OR' || n.type === 'NOR') {
+                            res |= inVals[i];
+                        }
                     }
-                    if (['NAND', 'NOR', 'XNOR'].includes(n.type)) res = ~res;
+                    
+                    if (['NAND', 'NOR', 'XNOR'].includes(n.type)) {
+                        res = ~res;
+                    }
+                    
                     n.nextValue = res & 255; // Clamp to 8-bit unsigned
                 }
             });
 
-            // Apply all calculated states simultaneously
+            // appl all calculated states simultaneously
             nodes.forEach(n => { 
                 if (!['INPUT', 'CLOCK'].includes(n.type)) n.value = n.nextValue; 
             });
