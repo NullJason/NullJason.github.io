@@ -36,7 +36,6 @@
                 <li><a href="#about" class="nav-link">About</a></li>
                 <li><a href="#skills" class="nav-link">Skills</a></li>
                 <li><a href="#projects" class="nav-link">Projects</a></li>
-                <li><a href="webProjects.html" class="nav-link">Web Projects</a></li>
                 <li><a href="#contact" class="nav-link">Contact</a></li>
                 <li>
                     <div style="display: flex; justify-content: center; align-items: center;">
@@ -222,33 +221,44 @@
         </div>
 
         <div class="view-all-container">
-            <a href="projects.html" class="btn-view-all">View All Projects ➔</a>
+            <a href="webProjects.html" class="btn-view-all">View All Projects ➔</a>
         </div>
     </div>
 </section>
 
 <script>
-    const GITHUB_USERNAME = 'NullJason';
     const container = document.getElementById('projects-container');
     const loader = document.getElementById('mini-loader');
 
-    // The manual projs fallback/base
+    // The manual projects as a fallback/base
     let manualProjects = [
-        { id: 'dodeca-drop', title: "Dodeca Drop", shortDesc: "Break 2D geometry", imageUrl: "", tags: ["Web Project", "Physics"] },
-        { id: 'geometry-sim', title: "Geometry Sim", shortDesc: "3D Version of Dodeca Drop", imageUrl: "", tags: ["3D", "WIP"] },
-        { id: 'cpu-sim', title: "CPU Simulator", shortDesc: "Microarch visual explorer (MAVE)", imageUrl: "", tags: ["Computer Architecture", "WIP"] }
+        { 
+            id: 'dodeca-drop', title: "Dodeca Drop", shortDesc: "Break 2D geometry", 
+            longDesc: "A 2D physics-based puzzle game where the objective is to clear the screen by breaking geometric shapes.",
+            category: "Entertainment", imageUrl: "", tags: ["Web Project", "Physics"] 
+        },
+        { 
+            id: 'geometry-sim', title: "Geometry Sim", shortDesc: "3D Version of Dodeca Drop", 
+            longDesc: "This will be a fully 3D interactive physics simulation.",
+            category: "Entertainment", imageUrl: "", tags: ["3D", "WIP"] 
+        },
+        { 
+            id: 'cpu-sim', title: "CPU Simulator", shortDesc: "Microarch visual explorer (MAVE)", 
+            longDesc: "Interactive CPU visuals & toy ISA. A work-in-progress project aimed at teaching computer architecture fundamentals.",
+            category: "Education", imageUrl: "", tags: ["Computer Architecture", "WIP"] 
+        }
     ];
 
+    // Added the categories back in here!
     const explicitRepos = {
-        'CS3667-Game': { tags: ['Game Dev', 'C++'] },
-        'UniSandbox-2D-Python': { tags: ['Python', 'Sandbox'] },
-        'DungeonCrawler': { tags: ['Game', 'RPG'] }
+        'CS3667-Game': { category: 'Entertainment', tags: ['Game Dev', 'C++'] },
+        'UniSandbox-2D-Python': { category: 'Entertainment', tags: ['Python', 'Sandbox'] },
+        'DungeonCrawler': { category: 'Entertainment', tags: ['Game', 'RPG'] }
     };
 
     async function loadMiniProjects() {
         let allProjects = [];
 
-        // 1. Check if we already fetched data this session!!!!
         const cachedData = sessionStorage.getItem('github_projects');
         
         if (cachedData) {
@@ -257,34 +267,39 @@
             return;
         }
 
-        // 2. If not cached, fetch from GitHub
         try {
             const response = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=100`);
             if (!response.ok) throw new Error("API limit");
             const repos = await response.json();
 
-            // Start with manual projects
             allProjects = [...manualProjects];
 
             for (const repo of repos) {
                 if (repo.name.toLowerCase() === 'nulljason.github.io') continue;
 
+                let category = 'Others';
                 let tags = [repo.language].filter(Boolean);
-                if (explicitRepos[repo.name]) tags = [...tags, ...explicitRepos[repo.name].tags];
+
+                if (explicitRepos[repo.name]) {
+                    category = explicitRepos[repo.name].category;
+                    tags = [...tags, ...explicitRepos[repo.name].tags];
+                }
 
                 if (!allProjects.find(p => p.title === repo.name)) {
+                    // Added category and longDesc so the cache is complete!
                     allProjects.push({
                         id: repo.name,
                         title: repo.name,
                         shortDesc: repo.description || "No description provided.",
+                        longDesc: repo.description || "No detailed description available for this repository.",
                         link: repo.html_url,
                         imageUrl: "", 
+                        category: category,
                         tags: [...new Set(tags)]
                     });
                 }
             }
             
-            // Save to sessionStorage so projects.html doesn't have to fetch again!
             sessionStorage.setItem('github_projects', JSON.stringify(allProjects));
 
         } catch (error) {
@@ -296,18 +311,17 @@
     }
 
     function renderMiniGrid(projectsData) {
-        container.innerHTML = ''; // Remove loader
+        container.innerHTML = ''; 
         
-        // Take exactly the first 6 projects
         const displayProjects = projectsData.slice(0, 6);
 
         displayProjects.forEach(project => {
-            const item = document.createElement('a'); // Make the whole card a clickable link to the main projects page
+            const item = document.createElement('a'); 
             item.href = 'webProjects.html';
             item.className = 'project-item';
             
-            const tagsHTML = project.tags.slice(0, 3).map(tag => `<span class="tag">${tag}</span>`).join(''); // Limit to 3 tags for mini view
-            const imgSrc = project.imageUrl || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
+            const tagsHTML = project.tags.slice(0, 3).map(tag => `<span class="tag">${tag}</span>`).join(''); 
+            const imgSrc = project.imageUrl || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; // just a 1x1 transparent img... as fallback.
 
             item.innerHTML = `
                 <img src="${imgSrc}" alt="${project.title}">

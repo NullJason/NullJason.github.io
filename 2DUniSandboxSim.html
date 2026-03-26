@@ -1,41 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2D Universe Sandbox - Advanced</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #050508; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; user-select: none; }
-        canvas { display: block; cursor: crosshair; }
-        
-        #ui { position: absolute; top: 15px; left: 15px; background: rgba(15, 15, 20, 0.9); padding: 20px; border-radius: 12px; border: 1px solid #333; width: 280px; box-shadow: 0 8px 32px rgba(0,0,0,0.8); backdrop-filter: blur(4px); z-index: 10; }
-        h3 { margin: 0 0 15px 0; font-weight: 400; letter-spacing: 2px; color: #00d4ff; border-bottom: 1px solid #333; padding-bottom: 10px; font-size: 16px; }
-        .control-group { margin-bottom: 15px; }
-        label { display: flex; justify-content: space-between; font-size: 11px; text-transform: uppercase; margin-bottom: 5px; color: #aaa; letter-spacing: 1px; }
-        
-        input[type="range"] { width: 100%; height: 4px; border-radius: 2px; appearance: none; background: #444; outline: none; cursor: pointer; }
-        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; background: #00d4ff; border-radius: 50%; }
-        button { width: 100%; padding: 10px; margin-top: 5px; cursor: pointer; background: #2a2a30; color: #eee; border: 1px solid #444; border-radius: 6px; transition: 0.2s; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;}
-        button:hover { background: #3a3a45; border-color: #00d4ff; box-shadow: 0 0 10px rgba(0,212,255,0.2); }
-        .instructions { margin-top: 15px; font-size: 11px; color: #888; line-height: 1.6; }
-        .stats { position: absolute; bottom: 15px; left: 15px; font-size: 12px; color: #888; pointer-events: none; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 4px; z-index: 10;}
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #050508;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            user-select: none;
+        }
+
+        canvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        #ui {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(15, 15, 20, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            width: 280px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 10;
+        }
+
+        h3 {
+            margin: 0 0 15px 0;
+            font-weight: 400;
+            letter-spacing: 2px;
+            color: #00d4ff;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            color: #aaa;
+            letter-spacing: 1px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            appearance: none;
+            background: #444;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #00d4ff;
+            border-radius: 50%;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            cursor: pointer;
+            background: #2a2a30;
+            color: #eee;
+            border: 1px solid #444;
+            border-radius: 6px;
+            transition: 0.2s;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: #3a3a45;
+            border-color: #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+        }
+
+        .instructions {
+            margin-top: 15px;
+            font-size: 11px;
+            color: #888;
+            line-height: 1.6;
+        }
+
+        .stats {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            font-size: 12px;
+            color: #888;
+            pointer-events: none;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 4px;
+            z-index: 10;
+        }
 
         /* NEW EDITABLE INSPECTOR UI */
         #inspector {
-            display: none; position: absolute; background: rgba(15, 15, 25, 0.95); 
-            border: 1px solid #00d4ff; padding: 15px; border-radius: 8px; color: white; 
-            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.15); font-size: 12px; z-index: 100;
+            display: none;
+            position: absolute;
+            background: rgba(15, 15, 25, 0.95);
+            border: 1px solid #00d4ff;
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.15);
+            font-size: 12px;
+            z-index: 100;
             width: 180px;
         }
-        #inspector h4 { margin: 0 0 10px 0; color: #00d4ff; font-weight: normal; border-bottom: 1px solid #333; padding-bottom: 5px;}
-        .prop-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; color: #aaa;}
-        .prop-row input { 
-            background: transparent; border: none; border-bottom: 1px dashed #666; 
-            color: #fff; width: 70px; font-family: monospace; font-size: 12px; text-align: right; outline: none;
+
+        #inspector h4 {
+            margin: 0 0 10px 0;
+            color: #00d4ff;
+            font-weight: normal;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
         }
-        .prop-row input:focus { border-bottom-color: #00d4ff; background: rgba(0, 212, 255, 0.1); }
+
+        .prop-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            color: #aaa;
+        }
+
+        .prop-row input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px dashed #666;
+            color: #fff;
+            width: 70px;
+            font-family: monospace;
+            font-size: 12px;
+            text-align: right;
+            outline: none;
+        }
+
+        .prop-row input:focus {
+            border-bottom-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+        }
     </style>
 </head>
+
 <body>
     <div id="ui">
         <h3>UNIVERSE SIMULATOR</h3>
@@ -52,7 +183,8 @@
             <input type="range" id="massRange" min="0" max="100" step="1" value="30">
         </div>
         <div class="control-group" style="margin-top: 10px;">
-            <label style="cursor:pointer;"><input type="checkbox" id="showHabZone" style="width:auto; margin-right:5px;"> Show Habitable Zones</label>
+            <label style="cursor:pointer;"><input type="checkbox" id="showHabZone"
+                    style="width:auto; margin-right:5px;"> Show Habitable Zones</label>
         </div>
 
         <button id="clearBtn">Wipe Universe</button>
@@ -90,10 +222,11 @@
     <canvas id="simCanvas"></canvas>
 
     <script>
+        console.log("TODO: habitable zones are not working with the camera controls, they are stuck inside one small box.")
         const canvas = document.getElementById('simCanvas');
         const ctx = canvas.getContext('2d');
         const stats = document.getElementById('stats');
-        
+
         // DOM Inspector Elements
         const inspector = document.getElementById('inspector');
         const insType = document.getElementById('ins-type');
@@ -122,11 +255,11 @@
         let rightDragStart = { x: 0, y: 0 };
         let mouseScreenX = 0, mouseScreenY = 0;
         let followedBody = null;
-        let uiTarget = null; 
+        let uiTarget = null;
 
-        let backgroundStars = Array.from({length: 400}, () => ({
-            x: (Math.random() - 0.5) * 5000, 
-            y: (Math.random() - 0.5) * 5000, 
+        let backgroundStars = Array.from({ length: 400 }, () => ({
+            x: (Math.random() - 0.5) * 5000,
+            y: (Math.random() - 0.5) * 5000,
             size: Math.random() * 2 + 0.5,
             alpha: Math.random() * 0.8 + 0.2,
             parallax: Math.random() * 0.08 + 0.01 // Different speeds for 3D depth
@@ -138,8 +271,8 @@
 
         function screenToWorld(sx, sy) {
             return {
-                x: (sx - canvas.width/2) / camera.zoom - camera.x + canvas.width/2,
-                y: (sy - canvas.height/2) / camera.zoom - camera.y + canvas.height/2
+                x: (sx - canvas.width / 2) / camera.zoom - camera.x + canvas.width / 2,
+                y: (sy - canvas.height / 2) / camera.zoom - camera.y + canvas.height / 2
             };
         }
 
@@ -164,35 +297,35 @@
                 ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
                 ctx.fillStyle = this.color;
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.globalAlpha = 1.0;
             }
         }
-        
+
         const T_ASTEROID = 50;
         const T_MOON = 500;
         const T_PLANET = 2500;
         const T_GASGIANT = 10000;
-        const T_LOW_STAR = 30000;      
-        const T_MID_STAR = 80000;      
-        const T_HIGH_STAR = 200000;    
-        const T_NEUTRON_STAR = 500000; 
-        const T_BLACK_HOLE = 1000000;  
+        const T_LOW_STAR = 30000;
+        const T_MID_STAR = 80000;
+        const T_HIGH_STAR = 200000;
+        const T_NEUTRON_STAR = 500000;
+        const T_BLACK_HOLE = 1000000;
 
         class GasCloud {
             constructor(x, y, mass) {
                 this.x = x; this.y = y; this.mass = mass;
-                this.life = 30 * 60; 
+                this.life = 30 * 60;
                 this.maxLife = this.life;
                 this.particles = [];
-                let spread = Math.max(300, Math.sqrt(mass) * 4); 
-                for(let i=0; i<100; i++) {
+                let spread = Math.max(300, Math.sqrt(mass) * 4);
+                for (let i = 0; i < 100; i++) {
                     this.particles.push({
-                        ox: (Math.random()-0.5)*spread, 
-                        oy: (Math.random()-0.5)*spread,
-                        c: `hsl(${Math.random()*360}, 80%, 60%)`, 
-                        s: Math.random()*(spread*0.05)+10
+                        ox: (Math.random() - 0.5) * spread,
+                        oy: (Math.random() - 0.5) * spread,
+                        c: `hsl(${Math.random() * 360}, 80%, 60%)`,
+                        s: Math.random() * (spread * 0.05) + 10
                     });
                 }
             }
@@ -200,22 +333,22 @@
                 if (timeScale > 0) this.life -= timeScale;
             }
             draw() {
-                let progress = this.life / this.maxLife; 
+                let progress = this.life / this.maxLife;
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.globalAlpha = Math.min(0.6, progress + 0.1);
-                for(let p of this.particles) {
-                    let cx = p.ox * progress; 
+                for (let p of this.particles) {
+                    let cx = p.ox * progress;
                     let cy = p.oy * progress;
                     ctx.beginPath();
-                    ctx.arc(cx, cy, p.s * progress + 2, 0, Math.PI*2);
+                    ctx.arc(cx, cy, p.s * progress + 2, 0, Math.PI * 2);
                     ctx.fillStyle = p.c;
                     ctx.fill();
                 }
                 ctx.restore();
             }
         }
-        
+
         class Body {
             constructor(x, y, vx, vy, mass) {
                 this.x = x; this.y = y; this.vx = vx; this.vy = vy;
@@ -223,37 +356,37 @@
                 this.trail = [];
                 this.accretionHeat = 0;
                 this.angle = 0;
-                this.rotSpd = 0; 
+                this.rotSpd = 0;
                 this.age = 0;
                 this.accretionFuel = 0;
                 this.timeInHabZone = 0;
                 this.isHabitable = false;
-                this.temperature = mass >= T_LOW_STAR ? mass * 0.5 : 300; 
+                this.temperature = mass >= T_LOW_STAR ? mass * 0.5 : 300;
                 this.updateProperties();
             }
-            
+
             updateProperties() {
                 if (this.mass >= T_BLACK_HOLE) {
-                    this.radius = Math.max(8, Math.sqrt(this.mass) * 0.08); 
+                    this.radius = Math.max(8, Math.sqrt(this.mass) * 0.08);
                 } else if (this.mass >= T_NEUTRON_STAR) {
-                    this.radius = Math.max(5, Math.sqrt(this.mass) * 0.15); 
+                    this.radius = Math.max(5, Math.sqrt(this.mass) * 0.15);
                 } else {
-                    this.radius = Math.max(2, Math.sqrt(this.mass) * 0.6); 
+                    this.radius = Math.max(2, Math.sqrt(this.mass) * 0.6);
                 }
 
                 this.isQuasar = false;
 
                 if (this.mass >= T_BLACK_HOLE) {
-                    this.type = 'Black Hole'; this.color = '#000000'; 
+                    this.type = 'Black Hole'; this.color = '#000000';
                     if (this.accretionFuel > 50 && Math.abs(this.rotSpd) > 0.05) this.isQuasar = true;
                     else this.isQuasar = false;
                 } else if (this.mass >= T_NEUTRON_STAR) {
-                    this.type = 'Neutron Star'; this.color = '#e6ffff'; 
+                    this.type = 'Neutron Star'; this.color = '#e6ffff';
                 } else if (this.mass >= T_LOW_STAR) {
                     this.type = 'Star';
                     if (this.temperature < 3000 && this.mass < T_HIGH_STAR) {
                         this.type = 'White Dwarf'; this.color = '#ffffff';
-                        this.radius = Math.max(4, Math.sqrt(this.mass) * 0.25); 
+                        this.radius = Math.max(4, Math.sqrt(this.mass) * 0.25);
                     } else {
                         if (this.temperature < 3500) { this.color = '#ff4a2b'; }
                         else if (this.temperature < 5000) { this.color = '#ffa651'; }
@@ -279,13 +412,13 @@
                     ctx.beginPath();
                     ctx.strokeStyle = this.type === 'Black Hole' ? 'rgba(50,50,50,0.5)' : this.color;
                     ctx.lineWidth = Math.max(0.5, this.radius * 0.1); // Thicker trails for big bodies
-                    
-                    for(let i = 0; i < this.trail.length - 1; i++) {
+
+                    for (let i = 0; i < this.trail.length - 1; i++) {
                         // Fade the tail out gradually
-                        ctx.globalAlpha = (i / this.trail.length) * 0.4; 
+                        ctx.globalAlpha = (i / this.trail.length) * 0.4;
                         ctx.beginPath();
                         ctx.moveTo(this.trail[i].x, this.trail[i].y);
-                        ctx.lineTo(this.trail[i+1].x, this.trail[i+1].y);
+                        ctx.lineTo(this.trail[i + 1].x, this.trail[i + 1].y);
                         ctx.stroke();
                     }
                     ctx.globalAlpha = 1.0;
@@ -294,23 +427,23 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
-                
+
                 if (this.type === 'Black Hole') {
                     // Lensing effect color based on temperature
                     let bhOutline = this.temperature > 5000 ? 'rgba(255, 200, 100, 1)' : 'rgba(255, 255, 255, 0.6)';
                     let lensRadius = this.radius * (2.5 + Math.abs(this.rotSpd) * 5);
-                    
-                    let lensGrad = ctx.createRadialGradient(0,0, this.radius, 0,0, lensRadius);
+
+                    let lensGrad = ctx.createRadialGradient(0, 0, this.radius, 0, 0, lensRadius);
                     lensGrad.addColorStop(0, '#000');
                     lensGrad.addColorStop(0.1, bhOutline);
                     lensGrad.addColorStop(0.4, 'rgba(255, 150, 50, 0.1)'); // Orange shifted lensing
                     lensGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                    
+
                     ctx.beginPath();
                     ctx.arc(0, 0, lensRadius, 0, Math.PI * 2);
                     ctx.fillStyle = lensGrad;
                     ctx.fill();
-                    
+
                     if (this.isQuasar) {
                         // Scientifically accurate accretion disk colors (White -> Yellow -> Orange -> Red)
                         let diskRadius = this.radius * (4.5 + Math.min(this.accretionFuel * 0.1, 5));
@@ -323,13 +456,13 @@
 
                         ctx.beginPath();
                         // Tilt the disk slightly based on rotation
-                        ctx.ellipse(0, 0, diskRadius, diskRadius * 0.35, this.rotSpd * 10, 0, Math.PI*2);
+                        ctx.ellipse(0, 0, diskRadius, diskRadius * 0.35, this.rotSpd * 10, 0, Math.PI * 2);
                         ctx.fillStyle = diskGrad;
-                        ctx.shadowBlur = this.accretionFuel > 10 ? 40 : 15; 
+                        ctx.shadowBlur = this.accretionFuel > 10 ? 40 : 15;
                         ctx.shadowColor = '#ff6600';
                         ctx.fill();
                         ctx.shadowBlur = 0; // Reset
-                        
+
                         // Relativistic Jets
                         let jetLength = this.mass * 0.0002;
                         let jetGradient = ctx.createLinearGradient(0, -jetLength, 0, jetLength);
@@ -338,49 +471,49 @@
                         jetGradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.9)');
                         jetGradient.addColorStop(1, 'rgba(255, 150, 50, 0)');
                         ctx.fillStyle = jetGradient;
-                        ctx.fillRect(-this.radius*0.2, -jetLength, this.radius*0.4, jetLength*2);
+                        ctx.fillRect(-this.radius * 0.2, -jetLength, this.radius * 0.4, jetLength * 2);
                     }
-                    
+
                     // The Event Horizon
                     ctx.beginPath();
                     ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
                     ctx.fillStyle = '#000';
                     ctx.fill();
                     ctx.restore();
-                    return; 
+                    return;
                 }
                 if (this.type === 'Neutron Star' && Math.abs(this.rotSpd) > 0.05) {
                     ctx.save();
                     // Counter-rotate to detach beam from physical body angle, then apply wobble
-                    ctx.rotate(-this.angle); 
+                    ctx.rotate(-this.angle);
                     let wobble = Math.sin(this.age * this.rotSpd * 5) * 0.2;
                     ctx.rotate(wobble);
-
+                    ctx.rotate(Math.PI / 2);
                     let beamLength = this.radius * 30;
                     let pGrad = ctx.createLinearGradient(-beamLength, 0, beamLength, 0);
                     pGrad.addColorStop(0, 'rgba(150, 50, 255, 0)');
                     pGrad.addColorStop(0.48, 'rgba(200, 150, 255, 0.8)');
                     pGrad.addColorStop(0.52, 'rgba(200, 150, 255, 0.8)');
                     pGrad.addColorStop(1, 'rgba(150, 50, 255, 0)');
-                    
+
                     ctx.fillStyle = pGrad;
                     ctx.globalAlpha = Math.abs(Math.cos(this.age * this.rotSpd * 2)); // Pulse effect
-                    ctx.fillRect(-beamLength, -this.radius*0.3, beamLength*2, this.radius*0.6);
+                    ctx.fillRect(-beamLength, -this.radius * 0.3, beamLength * 2, this.radius * 0.6);
                     ctx.restore();
                 }
 
                 ctx.beginPath();
                 ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
-                
+
                 if (this.glow > 0) {
                     ctx.shadowBlur = this.glow;
                     ctx.shadowColor = this.color;
-                } 
+                }
                 ctx.fill();
 
-                
-                if (this.type !== 'Black Hole' && this.type !== 'Star' && this.type !== 'White Dwarf' && this.type !== 'Neutron Star') {                    
+
+                if (this.type !== 'Black Hole' && this.type !== 'Star' && this.type !== 'White Dwarf' && this.type !== 'Neutron Star') {
                     ctx.fillStyle = 'rgba(0,0,0,0.3)';
                     // Draw Comet Tail
                     if (this.isComet && this.tailVec) {
@@ -388,21 +521,21 @@
                         let grad = ctx.createLinearGradient(this.x, this.y, this.x + this.tailVec.x * tailLen, this.y + this.tailVec.y * tailLen);
                         grad.addColorStop(0, `rgba(150, 200, 255, ${0.7 * this.tailIntensity})`);
                         grad.addColorStop(1, 'rgba(150, 200, 255, 0)');
-                        
+
                         ctx.beginPath();
                         ctx.moveTo(this.x, this.y);
                         ctx.lineTo(this.x + this.tailVec.x * tailLen, this.y + this.tailVec.y * tailLen);
                         ctx.lineWidth = this.radius * 1.5;
                         ctx.strokeStyle = grad;
                         ctx.stroke();
-                        
+
                         this.isComet = false; // Reset for the next frame
                     }
                     ctx.beginPath();
-                    ctx.arc(this.radius * 0.4, 0, this.radius * 0.3, 0, Math.PI*2);
+                    ctx.arc(this.radius * 0.4, 0, this.radius * 0.3, 0, Math.PI * 2);
                     ctx.fill();
                 }
-                
+
                 ctx.restore();
             }
 
@@ -410,17 +543,17 @@
                 this.x += this.vx * timeScale;
                 this.y += this.vy * timeScale;
                 this.angle += this.rotSpd * timeScale;
-                
-                let speedSq = this.vx*this.vx + this.vy*this.vy;
-                
+
+                let speedSq = this.vx * this.vx + this.vy * this.vy;
+
                 if (timeScale > 0 && (this.temperature > 1000 || speedSq > 25)) {
                     if (Math.random() < 0.4) {
                         let tailColor = this.type === 'Star' ? this.color : (this.temperature > 800 ? '#ff6600' : '#bbddff');
                         particles.push(new Particle(
-                            this.x + (Math.random()-0.5)*this.radius, 
-                            this.y + (Math.random()-0.5)*this.radius, 
-                            -this.vx * 0.2 + (Math.random()-0.5), 
-                            -this.vy * 0.2 + (Math.random()-0.5), 
+                            this.x + (Math.random() - 0.5) * this.radius,
+                            this.y + (Math.random() - 0.5) * this.radius,
+                            -this.vx * 0.2 + (Math.random() - 0.5),
+                            -this.vy * 0.2 + (Math.random() - 0.5),
                             1.5, tailColor, Math.random() * 2 + 1
                         ));
                     }
@@ -428,7 +561,7 @@
 
                 if (timeScale > 0) {
                     if (this.type === 'Star') {
-                        this.temperature = this.mass * 0.5; 
+                        this.temperature = this.mass * 0.5;
                     } else if (this.type !== 'White Dwarf' && this.type !== 'Neutron Star') {
                         if (this.temperature > 3) this.temperature -= (this.temperature - 3) * 0.002 * timeScale;
                     }
@@ -445,7 +578,7 @@
                         if (this.temperature >= 260 && this.temperature <= 340) {
                             this.timeInHabZone += timeScale;
                             // 60 seconds at 60fps = 3600 frames
-                            if (this.timeInHabZone > 3600 && !this.isHabitable) { 
+                            if (this.timeInHabZone > 3600 && !this.isHabitable) {
                                 this.isHabitable = true;
                                 this.color = '#2E8B57'; // Lush Earth Green/Blue
                             }
@@ -462,15 +595,15 @@
                 if (timeScale > 0 && this.mass >= T_LOW_STAR) {
                     this.age += timeScale;
                     // Massive stars burn out exponentially faster than small ones
-                    let lifespan = 200000000 / this.mass; 
-                    
+                    let lifespan = 200000000 / this.mass;
+
                     if (this.age > lifespan && this.type === 'Star') {
                         if (this.mass >= T_NEUTRON_STAR) {
                             // Massive stars explode, leaving a remnant
                             triggerSupernova(this.x, this.y, this.mass);
-                            this.mass = this.mass * 0.2; 
-                            this.updateProperties(); 
-                        } else if(this.mass<T_MID_STAR) {
+                            this.mass = this.mass * 0.2;
+                            this.updateProperties();
+                        } else if (this.mass < T_MID_STAR) {
                             // Smaller stars quietly puff off their outer layers
                             this.mass = this.mass * 0.4;
                             this.temperature = 2500;
@@ -480,95 +613,69 @@
                 }
 
                 if (timeScale > 0) {
-                    this.trail.push({x: this.x, y: this.y});
+                    this.trail.push({ x: this.x, y: this.y });
                     if (this.trail.length > 80) this.trail.shift();
                 }
 
-                // --- NEW: Pulsar Radiation Beam Physics ---
                 if (timeScale > 0 && this.type === 'Neutron Star' && Math.abs(this.rotSpd) > 0.05) {
-                    // Calculate the current angle of the sweeping visual beam
-                    let beamAngle1 = (this.angle + Math.sin(this.age * this.rotSpd * 5) * 0.2) % (Math.PI * 2);
-                    let beamAngle2 = (beamAngle1 + Math.PI) % (Math.PI * 2); // The opposite side of the beam
-                    
+                    // 1. Match the visual angle perfectly (note the negative sign!)
+                    let wobble = Math.sin(this.age * this.rotSpd * 5) * 0.2;
+                    let beamAngle = -this.angle + wobble;
+
+                    // Pre-calculate sin and cos for the projection
+                    let cosA = Math.cos(beamAngle);
+                    let sinA = Math.sin(beamAngle);
+
+                    let beamLength = this.radius * 30;
+                    let beamHalfWidth = this.radius * 0.3;
+
                     bodies.forEach(b => {
                         if (b === this) return;
+
                         let dx = b.x - this.x;
                         let dy = b.y - this.y;
-                        let dist = Math.hypot(dx, dy);
-                        
-                        if (dist < this.radius * 60) {
-                            let angleToBody = Math.atan2(dy, dx);
-                            if (angleToBody < 0) angleToBody += Math.PI * 2;
-                            if (beamAngle1 < 0) beamAngle1 += Math.PI * 2;
-                            if (beamAngle2 < 0) beamAngle2 += Math.PI * 2;
 
-                            // Check if body is within the narrow 0.15 radian sweep of the beam
-                            let diff1 = Math.abs(angleToBody - beamAngle1);
-                            let diff2 = Math.abs(angleToBody - beamAngle2);
-                            if (diff1 > Math.PI) diff1 = Math.PI * 2 - diff1;
-                            if (diff2 > Math.PI) diff2 = Math.PI * 2 - diff2;
-                            
-                            if (diff1 < 0.15 || diff2 < 0.15) { 
-                                // Flash-fry the planet with radiation
-                                b.temperature += (6000 / dist) * timeScale;
-                                
-                                // Solar wind physically pushes the object away
-                                let push = (this.mass * 20) / (dist * dist);
-                                b.vx += (dx/dist) * push * timeScale;
-                                b.vy += (dy/dist) * push * timeScale;
-                                
-                                // Vaporize debris instantly
-                                if (b.mass < 5 && b.temperature > 1500) b.mass -= 0.5 * timeScale;
-                            }
+
+                        let localX = dx * cosA + dy * sinA;
+                        let localY = -dx * sinA + dy * cosA;
+
+                        if (Math.abs(localX) <= beamLength && Math.abs(localY) <= beamHalfWidth) {
+
+                            let dist = Math.hypot(dx, dy);
+
+                            b.temperature += (6000 / dist) * timeScale;
+
+                            let push = (this.mass * 20) / (dist * dist);
+                            b.vx += (dx / dist) * push * timeScale;
+                            b.vy += (dy / dist) * push * timeScale;
+
+                            if (b.mass < 5 && b.temperature > 1500) b.mass -= 0.5 * timeScale;
                         }
                     });
                 }
             }
         }
-        
-        // function triggerSupernova(x, y, power) {
-        //     let blastRadius = Math.max(500, Math.sqrt(power) * 2);
-        //     explosions.push({ x: x, y: y, radius: 10, maxRadius: blastRadius, life: 1.0, type: 'supernova' });
-        //     clouds.push(new GasCloud(x, y, power));
 
-        //     bodies.forEach(b => {
-        //         let dx = b.x - x; let dy = b.y - y;
-        //         let dist = Math.sqrt(dx*dx + dy*dy);
-        //         if (dist > 0 && dist < power * 0.5) {
-        //             let force = power / (dist * 1.5);
-        //             b.vx += (dx / dist) * force; b.vy += (dy / dist) * force;
-        //             b.temperature += (power * 10) / dist; 
-        //             b.updateProperties(); 
-        //         }
-        //     });
-
-        //     for(let i=0; i<150; i++) {
-        //         let angle = Math.random() * Math.PI * 2;
-        //         let spd = Math.random() * Math.sqrt(power)*0.02 + 15;
-        //         let pColor = Math.random() > 0.5 ? '#ffffff' : '#cc88ff'; 
-        //         particles.push(new Particle(x, y, Math.cos(angle)*spd, Math.sin(angle)*spd, 4.0, pColor, Math.random()*6+2));
-        //     }
-        // }
         function triggerSupernova(x, y, mass) {
             // 1. Create the visual expanding shockwave
-            shockwaves.push({ 
-                x: x, y: y, 
-                radius: 15, 
-                maxRadius: mass * 3, 
+            shockwaves.push({
+                x: x, y: y,
+                radius: 15,
+                maxRadius: mass * 3,
                 alpha: 1.0,
                 glow: '#fff'
             });
-            
+
             // 2. Spawn realistic non-colliding glowing gas clouds
             clouds.push(new GasCloud(x, y, mass));
-            
+
             // 3. Eject rocky debris and dead planets
             let debrisCount = Math.min(40, Math.floor(mass / 1000));
-            for(let i = 0; i < debrisCount; i++) {
+            for (let i = 0; i < debrisCount; i++) {
                 let angle = Math.random() * Math.PI * 2;
                 let speed = Math.random() * 20 + 5;
                 let rockMass = Math.random() * 800 + 10; // Mix of asteroids and dead planets
-                let rock = new Body(x + Math.cos(angle)*(mass*0.01), y + Math.sin(angle)*(mass*0.01), Math.cos(angle)*speed, Math.sin(angle)*speed, rockMass);
+                let rock = new Body(x + Math.cos(angle) * (mass * 0.01), y + Math.sin(angle) * (mass * 0.01), Math.cos(angle) * speed, Math.sin(angle) * speed, rockMass);
                 rock.temperature = 8000; // Scorching hot from the blast
                 bodies.push(rock);
             }
@@ -578,12 +685,12 @@
                 let dx = b.x - x;
                 let dy = b.y - y;
                 let dist = Math.hypot(dx, dy);
-                
+
                 if (dist > 0 && dist < mass * 4) {
-                    let pushForce = (mass * 200) / (dist * dist); 
+                    let pushForce = (mass * 200) / (dist * dist);
                     b.vx += (dx / dist) * pushForce;
                     b.vy += (dy / dist) * pushForce;
-                    b.temperature += (mass * 80) / dist; 
+                    b.temperature += (mass * 80) / dist;
                 }
             });
         }
@@ -602,42 +709,42 @@
                     // --- NEW: Gradual Roche Limit Disintegration ---
                     // Determine if one body is significantly larger to act as the tidal shredder
                     let mRatio = b1.mass / b2.mass;
-                    let massive = mRatio > 15 ? b1 : (mRatio < 1/15 ? b2 : null);
-                    let small = mRatio > 15 ? b2 : (mRatio < 1/15 ? b1 : null);
+                    let massive = mRatio > 15 ? b1 : (mRatio < 1 / 15 ? b2 : null);
+                    let small = mRatio > 15 ? b2 : (mRatio < 1 / 15 ? b1 : null);
 
                     if (massive && small && massive.type !== 'Black Hole') {
                         // The Roche Limit distance approximation
-                        let rocheLimit = massive.radius * (massive.isQuasar ? 15.0 : 3.5);                        
+                        let rocheLimit = massive.radius * (massive.isQuasar ? 15.0 : 3.5);
 
                         // If inside Roche limit but OUTSIDE actual collision
                         if (dist < rocheLimit && dist > massive.radius + small.radius) {
                             // Calculate how deep into the limit they are (0 = edge, 1 = surface)
                             let depth = 1 - ((dist - (massive.radius + small.radius)) / (rocheLimit - (massive.radius + small.radius)));
-                            
+
                             // Exponential shredding closer to the surface
-                            let shredRate = small.mass * 0.005 * Math.pow(depth, 2) * timeScale; 
+                            let shredRate = small.mass * 0.005 * Math.pow(depth, 2) * timeScale;
 
                             if (shredRate > 0 && small.mass > 5) { // Stop shredding once it's tiny debris
                                 small.mass -= shredRate;
                                 if (massive.type === 'Black Hole') {
                                     massive.accretionFuel += shredRate; // Fuel the quasar disc
                                 } else {
-                                    massive.mass += shredRate * 0.2; 
+                                    massive.mass += shredRate * 0.2;
                                 }
                                 small.updateProperties();
                                 massive.updateProperties();
 
                                 // Visual ring particles tearing off the small body
                                 if (Math.random() < 0.4) {
-                                    let perpX = -dy/dist; let perpY = dx/dist;
+                                    let perpX = -dy / dist; let perpY = dx / dist;
                                     // Make debris orbit the massive body
-                                    let pVx = small.vx + (Math.random()-0.5)*2;
-                                    let pVy = small.vy + (Math.random()-0.5)*2;
-                                    
+                                    let pVx = small.vx + (Math.random() - 0.5) * 2;
+                                    let pVy = small.vy + (Math.random() - 0.5) * 2;
+
                                     particles.push(new Particle(
-                                        small.x + (Math.random()-0.5)*small.radius*2,
-                                        small.y + (Math.random()-0.5)*small.radius*2,
-                                        pVx, pVy, 2.0, small.color, Math.random()*2+1
+                                        small.x + (Math.random() - 0.5) * small.radius * 2,
+                                        small.y + (Math.random() - 0.5) * small.radius * 2,
+                                        pVx, pVy, 2.0, small.color, Math.random() * 2 + 1
                                     ));
                                 }
                             }
@@ -651,14 +758,14 @@
 
                         let relativeVx = b1.vx - b2.vx;
                         let relativeVy = b1.vy - b2.vy;
-                        let impactSpeedSq = relativeVx*relativeVx + relativeVy*relativeVy;
-                        let kineticHeat = (0.5 * Math.min(b1.mass, b2.mass) * impactSpeedSq) * 0.1; 
-                        
+                        let impactSpeedSq = relativeVx * relativeVx + relativeVy * relativeVy;
+                        let kineticHeat = (0.5 * Math.min(b1.mass, b2.mass) * impactSpeedSq) * 0.1;
+
                         let blastRadius = Math.max(2, Math.min(b1.radius + b2.radius, Math.sqrt(b1.mass + b2.mass) * 0.5));
                         explosions.push({ x: b1.x, y: b1.y, radius: 2, maxRadius: blastRadius, life: 1.0, type: 'collision' });
-                        
-                        for(let p=0; p < Math.min(15, blastRadius); p++) {
-                            particles.push(new Particle(b1.x, b1.y, (Math.random()-0.5)*8, (Math.random()-0.5)*8, 1.0, '#fff', 2));
+
+                        for (let p = 0; p < Math.min(15, blastRadius); p++) {
+                            particles.push(new Particle(b1.x, b1.y, (Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8, 1.0, '#fff', 2));
                         }
 
                         let originalTotalMass = b1.mass + b2.mass;
@@ -670,36 +777,36 @@
                         if (b1.type === 'Asteroid' || b2.type === 'Asteroid') {
                             if (impactSpeedSq > 20 && Math.random() < 0.2) canSplit = true;
                         } else if (originalTotalMass > T_ASTEROID && b1.type !== 'Debris' && b2.type !== 'Debris') {
-                            if (impactSpeedSq > 15) canSplit = true; 
-                        } 
+                            if (impactSpeedSq > 15) canSplit = true;
+                        }
 
-                        let finalMass = originalTotalMass; 
-                        let newMergedRadius = Math.max(2, Math.sqrt(finalMass) * 0.6); 
+                        let finalMass = originalTotalMass;
+                        let newMergedRadius = Math.max(2, Math.sqrt(finalMass) * 0.6);
 
                         if (canSplit) {
                             let debrisCount = Math.min(10, Math.floor(impactSpeedSq / 4));
-                            for(let d=0; d<debrisCount; d++) {
-                                let dMass = Math.random() * 8 + 2; 
-                                if (originalTotalMass - ejectedMass > dMass * 2) { 
+                            for (let d = 0; d < debrisCount; d++) {
+                                let dMass = Math.random() * 8 + 2;
+                                if (originalTotalMass - ejectedMass > dMass * 2) {
                                     ejectedMass += dMass;
-                                    let tx = -dy/dist; let ty = dx/dist; 
+                                    let tx = -dy / dist; let ty = dx / dist;
                                     let dir = d % 2 === 0 ? 1 : -1;
-                                    
-                                    let debVx = nvx + (tx * dir * Math.sqrt(impactSpeedSq)*0.8) + (Math.random()-0.5)*5;
-                                    let debVy = nvy + (ty * dir * Math.sqrt(impactSpeedSq)*0.8) + (Math.random()-0.5)*5;
-                                    
+
+                                    let debVx = nvx + (tx * dir * Math.sqrt(impactSpeedSq) * 0.8) + (Math.random() - 0.5) * 5;
+                                    let debVy = nvy + (ty * dir * Math.sqrt(impactSpeedSq) * 0.8) + (Math.random() - 0.5) * 5;
+
                                     let safeDistance = newMergedRadius + Math.max(2, Math.sqrt(dMass) * 0.6) + 15;
-                                    let debris = new Body(b1.x + tx*dir*safeDistance, b1.y + ty*dir*safeDistance, debVx, debVy, dMass);
-                                    debris.temperature = Math.max(b1.temperature, b2.temperature) + kineticHeat; 
+                                    let debris = new Body(b1.x + tx * dir * safeDistance, b1.y + ty * dir * safeDistance, debVx, debVy, dMass);
+                                    debris.temperature = Math.max(b1.temperature, b2.temperature) + kineticHeat;
                                     bodies.push(debris);
                                 }
                             }
                         }
 
                         finalMass = originalTotalMass - ejectedMass;
-                        
+
                         let eitherWasBlackHole = (b1.type === 'Black Hole' || b2.type === 'Black Hole');
-                        let isNowSupernovaMass = (finalMass >= T_NEUTRON_STAR); 
+                        let isNowSupernovaMass = (finalMass >= T_NEUTRON_STAR);
                         let newlyCollapsed = (!eitherWasBlackHole && isNowSupernovaMass && b1.mass < T_NEUTRON_STAR && b2.mass < T_NEUTRON_STAR);
 
                         const merged = new Body(
@@ -707,10 +814,10 @@
                             (b1.y * b1.mass + b2.y * b2.mass) / originalTotalMass,
                             nvx, nvy, finalMass
                         );
-                        
+
                         merged.temperature = ((b1.temperature * b1.mass) + (b2.temperature * b2.mass)) / originalTotalMass + kineticHeat;
-                        merged.rotSpd = (b1.rotSpd * b1.mass + b2.rotSpd * b2.mass) / originalTotalMass; 
-                        
+                        merged.rotSpd = (b1.rotSpd * b1.mass + b2.rotSpd * b2.mass) / originalTotalMass;
+
                         if (newlyCollapsed) triggerSupernova(merged.x, merged.y, finalMass);
 
                         bodies.splice(j, 1); bodies.splice(i, 1); bodies.push(merged);
@@ -718,11 +825,11 @@
                         // --- NEW: Transfer UI target to the new merged object ---
                         if (targetWasDestroyed) uiTarget = merged;
 
-                        return; 
+                        return;
                     }
 
                     const force = (G * b1.mass * b2.mass) / distSq;
-                    
+
                     // Radiant Stellar Heating (Inverse-Square Law & Temp Cap)
                     if (b1.temperature > 1000 || b2.temperature > 1000) {
                         // Area of effect scaling based on radius
@@ -741,7 +848,7 @@
                     // Comet Tails (Stellar wind pushes gas away from small icy bodies)
                     let isComet1 = (b2.type === 'Star' && b1.mass <= 15 && b1.temperature < 400);
                     let isComet2 = (b1.type === 'Star' && b2.mass <= 15 && b2.temperature < 400);
-                    
+
                     if (isComet1 && dist < b2.radius * 30) {
                         b1.isComet = true;
                         b1.tailVec = { x: (b1.x - b2.x) / dist, y: (b1.y - b2.y) / dist };
@@ -757,7 +864,7 @@
                     let tidalHeat = (force / dist) * 0.05 * timeScale;
                     if (b1.type !== 'Star' && b1.type !== 'Black Hole') b1.temperature += tidalHeat / b1.mass;
                     if (b2.type !== 'Star' && b2.type !== 'Black Hole') b2.temperature += tidalHeat / b2.mass;
-                    
+
                     const acc1 = force / b1.mass;
                     const acc2 = force / b2.mass;
 
@@ -773,18 +880,18 @@
             ctx.beginPath();
             ctx.strokeStyle = 'rgba(0, 212, 255, 0.8)';
             ctx.setLineDash([5, 5]);
-            ctx.lineWidth = 2 / camera.zoom; 
-            
+            ctx.lineWidth = 2 / camera.zoom;
+
             let simX = startX; let simY = startY;
             let simVx = initVx; let simVy = initVy;
             let simMass = currentMass;
             ctx.moveTo(simX, simY);
 
-            let stepTime = timeScale === 0 ? 1 : timeScale; 
-            for(let step = 0; step < 200; step++) {
-                for(let b of bodies) {
+            let stepTime = timeScale === 0 ? 1 : timeScale;
+            for (let step = 0; step < 200; step++) {
+                for (let b of bodies) {
                     let dx = b.x - simX; let dy = b.y - simY;
-                    let distSq = dx*dx + dy*dy;
+                    let distSq = dx * dx + dy * dy;
                     let dist = Math.sqrt(distSq);
                     if (dist < b.radius + Math.max(2, Math.sqrt(simMass) * 0.6)) break;
 
@@ -806,7 +913,7 @@
                 let ex = explosions[i];
                 ctx.beginPath();
                 let grad = ctx.createRadialGradient(ex.x, ex.y, 0, ex.x, ex.y, ex.radius);
-                
+
                 if (ex.type === 'supernova') {
                     grad.addColorStop(0, `rgba(255, 255, 255, ${ex.life})`);
                     grad.addColorStop(0.1, `rgba(200, 150, 255, ${ex.life * 0.9})`);
@@ -821,7 +928,7 @@
                     ex.radius += 5 * timeScale;
                     ex.life -= 0.05 * timeScale;
                 }
-                
+
                 ctx.arc(ex.x, ex.y, ex.radius, 0, Math.PI * 2);
                 ctx.fillStyle = grad;
                 ctx.fill();
@@ -849,7 +956,7 @@
                 if (uiTarget.debrisCount > 5) states.push("Has Rings");
                 if (uiTarget.type === 'Black Hole' && uiTarget.accretionHeat > 10) states.push("Feeding");
                 insState.innerText = states.length > 0 ? states.join(', ') : "Stable";
-                
+
             } else {
                 uiTarget = null;
                 inspector.style.display = 'none';
@@ -857,47 +964,47 @@
         }
 
         function loop() {
-            ctx.setTransform(1, 0, 0, 1, 0, 0); 
-            ctx.fillStyle = '#050508'; 
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.fillStyle = '#050508';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             ctx.fillStyle = '#ffffff';
             backgroundStars.forEach(star => {
                 // Map world coordinates to screen space with parallax
-                let px = (star.x - camera.x * star.parallax + canvas.width/2) % canvas.width;
-                let py = (star.y - camera.y * star.parallax + canvas.height/2) % canvas.height;
+                let px = (star.x - camera.x * star.parallax + canvas.width / 2) % canvas.width;
+                let py = (star.y - camera.y * star.parallax + canvas.height / 2) % canvas.height;
                 if (px < 0) px += canvas.width;
                 if (py < 0) py += canvas.height;
-                
+
                 ctx.globalAlpha = star.alpha;
                 ctx.beginPath();
-                ctx.arc(px, py, star.size, 0, Math.PI*2);
+                ctx.arc(px, py, star.size, 0, Math.PI * 2);
                 ctx.fill();
             });
             ctx.globalAlpha = 1.0;
 
             // Gentle motion blur tint
-            ctx.fillStyle = 'rgba(5, 5, 8, 0.3)'; 
+            ctx.fillStyle = 'rgba(5, 5, 8, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.setTransform(1, 0, 0, 1, 0, 0); 
-            ctx.fillStyle = 'rgba(5, 5, 8, 0.3)'; 
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.fillStyle = 'rgba(5, 5, 8, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Camera tracking logic
             if (followedBody) {
                 // Smoothly interpolate camera position toward the body
-                camera.x = -followedBody.x+canvas.width/2;
-                camera.y = -followedBody.y+canvas.height/2;
-                
+                camera.x = -followedBody.x + canvas.width / 2;
+                camera.y = -followedBody.y + canvas.height / 2;
+
                 // Stop tracking if the body was destroyed
                 if (!bodies.includes(followedBody)) followedBody = uiTarget;
             }
 
             ctx.save();
-            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.translate(canvas.width / 2, canvas.height / 2);
             ctx.scale(camera.zoom, camera.zoom);
-            ctx.translate(camera.x - canvas.width/2, camera.y - canvas.height/2);
+            ctx.translate(camera.x - canvas.width / 2, camera.y - canvas.height / 2);
 
             for (let i = clouds.length - 1; i >= 0; i--) {
                 clouds[i].update();
@@ -911,8 +1018,8 @@
             }
 
             if (timeScale > 0) resolveGravity();
-            
-            
+
+
             if (showHabZone && showHabZone.checked) {
                 let res = 15; // Grid resolution (15px is a great balance of speed/quality)
                 let heatSources = bodies.filter(b => b.temperature > 1000);
@@ -920,25 +1027,25 @@
                 if (heatSources.length > 0) {
                     ctx.fillStyle = 'rgba(46, 139, 87, 0.25)';
                     ctx.beginPath(); // Start batching shapes (Massive performance boost)
-                    
+
                     for (let x = 0; x < canvas.width; x += res) {
                         for (let y = 0; y < canvas.height; y += res) {
-                            let worldPos = screenToWorld(x + res/2, y + res/2);
+                            let worldPos = screenToWorld(x + res / 2, y + res / 2);
                             let combinedFlux = 0;
-                            
+
                             // Combine heat from ALL nearby stars
                             for (let s of heatSources) {
                                 let dx = worldPos.x - s.x;
                                 let dy = worldPos.y - s.y;
-                                let distSq = dx*dx + dy*dy;
+                                let distSq = dx * dx + dy * dy;
                                 if (distSq > s.radius * s.radius) {
                                     // Inverse square law for heat flux
                                     combinedFlux += (s.temperature * s.radius * s.radius) / distSq;
                                 }
                             }
-                            
+
                             // Thresholds for liquid water (You can tweak these!)
-                            if (combinedFlux > 300 && combinedFlux < 1200) { 
+                            if (combinedFlux > 300 && combinedFlux < 1200) {
                                 ctx.rect(x, y, res, res); // Add to the batch
                             }
                         }
@@ -950,31 +1057,31 @@
             bodies.forEach(b => { b.update(); b.draw(); });
             for (let i = shockwaves.length - 1; i >= 0; i--) {
                 let sw = shockwaves[i];
-                
+
                 // NEW: Shockwave slows down logarithmically as it reaches max radius
                 let speed = Math.max(1, (1 - (sw.radius / sw.maxRadius)) * 30) * timeScale;
-                sw.radius += speed; 
-                sw.alpha -= 0.005 * timeScale; 
-                
+                sw.radius += speed;
+                sw.alpha -= 0.005 * timeScale;
+
                 if (sw.alpha <= 0 || sw.radius >= sw.maxRadius) {
                     shockwaves.splice(i, 1);
                     continue;
                 }
-                
+
                 ctx.beginPath();
                 ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
                 ctx.lineWidth = Math.max(1, sw.alpha * 15); // Thick at first, thins out
-                
+
                 // Initial bright glow fading to nebula colors
                 let colorBase = sw.alpha > 0.6 ? '255, 255, 255' : '150, 100, 255';
                 ctx.strokeStyle = `rgba(${colorBase}, ${sw.alpha})`;
                 ctx.stroke();
             }
 
-            for(let i = particles.length - 1; i >= 0; i--) {
+            for (let i = particles.length - 1; i >= 0; i--) {
                 particles[i].update();
                 particles[i].draw();
-                if(particles[i].life <= 0) particles.splice(i, 1);
+                if (particles[i].life <= 0) particles.splice(i, 1);
             }
 
             drawExplosions();
@@ -997,7 +1104,7 @@
                 drawPredictedTrajectory(dragStart.x, dragStart.y, vx, vy);
             }
 
-            ctx.restore(); 
+            ctx.restore();
 
             // Update DOM HTML UI
             updateInspector();
@@ -1032,10 +1139,10 @@
                     }
                 }
             }
-            if (e.button === 2) { 
+            if (e.button === 2) {
                 isRightDragging = true;
                 rightDragStart = { x: e.clientX, y: e.clientY };
-            } else if (e.button === 0) { 
+            } else if (e.button === 0) {
                 isDragging = true;
                 dragStart = screenToWorld(e.clientX, e.clientY);
                 mousePos = screenToWorld(e.clientX, e.clientY);
@@ -1050,7 +1157,7 @@
                 camera.y += (e.clientY - rightDragStart.y) / camera.zoom;
                 rightDragStart = { x: e.clientX, y: e.clientY };
             }
-            mousePos = screenToWorld(e.clientX, e.clientY); 
+            mousePos = screenToWorld(e.clientX, e.clientY);
         });
 
         window.addEventListener('keydown', e => {
@@ -1059,15 +1166,15 @@
                 for (let b of bodies) {
                     let dx = b.x - mousePos.x;
                     let dy = b.y - mousePos.y;
-                    if (Math.sqrt(dx*dx + dy*dy) <= b.radius * 2 + 10) { 
-                        found = b; 
+                    if (Math.sqrt(dx * dx + dy * dy) <= b.radius * 2 + 10) {
+                        found = b;
                         break;
                     }
                 }
-                
+
                 if (found) {
                     if (uiTarget === found) {
-                        uiTarget = null; 
+                        uiTarget = null;
                         inspector.style.display = 'none';
                     } else {
                         uiTarget = found;
@@ -1076,28 +1183,28 @@
                         inspector.style.top = mouseScreenY + 15 + 'px';
                     }
                 } else {
-                    uiTarget = null; 
+                    uiTarget = null;
                     inspector.style.display = 'none';
                 }
             }
             if (e.key.toLowerCase() === 'r' && uiTarget) {
                 let numRocks = uiTarget.mass > T_LOW_STAR ? 300 : 100; // Bigger rings for stars
-                let beltRadius = uiTarget.radius * 3 + 80; 
-                
+                let beltRadius = uiTarget.radius * 3 + 80;
+
                 for (let i = 0; i < numRocks; i++) {
                     let angle = Math.random() * Math.PI * 2;
                     let dist = beltRadius + (Math.random() - 0.5) * (beltRadius * 0.2); // Belt width
-                    
+
                     // Calculate perfect circular orbit velocity
                     let orbitSpeed = Math.sqrt((G * uiTarget.mass) / dist);
-                    
+
                     let rx = uiTarget.x + Math.cos(angle) * dist;
                     let ry = uiTarget.y + Math.sin(angle) * dist;
-                    
+
                     // Add the host body's velocity so the ring moves with it
-                    let rvx = uiTarget.vx + Math.cos(angle + Math.PI/2) * orbitSpeed;
-                    let rvy = uiTarget.vy + Math.sin(angle + Math.PI/2) * orbitSpeed;
-                    
+                    let rvx = uiTarget.vx + Math.cos(angle + Math.PI / 2) * orbitSpeed;
+                    let rvy = uiTarget.vy + Math.sin(angle + Math.PI / 2) * orbitSpeed;
+
                     let rock = new Body(rx, ry, rvx, rvy, Math.random() * 3 + 0.5);
                     // Match the rocks temp to the environment
                     rock.temperature = uiTarget.temperature > 1000 ? uiTarget.temperature / 10 : 20;
@@ -1118,7 +1225,7 @@
                 if (!uiTarget) return;
                 let val = parseFloat(e.target.value);
                 if (isNaN(val)) return;
-                
+
                 if (id === 'ins-mass') { uiTarget.mass = Math.max(1, val); uiTarget.updateProperties(); }
                 if (id === 'ins-vx') uiTarget.vx = val;
                 if (id === 'ins-vy') uiTarget.vy = val;
@@ -1131,52 +1238,52 @@
             if (e.button === 2) isRightDragging = false;
             if (e.button === 0 && isDragging) {
                 if (e.button === 0 && isDragging) {
-                isDragging = false;
-                const endPos = screenToWorld(e.clientX, e.clientY);
-                let vx = (dragStart.x - endPos.x) * 0.05;
-                let vy = (dragStart.y - endPos.y) * 0.05;
+                    isDragging = false;
+                    const endPos = screenToWorld(e.clientX, e.clientY);
+                    let vx = (dragStart.x - endPos.x) * 0.05;
+                    let vy = (dragStart.y - endPos.y) * 0.05;
 
-                // NEW: Hold Alt to Paint Nebula Dust
-                if (e.altKey) {
-                    // Spawn 20 tiny asteroids at once with slight random variations
-                    for (let i = 0; i < 20; i++) {
-                        let rx = dragStart.x + (Math.random() - 0.5) * 60;
-                        let ry = dragStart.y + (Math.random() - 0.5) * 60;
-                        let rvx = vx + (Math.random() - 0.5) * 0.8;
-                        let rvy = vy + (Math.random() - 0.5) * 0.8;
-                        let dust = new Body(rx, ry, rvx, rvy, Math.random() * 3 + 0.5);
-                        dust.temperature = 10; // Freezing cold dust
-                        bodies.push(dust);
-                    }
-                    return; // Skip drawing the single main body
-                }
-
-                // NEW: Hold Shift to Auto-Circularize Orbit
-                if (e.shiftKey) {
-                    let nearest = null; let minDist = Infinity;
-                    // Find the closest massive body to orbit
-                    bodies.forEach(b => {
-                        if (b.mass > currentMass * 5) {
-                            let d = Math.hypot(b.x - dragStart.x, b.y - dragStart.y);
-                            if (d < minDist) { minDist = d; nearest = b; }
+                    // NEW: Hold Alt to Paint Nebula Dust
+                    if (e.altKey) {
+                        // Spawn 20 tiny asteroids at once with slight random variations
+                        for (let i = 0; i < 20; i++) {
+                            let rx = dragStart.x + (Math.random() - 0.5) * 60;
+                            let ry = dragStart.y + (Math.random() - 0.5) * 60;
+                            let rvx = vx + (Math.random() - 0.5) * 0.8;
+                            let rvy = vy + (Math.random() - 0.5) * 0.8;
+                            let dust = new Body(rx, ry, rvx, rvy, Math.random() * 3 + 0.5);
+                            dust.temperature = 10; // Freezing cold dust
+                            bodies.push(dust);
                         }
-                    });
-                    
-                    if (nearest) {
-                        let dx = dragStart.x - nearest.x;
-                        let dy = dragStart.y - nearest.y;
-                        let dist = Math.hypot(dx, dy);
-                        let orbitSpeed = Math.sqrt((G * nearest.mass) / dist);
-                        // Calculate perfect perpendicular vector
-                        vx = nearest.vx + (-dy / dist) * orbitSpeed;
-                        vy = nearest.vy + (dx / dist) * orbitSpeed;
+                        return; // Skip drawing the single main body
                     }
-                }
 
-                let newBody = new Body(dragStart.x, dragStart.y, vx, vy, currentMass);
-                newBody.rotSpd = (Math.random() - 0.5) * 0.2;
-                bodies.push(newBody);
-            }
+                    // NEW: Hold Shift to Auto-Circularize Orbit
+                    if (e.shiftKey) {
+                        let nearest = null; let minDist = Infinity;
+                        // Find the closest massive body to orbit
+                        bodies.forEach(b => {
+                            if (b.mass > currentMass * 5) {
+                                let d = Math.hypot(b.x - dragStart.x, b.y - dragStart.y);
+                                if (d < minDist) { minDist = d; nearest = b; }
+                            }
+                        });
+
+                        if (nearest) {
+                            let dx = dragStart.x - nearest.x;
+                            let dy = dragStart.y - nearest.y;
+                            let dist = Math.hypot(dx, dy);
+                            let orbitSpeed = Math.sqrt((G * nearest.mass) / dist);
+                            // Calculate perfect perpendicular vector
+                            vx = nearest.vx + (-dy / dist) * orbitSpeed;
+                            vy = nearest.vy + (dx / dist) * orbitSpeed;
+                        }
+                    }
+
+                    let newBody = new Body(dragStart.x, dragStart.y, vx, vy, currentMass);
+                    newBody.rotSpd = (Math.random() - 0.5) * 0.2;
+                    bodies.push(newBody);
+                }
             }
         });
 
@@ -1188,32 +1295,33 @@
             timeScale = parseFloat(e.target.value);
             document.getElementById('tVal').innerText = timeScale.toFixed(1) + 'x';
         };
-        
+
         document.getElementById('massRange').oninput = e => {
             let val = parseFloat(e.target.value);
             let minLog = Math.log10(5);
-            let maxLog = Math.log10(1500000); 
-            
-            currentMass = Math.round(Math.pow(10, minLog + (val/100) * (maxLog - minLog)));
-            
+            let maxLog = Math.log10(1500000);
+
+            currentMass = Math.round(Math.pow(10, minLog + (val / 100) * (maxLog - minLog)));
+
             let displayMass = currentMass;
             if (currentMass >= 1000000) {
-                displayMass = (currentMass/1000000).toFixed(2) + 'M';
+                displayMass = (currentMass / 1000000).toFixed(2) + 'M';
             } else if (currentMass >= 1000) {
-                displayMass = (currentMass/1000).toFixed(1) + 'k';
+                displayMass = (currentMass / 1000).toFixed(1) + 'k';
             }
-            
+
             document.getElementById('mVal').innerText = displayMass;
         };
-        
+
         document.getElementById('clearBtn').onclick = () => { bodies = []; explosions = []; clouds = []; uiTarget = null; };
 
 
-        bodies.push(new Body(0, 0, 0, 0, 15000)); 
-        bodies.push(new Body(0, -300, 3.5, 0, 2000)); 
-        bodies.push(new Body(0, -320, 5.0, 0, 50)); 
+        bodies.push(new Body(0, 0, 0, 0, 15000));
+        bodies.push(new Body(0, -300, 3.5, 0, 2000));
+        bodies.push(new Body(0, -320, 5.0, 0, 50));
 
         loop();
     </script>
 </body>
+
 </html>
