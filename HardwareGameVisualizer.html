@@ -1,100 +1,577 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>MAVE - Macro Hardware Visualizer</title>
     <style>
         body {
-            margin: 0; font-family: system-ui, sans-serif; background: #111; color: #eee;
-            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            background: #111;
+            color: #eee;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
 
+        /* 1. Fix Header Flattening */
         #top-header {
-            height: 50px; background: #222; border-bottom: 1px solid #444;
-            display: flex; align-items: center; padding: 0 20px; box-sizing: border-box;
+            height: 50px;
+            background: #222;
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* Fixes left-right alignment */
+            padding: 0 20px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            /* PREVENTS FLATTENING */
+            z-index: 100;
+        }
+
+        /* 2. Wrapper layout */
+        #tab-content-wrapper {
+            display: flex;
+            flex-grow: 1;
+            width: 100%;
+            height: calc(100vh - 50px);
+            position: relative;
+        }
+
+        /* 3. Fix Monitor Scrolling */
+        #monitor-panel {
+            flex: 1.2;
+            min-width: 400px;
+            background: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            /* ALLOWS SCROLLING TO THE CODER */
+        }
+
+        /* 4. Fix Buying Guide Overlay */
+        #guide-container {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: #15171e;
+            padding: 40px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 50;
+            /* Fits perfectly inside the wrapper */
+        }
+
+        /* 5. Info Modal CSS (Step 5) */
+        #modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 150;
+            display: none;
+            backdrop-filter: blur(5px);
+        }
+
+        #info-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 85vh;
+            background: #1a1c23;
+            border: 1px solid #444;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            background: #15171e;
+        }
+
+        #modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            line-height: 1.7;
+            color: #ddd;
+            font-size: 15px;
+        }
+
+        .schematic-graphic {
+            width: 100%;
+            height: 150px;
+            background: #111;
+            border: 2px dashed #444;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #666;
+            font-family: monospace;
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        /* --- NEW: Collapsible Palette CSS --- */
+        #palette {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(20, 22, 28, 0.3);
+            /* Transparent when collapsed */
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            width: 44px;
+            height: 44px;
+            /* Small equilateral box */
+            overflow: hidden;
+            z-index: 10;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-sizing: border-box;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        #guide-content {
+            max-width: 900px;
+            margin: 40px auto;
+            color: #ccc;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        #guide-content h2 {
+            color: #0098ff;
+            margin-top: 0;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        #guide-content h3 {
+            color: #2ecc71;
+            margin-top: 25px;
+        }
+
+
+        #palette:hover {
+            background: rgba(20, 22, 28, 0.95);
+            width: 300px;
+            height: 160px;
+            /* Expanded size */
+            cursor: default;
+        }
+
+        .palette-icon {
+            color: #0098ff;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+            display: block;
+            line-height: 22px;
+        }
+
+        #palette:hover .palette-icon {
+            display: none;
+        }
+
+        #palette .drag-item,
+        #palette .palette-hint {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        #palette:hover .drag-item,
+        #palette:hover .palette-hint {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         #main-container {
-            display: flex; flex-grow: 1; width: 100%;
+            display: flex;
+            flex-grow: 1;
+            width: 100%;
         }
 
-        /* Left Side: Motherboard */
-        #motherboard-panel {
-            flex: 2; position: relative; border-right: 1px solid #444; background: #0a0a0c;
-        }
 
         #mb-canvas {
-            display: block; width: 100%; height: 100%;
+            display: block;
+            width: 100%;
+            height: 100%;
         }
 
-        /* Right Side: The "Monitor" */
-        #monitor-panel {
-            flex: 1; min-width: 400px; background: #1a1a1a; display: flex;
-            flex-direction: column; align-items: center; padding: 20px; box-sizing: border-box;
+        #tooltip {
+            position: absolute;
+            background: rgba(15, 17, 21, 0.95);
+            border: 1px solid #0098ff;
+            padding: 10px;
+            border-radius: 6px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
+
+
 
         .monitor-bezel {
-            background: #333; padding: 15px; border-radius: 8px; border: 2px solid #222;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #222;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
         }
 
         #game-canvas {
-            background: #000; border: 2px solid #555; display: block;
+            background: #000;
+            border: 2px solid #555;
+            display: block;
         }
 
         .controls-info {
-            margin-top: 20px; background: #222; padding: 15px; border-radius: 6px;
-            font-size: 14px; color: #aaa; width: 100%; box-sizing: border-box;
+            margin-top: 20px;
+            background: #222;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #aaa;
+            width: 100%;
+            box-sizing: border-box;
         }
     </style>
 </head>
+
 <body>
 
     <div id="top-header">
-        <h2 style="margin: 0; color: #0098ff;">MAVE Hardware</h2>
-        <span style="margin-left: 20px; color: #aaa;">Watch the data flow as you play.</span>
-    </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <h2 style="margin: 0; color: #0098ff; font-weight: bold;">MAVE Macro-Architecture</h2>
 
-    <div id="main-container">
-        <div id="motherboard-panel">
-            <canvas id="mb-canvas"></canvas>
+            <div id="nav-tabs" style="display: flex; gap: 10px;">
+                <button id="tab-sim"
+                    style="background: #333; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; border-bottom: 2px solid #0098ff; font-weight: bold;">Simulator</button>
+                <button id="tab-guide"
+                    style="background: transparent; color: #aaa; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">Buying
+                    Components</button>
+            </div>
         </div>
 
-        <div id="monitor-panel">
-            <h3 style="margin-top: 0;">System Monitor</h3>
-            <div class="monitor-bezel">
-                <canvas id="game-canvas" width="300" height="300"></canvas>
-            </div>
-            
-            <div class="controls-info">
-                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
-                    <select id="app-selector" style="padding: 6px; background: #111; color: white; border: 1px solid #555; border-radius: 4px;">
-                        <option value="snake">App: Neon Snake</option>
-                        <option value="gravity">App: Orbital Gravity Sim</option>
-                        <option value="pong">App: Cyber Pong (vs ML)</option>
-                        <option value="life">App: Game of Life</option>
-                    </select>
-                    <button id="btn-state" style="padding: 6px 12px; background: #2ecc71; color: #111; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;">Start System</button>
-                    <button id="btn-full-game" style="display: none; padding: 6px 12px; background: #9b59b6; color: white; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;">Launch Full Game</button>
-                </div>
-                
-                <div id="app-stats-panel" style="margin-bottom: 15px; padding: 10px; background: #0a0a0c; border: 1px solid #333; border-radius: 4px; border-left: 4px solid #0098ff;">
-                    <strong id="stat-title" style="color: #0098ff; text-transform: uppercase; font-size: 12px;">System Stats</strong>
-                    <div id="stat-content" style="font-family: monospace; font-size: 16px; margin-top: 5px; color: #fff;">READY</div>
+        <div>
+            <button id="btn-save"
+                style="background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾
+                Save System</button>
+            <button id="btn-load"
+                style="background: #8e44ad; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">📂
+                Load System</button>
+            <input type="file" id="file-input" style="display: none;" accept=".json">
+            <button id="btn-reset"
+                style="background: #c0392b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold;">Reset</button>
+        </div>
+    </div>
+
+    <div id="tab-content-wrapper" style="display: flex; flex-grow: 1; width: 100%; height: calc(100vh - 50px);">
+
+        <div id="main-container" style="display: flex; width: 100%; height: 100%;">
+            <div id="mb-wrapper"
+                style="flex: 2; position: relative; background: #0a0a0c; border-right: 1px solid #333; overflow: hidden;">
+
+                <div id="palette">
+                    <span class="palette-icon">➕</span>
+                    <div class="drag-item" draggable="true" data-type="CPU"
+                        style="background: #333; padding: 5px 10px; border-radius: 4px; cursor: grab; font-size: 12px; border-left: 3px solid #f39c12; user-select: none;">
+                        CPU</div>
+                    <div class="drag-item" draggable="true" data-type="GPU"
+                        style="background: #333; padding: 5px 10px; border-radius: 4px; cursor: grab; font-size: 12px; border-left: 3px solid #0098ff; user-select: none;">
+                        GPU</div>
+                    <div class="drag-item" draggable="true" data-type="RAM"
+                        style="background: #333; padding: 5px 10px; border-radius: 4px; cursor: grab; font-size: 12px; border-left: 3px solid #2ecc71; user-select: none;">
+                        RAM</div>
+                    <div class="drag-item" draggable="true" data-type="DISP"
+                        style="background: #333; padding: 5px 10px; border-radius: 4px; cursor: grab; font-size: 12px; border-left: 3px solid #00ffff; user-select: none;">
+                        Monitor</div>
+                    <div class="drag-item" draggable="true" data-type="KBD"
+                        style="background: #333; padding: 5px 10px; border-radius: 4px; cursor: grab; font-size: 12px; border-left: 3px solid #e74c3c; user-select: none;">
+                        Input</div>
+                    <div class="drag-item" draggable="true" data-type="DISK"
+                        style="background: #333; padding: 5px 10px; border-radius: 4px; cursor: grab; font-size: 12px; border-left: 3px solid #9b59b6; user-select: none;">
+                        SSD</div>
+                    <div class="palette-hint" style="width: 100%; font-size: 11px; color: #888; margin-top: 5px;">
+                        Drag to add. Shift+Click to wire. Right-Click to delete.
+                    </div>
                 </div>
 
-                <strong>Hardware Activity Key:</strong> 
-                <ul style="margin-top: 5px; padding-left: 20px;">
-                    <li><span style="color:#e74c3c">Red:</span> Interrupts (Keyboard/Mouse)</li>
-                    <li><span style="color:#2ecc71">Green:</span> Memory Read/Write (RAM)</li>
-                    <li><span style="color:#0098ff">Blue:</span> Framebuffer (GPU)</li>
-                    <li><span style="color:#1abc9c">Teal:</span> Network Packets (WIFI)</li>
+                <canvas id="mb-canvas"
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; z-index: 1;"></canvas>
+                <div id="tooltip"
+                    style="position: absolute; background: rgba(15,17,21,0.95); border: 1px solid #0098ff; padding: 10px; border-radius: 6px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 50; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                    <strong id="tt-title" style="color: #0098ff; display: block; margin-bottom: 4px;">Component</strong>
+                    <span id="tt-status" style="font-size: 12px; color: #2ecc71;">Status: Idle</span><br>
+                    <small style="color: #888; font-size: 10px; margin-top: 8px; display: block;">Double-Click for
+                        deep specs</small>
+                </div>
+
+            </div>
+
+            <div id="monitor-panel">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                    <h3 style="margin: 0; color: #fff;">System Monitor</h3>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="font-size: 12px; color: #aaa;">FPS: <span id="fps-display"
+                                style="color: #0098ff; font-weight: bold;">30</span></div>
+                        <input type="range" id="fps-slider" min="5" max="60" value="30" style="width: 100px;">
+                        <button id="btn-state"
+                            style="padding: 6px 12px; background: #2ecc71; color: #111; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;">Start
+                            System</button>
+                    </div>
+                </div>
+
+                <div class="monitor-bezel" style="position: relative; width: 100%; max-width: 400px;">
+                    <canvas id="game-canvas" width="400" height="300"
+                        style="background: #000; border: 2px solid #555; display: block; width: 100%;"></canvas>
+                    <div id="no-signal"
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #e74c3c; font-family: monospace; font-size: 24px; font-weight: bold; display: none; text-shadow: 0 0 10px #e74c3c; pointer-events: none;">
+                        NO SIGNAL</div>
+                </div>
+
+                <div class="controls-info">
+                    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
+                        <select id="app-selector"
+                            style="padding: 6px; background: #111; color: white; border: 1px solid #555; border-radius: 4px;">
+                            <option value="snake">App: Neon Snake</option>
+                            <option value="gravity">App: Orbital Gravity Sim</option>
+                            <option value="pong">App: Cyber Pong (vs ML)</option>
+                            <option value="life">App: Game of Life</option>
+                        </select>
+
+                        <select id="snake-mode"
+                            style="padding: 6px; background: #111; color: #00ffff; border: 1px solid #555; border-radius: 4px; font-weight: bold;">
+                            <option value="classic">Mode: Classic</option>
+                            <option value="portal">Mode: Portal</option>
+                            <option value="bomb">Mode: Bomb</option>
+                            <option value="multi">Mode: Multi-Apple</option>
+                        </select>
+                        <select id="snake-speed"
+                            style="padding: 6px; background: #111; color: #f39c12; border: 1px solid #555; border-radius: 4px; font-weight: bold;">
+                            <option value="6">Speed: Slow</option>
+                            <option value="4" selected>Speed: Normal</option>
+                            <option value="2">Speed: Fast</option>
+                            <option value="1">Speed: EXTREME</option>
+                        </select>
+
+                        <button id="btn-full-game"
+                            style="display: none; padding: 6px 12px; background: #9b59b6; color: white; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;">Launch
+                            Full Game</button>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <button id="btn-add-app"
+                            style="background: #9b59b6; padding: 6px 12px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold;">➕
+                            New Custom App</button>
+                        <button id="btn-edit-app"
+                            style="background: #f39c12; padding: 6px 12px; border: none; border-radius: 4px; color: white; display: none; cursor: pointer; font-weight: bold;">✏️
+                            Edit Logic</button>
+                        <button id="btn-edit-app"
+                            style="background: #f39c12; padding: 6px 12px; border: none; border-radius: 4px; color: white; display: none; cursor: pointer; font-weight: bold;">✏️
+                            Edit Logic</button>
+                        <button id="btn-save-app"
+                            style="background: #27ae60; padding: 6px 12px; border: none; border-radius: 4px; color: white; display: none; cursor: pointer; font-weight: bold;">💾
+                            Save App</button>
+                        <button id="btn-load-app"
+                            style="background: #e67e22; padding: 6px 12px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold;">📂
+                            Load App</button>
+                        <input type="file" id="app-file-input" style="display:none;" accept=".json">
+                    </div>
+
+                    <div id="custom-ide"
+                        style="display: none; flex-direction: column; gap: 10px; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
+                        <strong style="color: #3498db; font-size: 14px;">Visual Block Logic Builder</strong>
+                        <div style="font-size: 11px; color: #888;">Executes top-to-bottom every frame. Built-in vars: x,
+                            y, vx, vy.</div>
+                        <div class="code-blocks" id="block-container"
+                            style="background: #0a0a0c; padding: 10px; border-radius: 4px; border: 1px solid #333; min-height: 150px; display: flex; flex-direction: column; gap: 5px; max-height: 300px; overflow-y: auto;">
+                        </div>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                <button onclick="addBlock('clearScreen')"
+                                    style="background: #34495e; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">+
+                                    Clear Screen</button>
+                                <button onclick="addBlock('drawRect')"
+                                    style="background: #27ae60; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">+
+                                    Draw Rect</button>
+                                <button onclick="addBlock('drawText')"
+                                    style="background: #8e44ad; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">+
+                                    Draw Text</button>
+                                <button onclick="addBlock('setVar')"
+                                    style="background: #d35400; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">+
+                                    Set Variable</button>
+                                <button onclick="addBlock('mathOp')"
+                                    style="background: #c0392b; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">+
+                                    Math Calc</button>
+                                <button onclick="addBlock('ifKey')"
+                                    style="background: #2980b9; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">+
+                                    If Key Pressed</button>
+                            </div>
+                        </div>
+                        <button id="btn-compile"
+                            style="background: #2980b9; color: white; border: none; padding: 8px; border-radius: 4px; margin-top: 10px; cursor: pointer; font-weight: bold;">Save
+                            & Compile App</button>
+                    </div>
+
+                    <div id="app-stats-panel"
+                        style="margin-top: 15px; margin-bottom: 15px; padding: 10px; background: #0a0a0c; border: 1px solid #333; border-radius: 4px; border-left: 4px solid #0098ff;">
+                        <strong id="stat-title"
+                            style="color: #0098ff; text-transform: uppercase; font-size: 12px;">System Stats</strong>
+                        <div id="stat-content"
+                            style="font-family: monospace; font-size: 16px; margin-top: 5px; color: #fff;">READY</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="guide-container"
+        style="display: none; width: 100%; height: 100%; background: #15171e; padding: 40px; box-sizing: border-box; overflow-y: auto;">
+        <h1 style="color: white; text-align: center; font-size: 32px; color: #0098ff;">PC Building Guide</h1>
+        <p style="color: #aaa; text-align: center; font-size: 18px;">Understanding components, avoiding bottlenecks, and
+            buying smart.
+        </p>
+
+        <div id="guide-content">
+            <div>
+                <h2>1. The Central Processing Unit (CPU)</h2>
+                <p>The CPU is the general-purpose brain. It handles game logic, physics, OS tasks, and tells the GPU
+                    what to draw.</p>
+                <h3>What to look for:</h3>
+                <ul>
+                    <li><strong>Core Count (Cores/Threads):</strong> Crucial for multitasking and workstation tasks
+                        (video editing, 3D rendering). For gaming, 6 to 8 cores is currently the sweet spot.</li>
+                    <li><strong>Clock Speed (GHz):</strong> How fast a single core operates. High clock speeds are vital
+                        for gaming, as games rely heavily on quick single-threaded calculations.</li>
+                    <li><strong>L3 Cache (3D V-Cache):</strong> The CPU's hyper-fast internal memory. Massive caches
+                        (like AMD's X3D chips) drastically improve gaming performance by reducing trips to system RAM.
+                    </li>
+                </ul>
+                <h3>Popular Brands:</h3>
+                <p><strong>AMD (Ryzen)</strong> vs <strong>Intel (Core)</strong>. Both are excellent; check current
+                    generation benchmarks for the best price-to-performance ratio.</p>
+            </div>
+
+            <div>
+                <h2>2. The Graphics Processing Unit (GPU)</h2>
+                <p>The GPU is a specialized parallel processor containing thousands of tiny cores designed strictly to
+                    calculate pixel colors and 3D geometry incredibly fast.</p>
+                <h3>What to look for:</h3>
+                <ul>
+                    <li><strong>VRAM (Video RAM):</strong> Textures, models, and framebuffers live here. At 1080p, 8GB
+                        is standard. At 1440p or 4K, aim for 12GB to 16GB+ or games will stutter massively.</li>
+                    <li><strong>Rasterization vs Ray Tracing:</strong> Rasterization is traditional rendering. Ray
+                        Tracing simulates real light physics. NVIDIA generally holds the crown for Ray Tracing
+                        performance.</li>
+                </ul>
+                <h3>The Golden Rule of Bottlenecks:</h3>
+                <p>Do not pair a $1,000 GPU with a $100 CPU. The GPU will render frames so fast that it has to stop and
+                    wait for the CPU to calculate the game physics, resulting in stuttering and wasted money.</p>
+            </div>
+            <div>
+                <h2>3. Memory (RAM) & Storage (SSD/HDD)</h2>
+                <p>If the CPU is a chef, the SSD is the pantry (storage), and the RAM is the cutting board (active
+                    workspace).</p>
+                <h3>RAM Considerations:</h3>
+                <ul>
+                    <li><strong>Capacity:</strong> 16GB is the minimum for modern gaming. 32GB provides a comfortable
+                        buffer for heavy games or multitasking.</li>
+                    <li><strong>Speed & Latency:</strong> Look for sweet spots in DDR5 (e.g., 6000MHz CL30). Extremely
+                        fast RAM yields diminishing returns.</li>
+                </ul>
+                <h3>Storage Considerations:</h3>
+                <ul>
+                    <li><strong>NVMe SSD:</strong> Essential. Connects directly to the motherboard via PCIe for speeds
+                        up to 7,000 MB/s. Load times become near-instant.</li>
+                    <li><strong>SATA SSD:</strong> Older, maxes out around 500 MB/s. Good for bulk storage.</li>
+                    <li><strong>HDD (Hard Drive):</strong> Spinning mechanical disks. Very slow (~150 MB/s). Only use
+                        for mass archiving of videos/photos, <em>never</em> install a modern game or OS on an HDD.</li>
                 </ul>
             </div>
         </div>
     </div>
 
+
+    <div id="modal-overlay"></div>
+    <div id="info-modal">
+        <div id="modal-header">
+            <h2 id="modal-title" style="margin: 0; color: #fff; font-size: 24px;">Component</h2>
+            <button id="btn-close-modal"
+                style="background: transparent; color: #fff; font-size: 20px; padding: 0;">✖</button>
+        </div>
+        <div id="modal-body"></div>
+    </div>
+
     <script>
+        // ==========================================
+        // UI, TABS & SAVE/LOAD SYSTEM
+        // ==========================================
+        const tabSim = document.getElementById('tab-sim');
+        const tabGuide = document.getElementById('tab-guide');
+        const viewSim = document.getElementById('main-container');
+        const viewGuide = document.getElementById('guide-container');
+
+        tabSim.addEventListener('click', () => {
+            viewSim.style.display = 'flex';
+            viewGuide.style.display = 'none';
+            tabSim.style.background = '#333'; tabSim.style.borderBottom = '2px solid #0098ff'; tabSim.style.color = 'white';
+            tabGuide.style.background = 'transparent'; tabGuide.style.borderBottom = 'none'; tabGuide.style.color = '#aaa';
+            if (typeof resizeMB === 'function') resizeMB(); // Force canvas to fix its flexbox sizing
+        });
+
+        tabGuide.addEventListener('click', () => {
+            viewSim.style.display = 'none';
+            viewGuide.style.display = 'block';
+            tabGuide.style.background = '#333'; tabGuide.style.borderBottom = '2px solid #0098ff'; tabGuide.style.color = 'white';
+            tabSim.style.background = 'transparent'; tabSim.style.borderBottom = 'none'; tabSim.style.color = '#aaa';
+        });
+
+        // Quick Reset Button
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            if (confirm("Reset all hardware and software to default?")) location.reload();
+        });
+
+        // Save/Load placeholders (We will upgrade these when we make hardware draggable in Step 3)
+        document.getElementById('btn-save').addEventListener('click', () => {
+            alert("Save system will activate once hardware is made interactive in Step 3!");
+        });
+        document.getElementById('btn-load').addEventListener('click', () => {
+            document.getElementById('file-input').click();
+        });
+
         /* =========================================
            PART 1: MOTHERBOARD VISUALIZER ENGINE
         ========================================= */
@@ -103,25 +580,190 @@
         let mbWidth, mbHeight;
         let pulses = []; // Holds the animated data dots
 
-        // Hardware Components layout
-        // The Expanded Hardware Map
-       // The Expanded Hardware Map
-        const hw = {
-            clk:  { label: "CLK", x: 0.35, y: 0.4, w: 40, h: 40, color: '#f1c40f', shape: 'arc' },
-            cpu:  { label: "CPU", x: 0.5, y: 0.5, w: 90, h: 90, color: '#f39c12', shape: 'rect' },
-            ram:  { label: "RAM", x: 0.75, y: 0.25, w: 70, h: 120, color: '#2ecc71', shape: 'rect' },
-            gpu:  { label: "GPU", x: 0.75, y: 0.75, w: 100, h: 100, color: '#0098ff', shape: 'rect' },
-            disp: { label: "MONITOR", x: 0.92, y: 0.9, w: 80, h: 60, color: '#00ffff', shape: 'rect' },
-            kbd:  { label: "INPUT", x: 0.1, y: 0.8, w: 70, h: 50, color: '#e74c3c', shape: 'rect' },
-            disk: { label: "SSD", x: 0.1, y: 0.25, w: 70, h: 100, color: '#9b59b6', shape: 'rect' },
-            dma:  { label: "DMA", x: 0.48, y: 0.25, w: 60, h: 50, color: '#e84393', shape: 'rect' }, // NEW DMA CHIP
-            snd:  { label: "AUDIO", x: 0.3, y: 0.8, w: 70, h: 60, color: '#e67e22', shape: 'rect' },
-            nic:  { label: "WIFI", x: 0.1, y: 0.1, w: 70, h: 70, color: '#1abc9c', shape: 'rect' }
+        let cam = { x: 0, y: 0, z: 1 };
+        let lastMouse = { x: 0, y: 0 };
+        let isDraggingCam = false;
+
+        const hwDefs = {
+            CLK: { color: '#f1c40f', w: 40, h: 40, internals: ['Crystal Oscillator'] },
+            CPU: {
+                color: '#f39c12', w: 90, h: 90, internals: ['Control Unit', 'ALU', 'Registers', 'L1 Cache'],
+                subNodes: [{ id: 'cu', type: 'CU', x: 0.3, y: 0.3 }, { id: 'alu', type: 'ALU', x: 0.7, y: 0.5 }, { id: 'reg', type: 'REG', x: 0.3, y: 0.7 }, { id: 'l1', type: 'CACHE', x: 0.7, y: 0.8 }],
+                subWires: [['cu', 'alu'], ['cu', 'reg'], ['alu', 'reg'], ['cu', 'l1'], ['alu', 'l1']],
+                desc: "The Central Processing Unit is the primary operational brain of the computer. It executes instructions sequentially, handling game logic, physics, and coordinating all other hardware. Without it, the system halts entirely.",
+                internals: [
+                    { name: 'ALU (Arithmetic Logic Unit)', detail: 'Performs integer math and bitwise logic operations.' },
+                    { name: 'Control Unit (CU)', detail: 'Decodes instructions and directs data across the CPU.' },
+                    { name: 'Registers', detail: 'The absolute fastest, smallest memory inside the CPU.' },
+                    { name: 'L1/L2/L3 Cache', detail: 'SRAM built into the chip to prevent the CPU from waiting on slow system RAM.' }
+                ],
+                processes: "Instruction Fetch -> Decode -> Execute -> Memory Access -> Writeback"
+            },
+            GPU: {
+                color: '#0098ff', w: 100, h: 100, internals: ['Compute Cores', 'VRAM', 'Texture Units'],
+                subNodes: [{ id: 'vram', type: 'VRAM', x: 0.8, y: 0.5 }, { id: 'core1', type: 'CORE', x: 0.3, y: 0.3 }, { id: 'core2', type: 'CORE', x: 0.3, y: 0.7 }, { id: 'tex', type: 'TEX', x: 0.5, y: 0.5 }],
+                subWires: [['core1', 'vram'], ['core2', 'vram'], ['core1', 'tex'], ['core2', 'tex']],
+                desc: "The Graphics Processing Unit is a highly parallel processor. While a CPU has 8 complex cores, a GPU has 5,000+ simple cores. It is optimized to do the exact same math on thousands of pixels simultaneously. Without it, graphics must be software-rendered by the CPU, resulting in extreme lag.",
+                internals: [
+                    { name: 'Streaming Multiprocessors', detail: 'The core clusters that perform shading and rasterization.' },
+                    { name: 'VRAM (Video RAM)', detail: 'High-bandwidth GDDR memory holding textures and framebuffers.' },
+                    { name: 'Tensor Cores', detail: 'Specialized for AI upscaling (like NVIDIA DLSS).' },
+                    { name: 'Ray Accelerators', detail: 'Hardware dedicated to calculating physical light intersections.' }
+                ],
+                processes: "Vertex Processing -> Rasterization -> Fragment Shading -> Output Merge"
+            },
+            RAM: {
+                color: '#2ecc71', w: 70, h: 120, internals: ['Memory Banks', 'Capacitors', 'Controller'],
+                subNodes: [{ id: 'mctrl', type: 'MEM_CTRL', x: 0.5, y: 0.2 }, { id: 'b1', type: 'DRAM', x: 0.3, y: 0.6 }, { id: 'b2', type: 'DRAM', x: 0.7, y: 0.6 }],
+                subWires: [['mctrl', 'b1'], ['mctrl', 'b2']],
+                desc: "Random Access Memory. This is volatile workspace memory. It is incredibly fast but loses all data when power is cut. It holds the active OS and running application data. Without it, programs have nowhere to unpack themselves from the SSD.",
+                internals: [
+                    { name: 'DRAM Chips', detail: 'Billions of microscopic capacitors holding electrical charge (1s and 0s).' },
+                    { name: 'Memory Controller', detail: 'Manages the flow of data in and out of the DIMM sticks.' }
+                ],
+                processes: "Row Activation -> Column Read/Write -> Precharge (Refresh)"
+
+            },
+            DISP: {
+                color: '#00ffff', w: 80, h: 60, internals: ['LCD Matrix', 'TCON'],
+                subNodes: [{ id: 'tcon', type: 'TCON', x: 0.2, y: 0.5 }, { id: 'pxl', type: 'PIXELS', x: 0.7, y: 0.5 }],
+                subWires: [['tcon', 'pxl']],
+                desc: "The Monitor/Display. It translates the digital framebuffer generated by the GPU into physical photons you can see. If disconnected, the software continues to run invisibly (headless mode).",
+                internals: [
+                    { name: 'Pixel Matrix (LCD/OLED)', detail: 'The physical grid of Red, Green, and Blue subpixels.' },
+                    { name: 'TCON (Timing Controller)', detail: 'Translates the GPU video signal into row/column pixel updates.' }
+                ],
+                processes: "Signal Decoding -> Frame Buffering -> Refresh Rate Scanout"
+
+            },
+            KBD: {
+                color: '#e74c3c', w: 70, h: 50, internals: ['Key Matrix', 'USB IC'],
+                subNodes: [{ id: 'mat', type: 'MATRIX', x: 0.3, y: 0.5 }, { id: 'usb', type: 'USB_IC', x: 0.7, y: 0.5 }],
+                subWires: [['mat', 'usb']],
+                desc: "Input Peripherals (Keyboard/Mouse). These send hardware interrupts to the CPU, demanding immediate attention to process user actions. Without them, simulations run but cannot be interacted with.",
+                internals: [
+                    { name: 'Microcontroller', detail: 'Scans the key matrix to detect physical button presses.' },
+                    { name: 'USB Interface', detail: 'Serializes the keystroke data to send to the motherboard.' }
+                ],
+                processes: "Matrix Scan -> Debounce -> USB Interrupt Generation"
+
+            },
+            DISK: {
+                color: '#9b59b6', w: 70, h: 100, internals: ['NAND Flash', 'DRAM Cache'],
+                subNodes: [{ id: 'fctrl', type: 'FLASH_CTRL', x: 0.5, y: 0.2 }, { id: 'dcache', type: 'CACHE', x: 0.8, y: 0.2 }, { id: 'nand1', type: 'NAND', x: 0.5, y: 0.7 }],
+                subWires: [['fctrl', 'dcache'], ['fctrl', 'nand1']],
+                desc: "Solid State Drive (SSD). Non-volatile memory that retains data without power. It is significantly slower than RAM, but holds terabytes of data. Required to boot software into RAM.",
+                internals: [
+                    { name: 'NAND Flash Memory', detail: 'The physical cells where data is trapped using floating-gate transistors.' },
+                    { name: 'Flash Controller', detail: 'A mini-CPU that manages wear-leveling and data retrieval.' },
+                    { name: 'DRAM Cache', detail: 'A small chip on the SSD to map where files are located quickly.' }
+                ],
+                processes: "Page Read/Write -> Block Erase -> Garbage Collection"
+
+            },
+            DMA: {
+                color: '#e84393', w: 60, h: 50, internals: ['Bus Master'],
+                subNodes: [{ id: 'deng', type: 'DMA_ENG', x: 0.5, y: 0.5 }], subWires: []
+            },
+            AUDIO: {
+                color: '#e67e22', w: 70, h: 60, internals: ['DAC', 'Op-Amp'],
+                subNodes: [{ id: 'dac', type: 'DAC', x: 0.3, y: 0.5 }, { id: 'amp', type: 'AMP', x: 0.7, y: 0.5 }],
+                subWires: [['dac', 'amp']]
+            },
+            NIC: {
+                color: '#1abc9c', w: 70, h: 70, internals: ['Radio', 'MAC/PHY'],
+                subNodes: [{ id: 'mac', type: 'MAC', x: 0.3, y: 0.5 }, { id: 'rad', type: 'RADIO', x: 0.7, y: 0.5 }],
+                subWires: [['mac', 'rad']]
+            },
+
+            // --- Micro-Level Chip Definitions ---
+            CU: { color: '#e74c3c', w: 50, h: 50, internals: ['Decoder'] }, ALU: { color: '#f39c12', w: 60, h: 70, internals: ['Logic Gates'] },
+            REG: { color: '#9b59b6', w: 40, h: 70, internals: ['Flip-Flops'] }, CACHE: { color: '#2ecc71', w: 50, h: 40, internals: ['SRAM'] },
+            VRAM: { color: '#2ecc71', w: 50, h: 80, internals: ['GDDR6'] }, CORE: { color: '#0098ff', w: 40, h: 40, internals: ['SIMD'] },
+            TEX: { color: '#e67e22', w: 40, h: 40, internals: ['Mapper'] }, MEM_CTRL: { color: '#f39c12', w: 60, h: 40, internals: ['Bus IO'] },
+            DRAM: { color: '#2ecc71', w: 50, h: 60, internals: ['Capacitors'] }, TCON: { color: '#f39c12', w: 40, h: 60, internals: ['Timing'] },
+            PIXELS: { color: '#00ffff', w: 60, h: 60, internals: ['RGB Matrix'] }, MATRIX: { color: '#e74c3c', w: 50, h: 50, internals: ['Switches'] },
+            USB_IC: { color: '#f39c12', w: 40, h: 40, internals: ['Serial'] }, FLASH_CTRL: { color: '#f39c12', w: 60, h: 40, internals: ['Wear Leveling'] },
+            NAND: { color: '#9b59b6', w: 60, h: 60, internals: ['Flash Cells'] }, DMA_ENG: { color: '#e84393', w: 50, h: 50, internals: ['Master IO'] },
+            DAC: { color: '#f39c12', w: 40, h: 40, internals: ['Digital-to-Analog'] }, AMP: { color: '#e67e22', w: 40, h: 40, internals: ['Amplifier'] },
+            MAC: { color: '#f39c12', w: 40, h: 50, internals: ['Packet Logic'] }, RADIO: { color: '#1abc9c', w: 40, h: 50, internals: ['Antenna'] },
+            MOTHERBOARD: {
+                color: '#aaa', w: 0, h: 0,
+                desc: "The Mainboard / Printed Circuit Board (PCB). It is the physical nervous system of the computer. It provides power delivery and data pathways (Buses) allowing all disparate components to communicate.",
+                internals: [
+                    { name: 'PCIe Lanes', detail: 'High-speed serial links directly connecting the CPU to the GPU and NVMe SSDs.' },
+                    { name: 'Chipset', detail: 'Handles slower I/O like USB ports, SATA drives, and networking.' },
+                    { name: 'VRMs (Voltage Regulator Modules)', detail: 'Cleans and steps down the 12V power from the PSU to the ~1.2V required by the CPU.' }
+                ],
+                processes: "Power Delivery -> Clock Generation -> Data Routing"
+
+            }
         };
+        let boardStack = []; // Stores previous zoom levels
+        let currentLevelName = "MOTHERBOARD PCB";
 
-        
+        function diveIntoNode(node) {
+            const def = hwDefs[node.type];
+            if (!def || !def.subNodes) return; // Cannot dive deeper
 
-        
+            // 1. Save the current state to the stack
+            boardStack.push({
+                nodes: JSON.parse(JSON.stringify(nodes)),
+                wires: JSON.parse(JSON.stringify(connections)),
+                levelName: currentLevelName,
+                camX: cam.x, camY: cam.y
+            });
+
+            // 2. Load the micro-architecture
+            currentLevelName = `${node.type} INTERNAL ARCHITECTURE`;
+            nodes = JSON.parse(JSON.stringify(def.subNodes));
+            connections = JSON.parse(JSON.stringify(def.subWires));
+
+            // 3. Reset Camera
+            cam.x = 0; cam.y = 0; cam.z = 1.0;
+            pulses = []; // Clear visual data traffic
+        }
+
+        function surfaceToParent() {
+            if (boardStack.length === 0) return; // Already at the top level
+
+            // Restore the previous state
+            const prevState = boardStack.pop();
+            nodes = prevState.nodes;
+            connections = prevState.wires;
+            currentLevelName = prevState.levelName;
+
+            // Push camera slightly out so you don't instantly re-dive
+            cam.x = prevState.camX; cam.y = prevState.camY; cam.z = 2.4;
+            pulses = [];
+        }
+        // We map the old simple nodes to use the new definitions
+        let nodes = [
+            { id: 'clk', type: 'CLK', x: 0.35, y: 0.4, usage: 0 },
+            { id: 'cpu', type: 'CPU', x: 0.5, y: 0.5, usage: 0 },
+            { id: 'ram', type: 'RAM', x: 0.75, y: 0.25, usage: 0 },
+            { id: 'gpu', type: 'GPU', x: 0.75, y: 0.75, usage: 0 },
+            { id: 'disp', type: 'DISP', x: 0.92, y: 0.9, usage: 0 },
+            { id: 'kbd', type: 'KBD', x: 0.1, y: 0.8, usage: 0 },
+            { id: 'disk', type: 'DISK', x: 0.2, y: 0.25, usage: 0 },
+            { id: 'dma', type: 'DMA', x: 0.48, y: 0.25, usage: 0 },
+            { id: 'snd', type: 'AUDIO', x: 0.3, y: 0.8, usage: 0 },
+            { id: 'nic', type: 'NIC', x: 0.1, y: 0.1, usage: 0 }
+        ];
+
+        let connections = [
+            ['clk', 'cpu'],    // Clock heartbeat
+            ['cpu', 'ram'],    // Memory Bus
+            ['cpu', 'gpu'],    // PCIe to Graphics
+            ['gpu', 'disp'],   // HDMI/DP to Monitor
+            ['kbd', 'cpu'],    // USB Interrupts
+            ['disk', 'dma'],   // SSD to DMA
+            ['dma', 'ram'],    // DMA to RAM
+            ['cpu', 'dma'],    // CPU controls DMA
+            ['cpu', 'snd'],    // Audio data
+            ['cpu', 'nic']     // Network data
+        ];
+        let wiringStartNode = null;
 
         function resizeMB() {
             mbWidth = mbCanvas.parentElement.clientWidth;
@@ -132,13 +774,18 @@
         window.addEventListener('resize', resizeMB);
         resizeMB();
 
-        // API to spawn a data pulse between components
         function spawnPulse(fromKey, toKey, color) {
-            const startX = hw[fromKey].x * mbWidth;
-            const startY = hw[fromKey].y * mbHeight;
-            const endX = hw[toKey].x * mbWidth;
-            const endY = hw[toKey].y * mbHeight;
-            
+            // Find the nodes by their ID or their Type safely
+            const fNode = nodes.find(n => n.id === fromKey || n.type.toLowerCase() === fromKey);
+            const tNode = nodes.find(n => n.id === toKey || n.type.toLowerCase() === toKey);
+
+            if (!fNode || !tNode) return; // Failsafe: abort pulse if component was deleted
+
+            const startX = fNode.x * mbWidth;
+            const startY = fNode.y * mbHeight;
+            const endX = tNode.x * mbWidth;
+            const endY = tNode.y * mbHeight;
+
             pulses.push({
                 x1: startX, y1: startY, x2: endX, y2: endY,
                 progress: 0, color: color, speed: 0.02 + Math.random() * 0.02
@@ -148,84 +795,330 @@
         function drawMotherboard() {
             mbCtx.clearRect(0, 0, mbWidth, mbHeight);
 
-            // Draw Motherboard Traces (Buses)
-            mbCtx.lineWidth = 4;
-            mbCtx.strokeStyle = '#222';
-            const connections = [
-            ['clk', 'cpu'],    
-            ['cpu', 'ram'],    
-            ['cpu', 'gpu'],    
-            ['gpu', 'disp'],   
-            ['kbd', 'cpu'],    
-            ['cpu', 'snd'],    
-            ['cpu', 'nic'],
-            ['cpu', 'dma'],    // CPU tells DMA what to fetch
-            ['disk', 'dma'],   // DMA pulls from SSD
-            ['dma', 'ram']     // DMA pushes straight to RAM
-        ];
-            
-            connections.forEach(pair => {
-                const c1 = hw[pair[0]]; const c2 = hw[pair[1]];
-                mbCtx.beginPath();
-                mbCtx.moveTo(c1.x * mbWidth, c1.y * mbHeight);
-                mbCtx.lineTo(c2.x * mbWidth, c2.y * mbHeight);
-                mbCtx.stroke();
-            });
+            // 1. Apply Camera Transform
+            mbCtx.save();
+            mbCtx.translate(mbWidth / 2, mbHeight / 2);
+            mbCtx.scale(cam.z, cam.z);
+            mbCtx.translate(-mbWidth / 2 + cam.x, -mbHeight / 2 + cam.y);
 
-            // Draw Pulses
-            for (let i = pulses.length - 1; i >= 0; i--) {
-                let p = pulses[i];
-                p.progress += p.speed;
-                if (p.progress >= 1) { pulses.splice(i, 1); continue; }
-
-                const currentX = p.x1 + (p.x2 - p.x1) * p.progress;
-                const currentY = p.y1 + (p.y2 - p.y1) * p.progress;
-
-                mbCtx.beginPath();
-                mbCtx.arc(currentX, currentY, 6, 0, Math.PI * 2);
-                mbCtx.fillStyle = p.color;
-                mbCtx.shadowColor = p.color;
-                mbCtx.shadowBlur = 10;
-                mbCtx.fill();
-                mbCtx.shadowBlur = 0; // reset
-            }
-
-            // Draw Components
-            for (let key in hw) {
-                const c = hw[key];
-                const cx = c.x * mbWidth;
-                const cy = c.y * mbHeight;
-                
-                mbCtx.fillStyle = '#111';
-                mbCtx.strokeStyle = c.color;
-                mbCtx.lineWidth = 3;
-
-                mbCtx.beginPath();
-                if (c.shape === 'arc') {
-                    mbCtx.arc(cx, cy, c.w/2, 0, Math.PI * 2);
-                } else {
-                    mbCtx.rect(cx - c.w/2, cy - c.h/2, c.w, c.h);
+            // 2. Draw Background Grid
+            mbCtx.fillStyle = '#1a1c23';
+            for (let x = -2000; x < 2000; x += 100) {
+                for (let y = -2000; y < 2000; y += 100) {
+                    mbCtx.beginPath(); mbCtx.arc(x, y, 2, 0, Math.PI * 2); mbCtx.fill();
                 }
-                mbCtx.fill();
-                mbCtx.stroke();
-
-                mbCtx.fillStyle = c.color;
-                mbCtx.font = 'bold 14px sans-serif';
-                mbCtx.textAlign = 'center';
-                mbCtx.textBaseline = 'middle';
-                mbCtx.fillText(c.label, cx, cy);
             }
+
+            // 3. Semantic Zoom Logic
+            if (cam.z < 0.5) {
+                // ZOOMED OUT: Show Overlay based on what layer we are in
+                mbCtx.fillStyle = '#0f1115';
+                mbCtx.fillRect(0, 0, mbWidth, mbHeight);
+
+                if (boardStack.length === 0) {
+                    // We are at the top level
+                    mbCtx.strokeStyle = '#2ecc71'; mbCtx.lineWidth = 10;
+                    mbCtx.strokeRect(0, 0, mbWidth, mbHeight);
+                    mbCtx.fillStyle = '#fff'; mbCtx.font = 'bold 50px sans-serif'; mbCtx.textAlign = 'center';
+                    mbCtx.fillText("MOTHERBOARD PCB", mbWidth / 2, mbHeight / 2);
+                } else {
+                    // We are inside a micro-component
+                    mbCtx.strokeStyle = '#f39c12'; mbCtx.lineWidth = 10;
+                    mbCtx.strokeRect(0, 0, mbWidth, mbHeight);
+                    mbCtx.fillStyle = '#fff'; mbCtx.font = 'bold 40px sans-serif'; mbCtx.textAlign = 'center';
+                    mbCtx.fillText(currentLevelName, mbWidth / 2, mbHeight / 2);
+                }
+            } else {
+                mbCtx.lineWidth = 4; mbCtx.strokeStyle = '#444';
+                connections.forEach(pair => {
+                    const c1 = nodes.find(n => n.id === pair[0] || n.type.toLowerCase() === pair[0]);
+                    const c2 = nodes.find(n => n.id === pair[1] || n.type.toLowerCase() === pair[1]);
+                    if (c1 && c2) {
+                        mbCtx.beginPath();
+                        mbCtx.moveTo(c1.x * mbWidth, c1.y * mbHeight);
+                        mbCtx.lineTo(c2.x * mbWidth, c2.y * mbHeight);
+                        mbCtx.stroke();
+                    }
+                });
+
+
+
+                // NORMAL VIEW: Draw Pulses
+                for (let i = pulses.length - 1; i >= 0; i--) {
+                    let p = pulses[i]; p.progress += p.speed;
+                    if (p.progress >= 1) { pulses.splice(i, 1); continue; }
+                    const cx = p.x1 + (p.x2 - p.x1) * p.progress; const cy = p.y1 + (p.y2 - p.y1) * p.progress;
+                    mbCtx.beginPath(); mbCtx.arc(cx, cy, 6, 0, Math.PI * 2);
+                    mbCtx.fillStyle = p.color; mbCtx.shadowColor = p.color; mbCtx.shadowBlur = 10; mbCtx.fill(); mbCtx.shadowBlur = 0;
+                }
+
+                // NORMAL VIEW: Draw Nodes
+                nodes.forEach(n => {
+                    const def = hwDefs[n.type];
+                    if (!def) return;
+
+                    // --- THE GLOW DECAY LOGIC ---
+                    if (n.usage === undefined) n.usage = 0;
+                    n.usage = Math.max(0, n.usage - 0.08); // Decays to 0 in ~0.2 seconds
+
+                    const cx = n.x * mbWidth; const cy = n.y * mbHeight;
+
+                    mbCtx.fillStyle = '#111';
+                    mbCtx.strokeStyle = def.color;
+                    // Make the border thicker if the user is currently holding Shift+Click to wire it
+                    mbCtx.lineWidth = wiringStartNode === n ? 6 : 3;
+
+                    // --- APPLY NEON GLOW IF IN USE ---
+                    if (n.usage > 0) {
+                        mbCtx.shadowColor = def.color;
+                        mbCtx.shadowBlur = 25 * n.usage; // Dynamic brightness!
+                    }
+
+                    mbCtx.fillRect(cx - def.w / 2, cy - def.h / 2, def.w, def.h);
+                    mbCtx.strokeRect(cx - def.w / 2, cy - def.h / 2, def.w, def.h);
+
+                    mbCtx.shadowBlur = 0; // Reset shadow so text stays crisp
+
+                    mbCtx.fillStyle = def.color; mbCtx.font = 'bold 16px sans-serif'; mbCtx.textAlign = 'center'; mbCtx.textBaseline = 'middle';
+                    mbCtx.fillText(n.type, cx, cy);
+
+                    // ZOOMED IN: Show Internal Components
+                    if (cam.z > 1.2) {
+                        mbCtx.font = '10px monospace'; mbCtx.fillStyle = '#aaa';
+
+                        def.internals.forEach((item, i) => {
+                            // Check if item is an object { name, detail } or just a string
+                            const label = typeof item === 'object' ? item.name : item;
+
+                            mbCtx.fillText(`[${label}]`, cx, cy + 25 + (i * 12));
+                        });
+                    }
+                });
+            }
+
+            mbCtx.restore();
             requestAnimationFrame(drawMotherboard);
         }
-        drawMotherboard(); // Start loop
+        drawMotherboard(); // Start the loop
 
+        // --- HARDWARE INTERACTION ENGINE ---
+
+        function getMouseWorld(e) {
+            const r = mbCanvas.getBoundingClientRect();
+            // 1. Calculate absolute pixel coordinates in the camera's world
+            const pixelX = (e.clientX - r.left - mbWidth / 2) / cam.z + mbWidth / 2 - cam.x;
+            const pixelY = (e.clientY - r.top - mbHeight / 2) / cam.z + mbHeight / 2 - cam.y;
+
+            // 2. Convert to percentages so it matches how nodes are saved
+            return {
+                x: pixelX / mbWidth,
+                y: pixelY / mbHeight
+            };
+        }
+        mbCanvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            const tt = document.getElementById('tooltip');
+            if (tt) tt.style.opacity = 0;
+
+            cam.z += e.deltaY * -0.003;
+
+            if (cam.z > 2.5 && boardStack.length === 0) {
+                const wPos = getMouseWorld(e);
+                // Convert percentages back to pixels just for the math comparison
+                const hoveredNode = nodes.slice().reverse().find(n =>
+                    Math.abs((wPos.x * mbWidth) - (n.x * mbWidth)) < hwDefs[n.type].w / 2 &&
+                    Math.abs((wPos.y * mbHeight) - (n.y * mbHeight)) < hwDefs[n.type].h / 2
+                );
+
+                if (hoveredNode && hwDefs[hoveredNode.type].subNodes) {
+                    diveIntoNode(hoveredNode);
+                } else {
+                    cam.z = 2.5;
+                }
+            } else if (cam.z < 0.3 && boardStack.length > 0) {
+                surfaceToParent();
+            } else if (cam.z < 0.2) {
+                cam.z = 0.2;
+            } else if (cam.z > 2.5 && boardStack.length > 0) {
+                cam.z = 2.5;
+            }
+        });
+
+        // 2. Drag, Wire, and Pan
+        mbCanvas.addEventListener('mousedown', e => {
+            if (e.button === 2) return;
+            const wPos = getMouseWorld(e);
+
+            // Convert percentages back to pixels just for the math comparison
+            const clicked = (cam.z >= 0.3) ? nodes.slice().reverse().find(n =>
+                Math.abs((wPos.x * mbWidth) - (n.x * mbWidth)) < hwDefs[n.type].w / 2 &&
+                Math.abs((wPos.y * mbHeight) - (n.y * mbHeight)) < hwDefs[n.type].h / 2
+            ) : null;
+
+            if (e.shiftKey && clicked) {
+                if (!wiringStartNode) {
+                    wiringStartNode = clicked;
+                } else {
+                    if (wiringStartNode !== clicked) {
+                        connections.push(['' + wiringStartNode.id, '' + clicked.id]);
+                    }
+                    wiringStartNode = null;
+                }
+            } else if (clicked) {
+                mbCanvas.onmousemove = me => {
+                    const mw = getMouseWorld(me);
+                    clicked.x = mw.x;
+                    clicked.y = mw.y;
+                };
+            } else {
+                lastMouse = { x: e.clientX, y: e.clientY };
+                mbCanvas.onmousemove = me => {
+                    // Camera panning uses raw pixels
+                    cam.x += (me.clientX - lastMouse.x) / cam.z;
+                    cam.y += (me.clientY - lastMouse.y) / cam.z;
+                    lastMouse = { x: me.clientX, y: me.clientY };
+                };
+            }
+        });
+        // --- STEP 5: Deep Info Modals & Hover Logic ---
+        const modal = document.getElementById('info-modal');
+        const overlay = document.getElementById('modal-overlay');
+
+        function openModal(type) {
+            const def = hwDefs[type];
+            if (!def) return;
+
+            document.getElementById('modal-title').innerText = `${type} Architecture Details`;
+            document.getElementById('modal-body').innerHTML = `
+                <div class="schematic-graphic" style="border-color: ${def.color}; color: ${def.color};">
+                    [ ${type} Hardware Schematic Diagram ]
+                </div>
+                <div style="border-left: 4px solid ${def.color}; padding-left: 15px; margin-bottom: 25px;">
+                    <h3 style="margin-top:0; color: #fff;">System Overview</h3>
+                    <p>${def.desc || 'System bridge component.'}</p>
+                </div>
+                <h3 style="color: #fff; border-bottom: 1px solid #444; padding-bottom: 5px;">Internal Sub-Components</h3>
+                <ul style="color: #bbb; margin-bottom: 25px;">
+                    ${def.internals.map(i => `<li style="margin-bottom: 10px;"><strong style="color:${def.color};">${i.name}</strong>: ${i.detail}</li>`).join('')}
+                </ul>
+                <div style="background: #222; padding: 15px; border-radius: 6px;">
+                    <strong style="color: #0098ff; display: block; margin-bottom: 5px;">Primary Process Flow:</strong>
+                    <code style="color: #2ecc71; font-size: 14px;">${def.processes || 'Data -> Execution -> Output'}</code>
+                </div>
+            `;
+            modal.style.display = 'flex';
+            overlay.style.display = 'block';
+        }
+
+        document.getElementById('btn-close-modal').onclick = () => { modal.style.display = 'none'; overlay.style.display = 'none'; };
+        overlay.onclick = () => { modal.style.display = 'none'; overlay.style.display = 'none'; };
+
+        mbCanvas.addEventListener('dblclick', e => {
+            if (cam.z < 0.5) { openModal('MOTHERBOARD'); return; }
+            const wPos = getMouseWorld(e);
+            const clicked = nodes.slice().reverse().find(n =>
+                Math.abs((wPos.x * mbWidth) - (n.x * mbWidth)) < hwDefs[n.type].w / 2 &&
+                Math.abs((wPos.y * mbHeight) - (n.y * mbHeight)) < hwDefs[n.type].h / 2
+            );
+            if (clicked) openModal(clicked.type);
+        });
+        window.addEventListener('mouseup', () => {
+            mbCanvas.onmousemove = null;
+            if (typeof checkHardware === 'function') checkHardware();
+        });
+
+        const tooltip = document.getElementById('tooltip');
+        mbCanvas.addEventListener('mousemove', e => {
+            if (isDraggingCam || wiringStartNode || mbCanvas.onmousemove) {
+                tooltip.style.opacity = 0;
+                return;
+            }
+            if (cam.z < 0.6) { tooltip.style.opacity = 0; return; }
+            const wPos = getMouseWorld(e);
+            const hovered = nodes.slice().reverse().find(n => Math.abs(wPos.x - n.x) < hwDefs[n.type].w / 2 && Math.abs(wPos.y - n.y) < hwDefs[n.type].h / 2);
+
+            if (hovered) {
+                tooltip.style.opacity = 1; tooltip.style.left = e.clientX + 15 + 'px'; tooltip.style.top = e.clientY + 15 + 'px';
+                document.getElementById('tt-title').innerText = `${hovered.type} Module`;
+                document.getElementById('tt-status').innerText = hovered.usage > 0.1 ? '⚡ Status: ACTIVE' : '💤 Status: IDLE';
+                document.getElementById('tt-status').style.color = hovered.usage > 0.1 ? '#f1c40f' : '#2ecc71';
+            } else tooltip.style.opacity = 0;
+        });
+        mbCanvas.addEventListener('mouseleave', () => tooltip.style.opacity = 0);
+
+
+        // 3. Right-Click to Delete
+        mbCanvas.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            if (cam.z < 0.3) return;
+            const wPos = getMouseWorld(e);
+            const idx = nodes.findIndex(n =>
+                Math.abs((wPos.x * mbWidth) - (n.x * mbWidth)) < hwDefs[n.type].w / 2 &&
+                Math.abs((wPos.y * mbHeight) - (n.y * mbHeight)) < hwDefs[n.type].h / 2
+            );
+
+            if (idx >= 0) {
+                const delId = nodes[idx].id;
+                connections = connections.filter(w => w[0] !== delId && w[1] !== delId);
+                nodes.splice(idx, 1);
+
+                const tt = document.getElementById('tooltip');
+                if (tt) tt.style.opacity = 0;
+
+                if (typeof checkHardware === 'function') checkHardware();
+                document.getElementById('tooltip').style.opacity = 0;
+            }
+        });
+
+        // 4. Drag & Drop from Palette
+        document.querySelectorAll('.drag-item').forEach(el => el.addEventListener('dragstart', e => {
+            e.dataTransfer.setData('type', e.target.getAttribute('data-type'));
+        }));
+
+        mbCanvas.addEventListener('dragover', e => e.preventDefault());
+
+        mbCanvas.addEventListener('drop', e => {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('type');
+
+            if (hwDefs[type] && cam.z >= 0.3) {
+                const mw = getMouseWorld(e);
+                nodes.push({
+                    id: 'n_' + Math.random().toString(36).substr(2, 9),
+                    type: type,
+                    x: mw.x, // Now properly dropping as a percentage!
+                    y: mw.y,
+                    usage: 0
+                });
+                if (typeof checkHardware === 'function') checkHardware();
+            }
+        });
+
+        mbCanvas.addEventListener('mousedown', e => {
+            if (e.button === 2) return; // Ignore right-clicks
+            isDraggingCam = true;
+            lastMouse = { x: e.clientX, y: e.clientY };
+
+            mbCanvas.onmousemove = me => {
+                if (!isDraggingCam) return;
+                // Move the camera based on mouse drag, accounting for zoom level
+                cam.x += (me.clientX - lastMouse.x) / cam.z;
+                cam.y += (me.clientY - lastMouse.y) / cam.z;
+                lastMouse = { x: me.clientX, y: me.clientY };
+            };
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDraggingCam = false;
+            mbCanvas.onmousemove = null;
+        });
 
         /* =========================================
            PART 2: MODULAR OPERATING SYSTEM & APPS
         ========================================= */
         const gameCanvas = document.getElementById('game-canvas');
         const gCtx = gameCanvas.getContext('2d');
-        
+
         let isPaused = true;
         let systemState = 'STOPPED';
         let currentAppId = 'snake';
@@ -234,6 +1127,7 @@
         // Audio System
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playBeep(freq, type, duration) {
+            if (!sysStatus.hasAUDIO) return;
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -247,50 +1141,168 @@
         const statContent = document.getElementById('stat-content');
         const statTitle = document.getElementById('stat-title');
 
-        // --- THE UPGRADED APPLICATIONS ---
+        let sysRunning = false;
+        let sysStatus = { hasCPU: false, hasRAM: false, hasGPU: false, hasDISP: false, hasKBD: false, hasCLK: false, hasNIC: false, hasAUDIO: false, cpuDirectDisp: false };
+        let systemInstability = 0;
+        let crashType = null;
+        let lastRenderTime = 0;
+
+        // --- GLOBAL HARDWARE STATE TRACKERS ---
+        // These ensure the OS always looks at the Motherboard layout, even if zoomed into a chip
+        function getMacroNodes() { return boardStack.length > 0 ? boardStack[0].nodes : nodes; }
+        function getMacroWires() { return boardStack.length > 0 ? boardStack[0].wires : connections; }
+
+        function isConnectedTo(startType, targetType) {
+            const mNodes = getMacroNodes();
+            const mWires = getMacroWires();
+            const startNode = mNodes.find(n => n.type === startType);
+            if (!startNode) return false;
+
+            return mWires.some(w =>
+                (w[0] === startNode.id && mNodes.find(n => n.id === w[1])?.type === targetType) ||
+                (w[1] === startNode.id && mNodes.find(n => n.id === w[0])?.type === targetType) ||
+                (w[0] === startNode.type.toLowerCase() && mNodes.find(n => n.id === w[1])?.type === targetType) ||
+                (w[1] === startNode.type.toLowerCase() && mNodes.find(n => n.id === w[0])?.type === targetType)
+            );
+        }
+
+        function checkHardware() {
+            const mNodes = getMacroNodes();
+            sysStatus.hasCPU = mNodes.some(n => n.type === 'CPU');
+            sysStatus.hasRAM = isConnectedTo('CPU', 'RAM');
+            sysStatus.hasGPU = isConnectedTo('CPU', 'GPU');
+            sysStatus.hasDISP = isConnectedTo('GPU', 'DISP');
+            sysStatus.hasKBD = isConnectedTo('CPU', 'KBD');
+            sysStatus.hasCLK = isConnectedTo('CPU', 'CLK');
+            sysStatus.hasNIC = isConnectedTo('CPU', 'NIC');
+            sysStatus.hasAUDIO = isConnectedTo('CPU', 'AUDIO');
+            sysStatus.cpuDirectDisp = isConnectedTo('CPU', 'DISP');
+
+            // UI Update: Safely reset the Start button if CPU is deleted
+            if (sysRunning && !sysStatus.hasCPU) {
+                sysRunning = false;
+                const btn = document.getElementById('btn-state');
+                btn.innerText = "Start System";
+                btn.style.background = '#2ecc71';
+                btn.style.color = '#111';
+            }
+
+            // Safely toggle the NO SIGNAL text
+            const noSignalEl = document.getElementById('no-signal');
+            if (noSignalEl) {
+                noSignalEl.style.display = sysStatus.hasDISP ? 'none' : 'block';
+            }
+        }
+
+        // Determines if a component should spike its glow
+        function triggerGlow(macroType, microTypes = []) {
+            const mNodes = getMacroNodes();
+            const mNode = mNodes.find(n => n.type === macroType);
+            if (mNode) mNode.usage = Math.min(1.0, mNode.usage + 0.8); // Spike the glow!
+
+            // If we are currently zoomed into THIS specific chip, glow its sub-components
+            if (boardStack.length > 0 && currentLevelName.includes(macroType)) {
+                if (microTypes.length > 0) {
+                    microTypes.forEach(mt => {
+                        const micro = nodes.find(n => n.type === mt);
+                        if (micro) micro.usage = Math.min(1.0, micro.usage + 0.8);
+                    });
+                } else {
+                    nodes.forEach(n => n.usage = Math.min(1.0, n.usage + 0.8));
+                }
+            }
+        }
+
+        // Determines whether to fire a giant motherboard pulse, or tiny internal logic pulses
+        function triggerDataPulse(fromMacro, toMacro, color, fromMicro, toMicro) {
+            if (boardStack.length === 0) {
+                spawnPulse(fromMacro, toMacro, color); // We are zoomed out, fire Macro pulse
+            } else {
+                // We are zoomed in. Check if we are inside the sender or receiver
+                if (currentLevelName.includes(fromMacro) && fromMicro && fromMicro.length >= 2) {
+                    spawnPulse(fromMicro[0], fromMicro[1], color); // Fire internal sender pulse
+                } else if (currentLevelName.includes(toMacro) && toMicro && toMicro.length >= 2) {
+                    spawnPulse(toMicro[0], toMicro[1], color); // Fire internal receiver pulse
+                }
+            }
+        }
+
         const apps = {
-            // 1. NEON SNAKE
+            // 1. NEON SNAKE (400x300 | 20x20 grid squares = 20 cols, 15 rows)
             snake: {
-                highScore: 0, score: 0,
+                highScore: 0, score: 0, mode: 'classic', speed: 4, tickCounter: 0,
                 init() {
-                    this.snake = [{x: 10, y: 10}]; this.velocity = {x: 0, y: 0}; this.score = 0;
-                    this.apple = {x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20)};
+                    this.snake = [{ x: 10, y: 7 }]; this.velocity = { x: 0, y: 0 }; this.lastVelocity = { x: 0, y: 0 }; this.score = 0;
+                    this.apples = []; this.bombs = [];
+
+                    const modeSel = document.getElementById('snake-mode');
+                    const speedSel = document.getElementById('snake-speed');
+                    if (modeSel) this.mode = modeSel.value;
+                    if (speedSel) this.speed = parseInt(speedSel.value);
+
+                    this.apples.push({ x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 15) });
+                    if (this.mode === 'multi') {
+                        this.apples.push({ x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 15) });
+                        this.apples.push({ x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 15) });
+                    }
+                    if (this.mode === 'bomb') this.bombs.push({ x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 15) });
+                    this.updateStats();
+                },
+                updateStats() {
                     statTitle.innerText = "SNAKE LOCAL DATA";
-                    statContent.innerHTML = `Score: 0 &nbsp;&nbsp;|&nbsp;&nbsp; High Score: <span style="color:#f1c40f">${this.highScore}</span>`;
+                    let speedLabel = this.speed === 1 ? "EXTREME" : this.speed === 2 ? "Fast" : this.speed === 4 ? "Normal" : "Slow";
+                    statContent.innerHTML = `Mode: <span style="color:#00ffff">${this.mode.toUpperCase()}</span> | Speed: <span style="color:#f39c12">${speedLabel}</span><br>Score: ${this.score} &nbsp;&nbsp;|&nbsp;&nbsp; High Score: <span style="color:#f1c40f">${this.highScore}</span>`;
                 },
                 input(e, type) {
-                    if(type === 'keydown') {
-                        if(e.key==='ArrowUp' && this.velocity.y!==1) this.velocity={x:0, y:-1};
-                        if(e.key==='ArrowDown' && this.velocity.y!==-1) this.velocity={x:0, y:1};
-                        if(e.key==='ArrowLeft' && this.velocity.x!==1) this.velocity={x:-1, y:0};
-                        if(e.key==='ArrowRight' && this.velocity.x!==-1) this.velocity={x:1, y:0};
+                    if (type === 'keydown') {
+                        const key = e.key.toUpperCase();
+                        if ((key === 'ARROWUP' || key === 'W') && this.lastVelocity.y !== 1) this.velocity = { x: 0, y: -1 };
+                        if ((key === 'ARROWDOWN' || key === 'S') && this.lastVelocity.y !== -1) this.velocity = { x: 0, y: 1 };
+                        if ((key === 'ARROWLEFT' || key === 'A') && this.lastVelocity.x !== 1) this.velocity = { x: -1, y: 0 };
+                        if ((key === 'ARROWRIGHT' || key === 'D') && this.lastVelocity.x !== -1) this.velocity = { x: 1, y: 0 };
                     }
                 },
                 tick() {
-                    let head = {x: this.snake[0].x + this.velocity.x, y: this.snake[0].y + this.velocity.y};
-                    if(head.x<0||head.x>=20||head.y<0||head.y>=20) { playBeep(150, 'sawtooth', 0.5); spawnPulse('cpu','snd','#e67e22'); this.init(); return; }
+                    this.tickCounter++; if (this.tickCounter < this.speed) return; this.tickCounter = 0;
+                    if (this.velocity.x === 0 && this.velocity.y === 0) return;
+                    this.lastVelocity = { x: this.velocity.x, y: this.velocity.y };
+                    let head = { x: this.snake[0].x + this.velocity.x, y: this.snake[0].y + this.velocity.y };
+
+                    // 400x300 Bounds = 20 Columns, 15 Rows
+                    if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 15) {
+                        if (this.mode === 'portal') {
+                            if (head.x < 0) head.x = 19; if (head.x >= 20) head.x = 0;
+                            if (head.y < 0) head.y = 14; if (head.y >= 15) head.y = 0;
+                        } else { playBeep(150, 'sawtooth', 0.5); spawnPulse('cpu', 'snd', '#e67e22'); this.init(); return; }
+                    }
+                    if (this.snake.some(seg => seg.x === head.x && seg.y === head.y)) { playBeep(150, 'sawtooth', 0.5); spawnPulse('cpu', 'snd', '#e67e22'); this.init(); return; }
+                    if (this.bombs.some(b => b.x === head.x && b.y === head.y)) { playBeep(100, 'sawtooth', 0.8); spawnPulse('cpu', 'snd', '#e74c3c'); this.init(); return; }
+
                     this.snake.unshift(head);
-                    
-                    if(head.x===this.apple.x && head.y===this.apple.y) {
-                        playBeep(600, 'square', 0.1); spawnPulse('cpu','snd','#e67e22');
-                        this.score++;
-                        if (this.score > this.highScore) { this.highScore = this.score; spawnPulse('cpu','nic','#1abc9c'); }
-                        statContent.innerHTML = `Score: ${this.score} &nbsp;&nbsp;|&nbsp;&nbsp; High Score: <span style="color:#f1c40f">${this.highScore}</span>`;
-                        this.apple = {x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20)};
-                        for(let i=0; i<3; i++) spawnPulse('cpu','ram','#2ecc71');
-                    } else { this.snake.pop(); }
+                    let ateApple = false;
+                    for (let i = 0; i < this.apples.length; i++) {
+                        if (head.x === this.apples[i].x && head.y === this.apples[i].y) {
+                            ateApple = true; playBeep(600, 'square', 0.1); spawnPulse('cpu', 'snd', '#e67e22');
+                            this.score++; if (sysStatus.hasNIC && this.score > this.highScore) { this.highScore = this.score; spawnPulse('cpu', 'nic', '#1abc9c'); }
+                            this.apples[i] = { x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 15) };
+                            if (this.mode === 'bomb' && this.score % 3 === 0) this.bombs.push({ x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 15) });
+                            this.updateStats(); for (let j = 0; j < 3; j++) spawnPulse('cpu', 'ram', '#2ecc71');
+                            break;
+                        }
+                    }
+                    if (!ateApple) this.snake.pop();
                 },
                 draw() {
-                    gCtx.fillStyle = 'rgba(0,0,0,0.3)'; gCtx.fillRect(0,0,300,300); // Motion blur
-                    
-                    // Glowing Apple
-                    gCtx.shadowBlur = 15; gCtx.shadowColor = '#e74c3c'; gCtx.fillStyle = '#e74c3c';
-                    gCtx.fillRect(this.apple.x*15, this.apple.y*15, 14, 14);
-                    
-                    // Glowing Snake
-                    gCtx.shadowColor = '#2ecc71'; gCtx.fillStyle = '#2ecc71';
-                    this.snake.forEach(p => gCtx.fillRect(p.x*15, p.y*15, 14, 14));
-                    gCtx.shadowBlur = 0; // Reset
+                    gCtx.fillStyle = 'rgba(0,0,0,0.3)'; gCtx.fillRect(0, 0, 400, 300);
+                    gCtx.shadowBlur = 15; gCtx.shadowColor = '#2ecc71'; gCtx.fillStyle = '#2ecc71';
+                    this.apples.forEach(a => gCtx.fillRect(a.x * 20, a.y * 20, 18, 18));
+                    gCtx.shadowColor = '#e74c3c'; gCtx.fillStyle = '#e74c3c';
+                    this.bombs.forEach(b => gCtx.fillRect(b.x * 20, b.y * 20, 18, 18));
+                    this.snake.forEach((p, index) => {
+                        if (index === 0) { gCtx.fillStyle = '#fff'; gCtx.shadowColor = '#fff'; } else { gCtx.fillStyle = '#00ffff'; gCtx.shadowColor = '#00ffff'; }
+                        gCtx.fillRect(p.x * 20, p.y * 20, 18, 18);
+                    });
+                    gCtx.shadowBlur = 0;
                 }
             },
 
@@ -298,11 +1310,10 @@
             gravity: {
                 bodies: [], bodyCount: 3,
                 init() {
-                    // Fixed Central Sun and faster planets so they don't fly off
                     this.bodies = [
-                        {x: 150, y: 150, vx: 0, vy: 0, mass: 2500, color: '#f1c40f', size: 12, fixed: true}, // SUN
-                        {x: 150, y: 50,  vx: 5, vy: 0, mass: 10,   color: '#3498db', size: 5, fixed: false},
-                        {x: 150, y: 220, vx:-6, vy: 0, mass: 20,   color: '#e74c3c', size: 7, fixed: false}
+                        { x: 200, y: 150, vx: 0, vy: 0, mass: 2500, color: '#f1c40f', size: 12, fixed: true },
+                        { x: 200, y: 50, vx: 5, vy: 0, mass: 10, color: '#3498db', size: 5, fixed: false },
+                        { x: 200, y: 220, vx: -6, vy: 0, mass: 20, color: '#e74c3c', size: 7, fixed: false }
                     ];
                     this.bodyCount = 3;
                     statTitle.innerText = "ASTROPHYSICS ENGINE";
@@ -310,112 +1321,83 @@
                 },
                 input(e, type) {
                     if (type === 'mousedown') {
-                        // Spawn a new planet where the user clicks
-                        let rColor = `hsl(${Math.random()*360}, 100%, 60%)`;
-                        let rVelX = (Math.random() * 8) - 4;
-                        let rVelY = (Math.random() * 8) - 4;
-                        this.bodies.push({x: e.offsetX, y: e.offsetY, vx: rVelX, vy: rVelY, mass: Math.random()*15+5, color: rColor, size: Math.random()*4+3, fixed: false});
-                        this.bodyCount++;
-                        statContent.innerHTML = `Active Celestial Bodies: <span style="color:#0098ff">${this.bodyCount}</span> <br><small style="color:#aaa; font-size:10px;">(Click monitor to spawn planets)</small>`;
+                        let rColor = `hsl(${Math.random() * 360}, 100%, 60%)`;
+                        this.bodies.push({ x: e.offsetX, y: e.offsetY, vx: (Math.random() * 8) - 4, vy: (Math.random() * 8) - 4, mass: Math.random() * 15 + 5, color: rColor, size: Math.random() * 4 + 3, fixed: false });
+                        this.bodyCount++; statContent.innerHTML = `Active Celestial Bodies: <span style="color:#0098ff">${this.bodyCount}</span> <br><small style="color:#aaa; font-size:10px;">(Click monitor to spawn planets)</small>`;
                     }
                 },
                 tick() {
-                    spawnPulse('cpu','ram','#2ecc71'); spawnPulse('cpu','gpu','#0098ff');
-                    for(let i=0; i<this.bodies.length; i++) {
-                        for(let j=0; j<this.bodies.length; j++) {
-                            if(i===j) continue;
+                    spawnPulse('cpu', 'ram', '#2ecc71'); spawnPulse('cpu', 'gpu', '#0098ff');
+                    for (let i = 0; i < this.bodies.length; i++) {
+                        for (let j = 0; j < this.bodies.length; j++) {
+                            if (i === j) continue;
                             let b1 = this.bodies[i], b2 = this.bodies[j];
-                            let dx = b2.x - b1.x, dy = b2.y - b1.y;
-                            let distSq = dx*dx + dy*dy;
-                            if(distSq < 20) continue; // Collision buffer
-                            let force = (0.15 * b1.mass * b2.mass) / distSq;
-                            let dist = Math.sqrt(distSq);
-                            if (!b1.fixed) {
-                                b1.vx += (force * dx/dist) / b1.mass; 
-                                b1.vy += (force * dy/dist) / b1.mass;
-                            }
+                            let dx = b2.x - b1.x, dy = b2.y - b1.y; let distSq = dx * dx + dy * dy;
+                            if (distSq < 20) continue;
+                            let force = (0.15 * b1.mass * b2.mass) / distSq; let dist = Math.sqrt(distSq);
+                            if (!b1.fixed) { b1.vx += (force * dx / dist) / b1.mass; b1.vy += (force * dy / dist) / b1.mass; }
                         }
                     }
-                    this.bodies.forEach(b => { if(!b.fixed) { b.x += b.vx; b.y += b.vy; } });
+                    this.bodies.forEach(b => { if (!b.fixed) { b.x += b.vx; b.y += b.vy; } });
                 },
                 draw() {
-                    gCtx.fillStyle = 'rgba(0,0,0,0.15)'; gCtx.fillRect(0,0,300,300); // Long beautiful trails
+                    gCtx.fillStyle = 'rgba(0,0,0,0.15)'; gCtx.fillRect(0, 0, 400, 300);
                     this.bodies.forEach(b => {
-                        gCtx.shadowBlur = 15; gCtx.shadowColor = b.color;
-                        gCtx.beginPath(); gCtx.arc(b.x, b.y, b.size, 0, Math.PI*2);
-                        gCtx.fillStyle = b.color; gCtx.fill();
+                        gCtx.shadowBlur = 15; gCtx.shadowColor = b.color; gCtx.beginPath(); gCtx.arc(b.x, b.y, b.size, 0, Math.PI * 2); gCtx.fillStyle = b.color; gCtx.fill();
                     });
                     gCtx.shadowBlur = 0;
                 }
             },
 
-            // 3. CYBER PONG ONLINE (Fake ML)
+            // 3. CYBER PONG ONLINE (400x300)
             pong: {
-                p1y: 120, p2y: 120, bx: 150, by: 150, bvx: -7, bvy: 4, p1Score: 0, p2Score: 0,
-                init() { 
-                    this.p1y=120; this.p2y=120; this.bx=150; this.by=150; 
-                    // Randomize serve direction
-                    this.bvx = Math.random() > 0.5 ? 7 : -7; 
-                    this.bvy = (Math.random() * 6) - 3;
+                p1y: 120, p2y: 120, bx: 200, by: 150, bvx: -7, bvy: 4, p1Score: 0, p2Score: 0,
+                init() {
+                    this.p1y = 120; this.p2y = 120; this.bx = 200; this.by = 150;
+                    this.bvx = Math.random() > 0.5 ? 12 : -12; this.bvy = (Math.random() * 10) - 5;
                     statTitle.innerText = "NETWORK MATCH (VS ML)";
                     statContent.innerHTML = `Player: <span style="color:#2ecc71">${this.p1Score}</span> &nbsp;&nbsp;|&nbsp;&nbsp; ML CPU: <span style="color:#e74c3c">${this.p2Score}</span>`;
                 },
-                input(e, type) {}, // Keys polled in tick()
+                input(e, type) { },
                 tick() {
-                    // P1 Fast Paddle
-                    if(keys['ArrowUp'] && this.p1y > 0) this.p1y -= 8;
-                    if(keys['ArrowDown'] && this.p1y < 240) this.p1y += 8;
+                    if (keys['ArrowUp'] && this.p1y > 0) this.p1y -= 15;
+                    if (keys['ArrowDown'] && this.p1y < 240) this.p1y += 15;
+                    if (Math.random() < 0.25) spawnPulse('nic', 'cpu', '#1abc9c'); if (Math.random() < 0.25) spawnPulse('cpu', 'nic', '#1abc9c');
 
-                    if(Math.random() < 0.25) spawnPulse('nic', 'cpu', '#1abc9c'); 
-                    if(Math.random() < 0.25) spawnPulse('cpu', 'nic', '#1abc9c'); 
+                    if (this.p2y + 30 < this.by - 10 && this.p2y < 240) this.p2y += 10;
+                    else if (this.p2y + 30 > this.by + 10 && this.p2y > 0) this.p2y -= 10;
 
-                    // ML Paddle (Much faster now, but still beatable)
-                    if(this.p2y + 30 < this.by - 10 && this.p2y < 240) this.p2y += 6;
-                    else if(this.p2y + 30 > this.by + 10 && this.p2y > 0) this.p2y -= 6;
-
-                    // Ball Physics
                     this.bx += this.bvx; this.by += this.bvy;
-                    if(this.by <= 0 || this.by >= 290) { this.bvy *= -1; playBeep(200, 'triangle', 0.05); } // Wall bounce
-                    
-                    // Paddle Hits (Added "English" curve based on where ball hits paddle)
-                    if(this.bx <= 20 && this.by > this.p1y && this.by < this.p1y+60) { 
-                        this.bvx *= -1; this.bx=20; 
-                        this.bvy += ((this.by - (this.p1y + 30)) * 0.1); // Curve it!
-                        playBeep(400, 'sine', 0.1); spawnPulse('cpu','snd','#e67e22');
+                    if (this.by <= 0 || this.by >= 290) { this.bvy *= -1; playBeep(200, 'triangle', 0.05); }
+
+                    // P1 Hit
+                    if (this.bx <= 20 && this.by > this.p1y && this.by < this.p1y + 60) {
+                        this.bvx *= -1; this.bx = 20; this.bvy += ((this.by - (this.p1y + 30)) * 0.1);
+                        playBeep(400, 'sine', 0.1); spawnPulse('cpu', 'snd', '#e67e22');
                     }
-                    if(this.bx >= 270 && this.by > this.p2y && this.by < this.p2y+60) { 
-                        this.bvx *= -1; this.bx=270; 
-                        this.bvy += ((this.by - (this.p2y + 30)) * 0.1);
-                        playBeep(400, 'sine', 0.1); spawnPulse('cpu','snd','#e67e22');
+                    // P2 Hit (Right Wall = 400)
+                    if (this.bx >= 370 && this.by > this.p2y && this.by < this.p2y + 60) {
+                        this.bvx *= -1; this.bx = 370; this.bvy += ((this.by - (this.p2y + 30)) * 0.1);
+                        playBeep(400, 'sine', 0.1); spawnPulse('cpu', 'snd', '#e67e22');
                     }
 
-                    // Score Logic
-                    if(this.bx < 0) { this.p2Score++; playBeep(100, 'sawtooth', 0.5); this.init(); }
-                    if(this.bx > 300) { this.p1Score++; playBeep(800, 'square', 0.3); this.init(); }
-                    spawnPulse('cpu','gpu','#0098ff');
+                    if (this.bx < 0) { this.p2Score++; playBeep(100, 'sawtooth', 0.5); this.init(); }
+                    if (this.bx > 400) { this.p1Score++; playBeep(800, 'square', 0.3); this.init(); }
+                    spawnPulse('cpu', 'gpu', '#0098ff');
                 },
                 draw() {
-                    gCtx.fillStyle = 'rgba(0,0,0,0.4)'; gCtx.fillRect(0,0,300,300);
-                    
-                    // Cyber Glow
-                    gCtx.shadowBlur = 10;
-                    gCtx.shadowColor = '#00ffff'; gCtx.fillStyle = '#00ffff';
-                    gCtx.fillRect(10, this.p1y, 10, 60); // P1
-                    
-                    gCtx.shadowColor = '#ff00ff'; gCtx.fillStyle = '#ff00ff';
-                    gCtx.fillRect(280, this.p2y, 10, 60); // P2 (ML)
-                    
-                    gCtx.shadowColor = '#fff'; gCtx.fillStyle = '#fff';
-                    gCtx.fillRect(this.bx, this.by, 10, 10); // Ball
-                    
-                    for(let i=0; i<300; i+=20) gCtx.fillRect(148, i, 4, 10); // Net
+                    gCtx.fillStyle = 'rgba(0,0,0,0.4)'; gCtx.fillRect(0, 0, 400, 300);
+                    gCtx.shadowBlur = 10; gCtx.shadowColor = '#00ffff'; gCtx.fillStyle = '#00ffff'; gCtx.fillRect(10, this.p1y, 10, 60);
+                    gCtx.shadowColor = '#ff00ff'; gCtx.fillStyle = '#ff00ff'; gCtx.fillRect(380, this.p2y, 10, 60);
+                    gCtx.shadowColor = '#fff'; gCtx.fillStyle = '#fff'; gCtx.fillRect(this.bx, this.by, 10, 10);
+                    for (let i = 0; i < 300; i += 20) gCtx.fillRect(198, i, 4, 10); // Center net
                     gCtx.shadowBlur = 0;
                 }
             },
 
-            // 4. GAME OF LIFE
+            // 4. GAME OF LIFE (400x300 = 40 cols, 30 rows)
             life: {
-                grid: [], cols: 30, rows: 30, gen: 0,
+                grid: [], cols: 40, rows: 30, gen: 0,
                 init() {
                     this.grid = new Array(this.cols).fill(null).map(() => new Array(this.rows).fill(0).map(() => Math.random() > 0.8 ? 1 : 0));
                     this.gen = 0;
@@ -424,77 +1406,310 @@
                 },
                 input(e, type) {
                     if (type === 'mousedown') {
-                        // Drop a random cluster of life where clicked
-                        let gx = Math.floor(e.offsetX / 10);
-                        let gy = Math.floor(e.offsetY / 10);
-                        for(let i=-2; i<=2; i++) {
-                            for(let j=-2; j<=2; j++) {
-                                if (gx+i >= 0 && gx+i < this.cols && gy+j >= 0 && gy+j < this.rows) {
-                                    this.grid[gx+i][gy+j] = Math.random() > 0.3 ? 1 : 0;
-                                }
+                        let gx = Math.floor(e.offsetX / 10); let gy = Math.floor(e.offsetY / 10);
+                        for (let i = -2; i <= 2; i++) {
+                            for (let j = -2; j <= 2; j++) {
+                                if (gx + i >= 0 && gx + i < this.cols && gy + j >= 0 && gy + j < this.rows) this.grid[gx + i][gy + j] = Math.random() > 0.3 ? 1 : 0;
                             }
                         }
                     }
                 },
                 tick() {
-                    for(let i=0; i<4; i++) { spawnPulse('ram','cpu','#2ecc71'); spawnPulse('cpu','ram','#2ecc71'); }
-                    spawnPulse('cpu','gpu','#0098ff');
-
+                    for (let i = 0; i < 4; i++) { spawnPulse('ram', 'cpu', '#2ecc71'); spawnPulse('cpu', 'ram', '#2ecc71'); }
+                    spawnPulse('cpu', 'gpu', '#0098ff');
                     let next = this.grid.map(arr => [...arr]);
-                    for(let x=0; x<this.cols; x++) {
-                        for(let y=0; y<this.rows; y++) {
+                    for (let x = 0; x < this.cols; x++) {
+                        for (let y = 0; y < this.rows; y++) {
                             let neighbors = 0;
-                            for(let i=-1; i<=1; i++) {
-                                for(let j=-1; j<=1; j++) {
-                                    if(i===0 && j===0) continue;
-                                    let nx = (x+i+this.cols) % this.cols; let ny = (y+j+this.rows) % this.rows;
+                            for (let i = -1; i <= 1; i++) {
+                                for (let j = -1; j <= 1; j++) {
+                                    if (i === 0 && j === 0) continue;
+                                    let nx = (x + i + this.cols) % this.cols; let ny = (y + j + this.rows) % this.rows;
                                     neighbors += this.grid[nx][ny];
                                 }
                             }
-                            if(this.grid[x][y] === 1 && (neighbors < 2 || neighbors > 3)) next[x][y] = 0;
-                            else if(this.grid[x][y] === 0 && neighbors === 3) next[x][y] = 1;
+                            if (this.grid[x][y] === 1 && (neighbors < 2 || neighbors > 3)) next[x][y] = 0;
+                            else if (this.grid[x][y] === 0 && neighbors === 3) next[x][y] = 1;
                         }
                     }
-                    this.grid = next;
-                    this.gen++;
+                    this.grid = next; this.gen++;
                     statContent.innerHTML = `Generations Calc: <span style="color:#2ecc71">${this.gen}</span> <br><small style="color:#aaa; font-size:10px;">(Click monitor to randomly mutate)</small>`;
                 },
                 draw() {
-                    gCtx.fillStyle = 'rgba(0,0,0,0.5)'; gCtx.fillRect(0,0,300,300);
-                    gCtx.shadowBlur = 8;
-                    // Color shifts based on generation count
-                    let hue = (this.gen * 2) % 360;
-                    gCtx.shadowColor = `hsl(${hue}, 100%, 50%)`;
-                    gCtx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-                    
-                    for(let x=0; x<this.cols; x++) {
-                        for(let y=0; y<this.rows; y++) {
-                            if(this.grid[x][y]) gCtx.fillRect(x*10+1, y*10+1, 8, 8);
-                        }
+                    gCtx.fillStyle = 'rgba(0,0,0,0.5)'; gCtx.fillRect(0, 0, 400, 300);
+                    gCtx.shadowBlur = 8; let hue = (this.gen * 2) % 360; gCtx.shadowColor = `hsl(${hue}, 100%, 50%)`; gCtx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                    for (let x = 0; x < this.cols; x++) {
+                        for (let y = 0; y < this.rows; y++) { if (this.grid[x][y]) gCtx.fillRect(x * 10 + 1, y * 10 + 1, 8, 8); }
                     }
                     gCtx.shadowBlur = 0;
                 }
             }
         };
 
-        // --- SYSTEM OS LOOP ---
-        function osTick() {
-            if (!isPaused) {
+        let customApps = {};
+        let currentBlocks = [];
+
+        // --- VISUAL BLOCK IDE LOGIC ---
+        // --- UPGRADED VISUAL BLOCK IDE LOGIC ---
+        const blockContainer = document.getElementById('block-container');
+
+        window.addBlock = function (type) {
+            const b = { id: Math.random().toString(), type: type, args: {} };
+            // Define the default fields for each new block type
+            if (type === 'clearScreen') b.args = { color: '#000000' };
+            if (type === 'drawRect') b.args = { color: '#2ecc71', x: 'simData.x', y: 'simData.y', w: '20', h: '20' };
+            if (type === 'drawText') b.args = { color: '#ffffff', text: '"Score: " + simData.score', x: '10', y: '20', size: '16px' };
+            if (type === 'setVar') b.args = { varName: 'simData.score', value: '0' };
+            if (type === 'mathOp') b.args = { varName: 'simData.x', op: '+=', value: '5' };
+            if (type === 'ifKey') b.args = { key: 'ArrowUp', actionVar: 'simData.y', op: '-=', value: '5' };
+
+            currentBlocks.push(b);
+            renderBlocks();
+        }
+
+        window.delBlock = function (id) { currentBlocks = currentBlocks.filter(b => b.id !== id); renderBlocks(); }
+        window.updateBlockArgs = function (id, key, val) { const b = currentBlocks.find(bl => bl.id === id); if (b) b.args[key] = val; }
+
+        function renderBlocks() {
+            blockContainer.innerHTML = '';
+            currentBlocks.forEach(b => {
+                const div = document.createElement('div'); div.className = 'visual-block';
+                let inner = `<strong style="color: #fff; width: 90px; display: inline-block;">${b.type}</strong> `;
+
+                for (let key in b.args) {
+                    if (key === 'color') {
+                        inner += `<input type="color" value="${b.args[key]}" onchange="updateBlockArgs('${b.id}', '${key}', this.value)" title="${key}"> `;
+                    } else if (key === 'op') {
+                        // Dropdown for Math Operators
+                        inner += `<select style="color:#fff;" onchange="updateBlockArgs('${b.id}', '${key}', this.value)">
+                            <option ${b.args[key] === '+=' ? 'selected' : ''}>+=</option>
+                            <option ${b.args[key] === '-=' ? 'selected' : ''}>-=</option>
+                            <option ${b.args[key] === '=' ? 'selected' : ''}>=</option>
+                            <option ${b.args[key] === '*=' ? 'selected' : ''}>*=</option>
+                        </select> `;
+                    } else if (key === 'key') {
+                        // Dropdown for Keyboard Inputs
+                        inner += `<select style="color:#fff;" onchange="updateBlockArgs('${b.id}', '${key}', this.value)">
+                            <option ${b.args[key] === 'ArrowUp' ? 'selected' : ''}>ArrowUp</option>
+                            <option ${b.args[key] === 'ArrowDown' ? 'selected' : ''}>ArrowDown</option>
+                            <option ${b.args[key] === 'ArrowLeft' ? 'selected' : ''}>ArrowLeft</option>
+                            <option ${b.args[key] === 'ArrowRight' ? 'selected' : ''}>ArrowRight</option>
+                            <option ${b.args[key] === 'Space' ? 'selected' : ''}>Space</option>
+                        </select> `;
+                    } else {
+                        inner += `<input type="text" style="color:#fff; width: 65px;" value='${b.args[key]}' onchange="updateBlockArgs('${b.id}', '${key}', this.value)" placeholder="${key}" title="${key}"> `;
+                    }
+                }
+                inner += `<button class="btn-del-block" onclick="delBlock('${b.id}')">✖</button>`;
+                div.innerHTML = inner; blockContainer.appendChild(div);
+            });
+        }
+
+        function compileBlocks(blocks) {
+            let code = `// Custom App Executable\n`;
+            // Auto-initialize standard variables if they don't exist
+            code += `if(simData.score === undefined) simData.score = 0;\n`;
+
+            blocks.forEach(b => {
+                if (b.type === 'clearScreen') code += `gCtx.fillStyle='${b.args.color}'; gCtx.fillRect(0,0,400,300);\n`;
+                if (b.type === 'drawRect') code += `gCtx.fillStyle='${b.args.color}'; gCtx.fillRect(${b.args.x}, ${b.args.y}, ${b.args.w}, ${b.args.h});\n`;
+                if (b.type === 'drawText') code += `gCtx.fillStyle='${b.args.color}'; gCtx.font='${b.args.size} monospace'; gCtx.fillText(${b.args.text}, ${b.args.x}, ${b.args.y});\n`;
+                if (b.type === 'setVar') code += `${b.args.varName} = ${b.args.value};\n`;
+                if (b.type === 'mathOp') code += `${b.args.varName} ${b.args.op} ${b.args.value};\n`;
+                if (b.type === 'ifKey') code += `if(keys['${b.args.key}']) { ${b.args.actionVar} ${b.args.op} ${b.args.value}; }\n`;
+            });
+            // We now pass 'keys' into the function so it can read keyboard inputs!
+            return new Function('gCtx', 'simData', 'keys', code);
+        }
+
+        window.delBlock = function (id) { currentBlocks = currentBlocks.filter(b => b.id !== id); renderBlocks(); }
+        window.updateBlockArgs = function (id, key, val) { const b = currentBlocks.find(bl => bl.id === id); if (b) b.args[key] = val; }
+
+        function renderBlocks() {
+            blockContainer.innerHTML = '';
+            currentBlocks.forEach(b => {
+                const div = document.createElement('div'); div.className = 'visual-block';
+                let inner = `<strong style="color: #fff;">${b.type}</strong> `;
+                for (let key in b.args) {
+                    if (key === 'color') inner += `<input type="color" value="${b.args[key]}" onchange="updateBlockArgs('${b.id}', '${key}', this.value)">`;
+                    else if (key === 'var') inner += `<select style="color:#fff;" onchange="updateBlockArgs('${b.id}', '${key}', this.value)"><option ${b.args[key] === 'x' ? 'selected' : ''}>x</option><option ${b.args[key] === 'y' ? 'selected' : ''}>y</option></select>`;
+                    else inner += `<input type="text" style="color:#fff;" value="${b.args[key]}" onchange="updateBlockArgs('${b.id}', '${key}', this.value)">`;
+                }
+                inner += `<button class="btn-del-block" onclick="delBlock('${b.id}')">Del</button>`;
+                div.innerHTML = inner; blockContainer.appendChild(div);
+            });
+        }
+
+        function compileBlocks(blocks) {
+            let code = ``;
+            blocks.forEach(b => {
+                if (b.type === 'clear') code += `gCtx.fillStyle='${b.args.color}'; gCtx.fillRect(0,0,400,300);\n`;
+                if (b.type === 'drawRect') code += `gCtx.fillStyle='${b.args.color}'; gCtx.fillRect(${b.args.x}, ${b.args.y}, ${b.args.w}, ${b.args.h});\n`;
+                if (b.type === 'drawCircle') code += `gCtx.fillStyle='${b.args.color}'; gCtx.beginPath(); gCtx.arc(${b.args.x}, ${b.args.y}, ${b.args.r}, 0, Math.PI*2); gCtx.fill();\n`;
+                if (b.type === 'moveVar') code += `simData.${b.args.var} += simData.${b.args.val};\n`;
+                if (b.type === 'bounce') code += `if(simData.x < 0 || simData.x > ${b.args.width}) simData.vx *= -1; if(simData.y < 0 || simData.y > ${b.args.height}) simData.vy *= -1;\n`;
+            });
+            return new Function('gCtx', 'simData', code);
+        }
+        let simData = { x: 200, y: 150, vx: 5, vy: 5 };
+
+        // --- ADVANCED DECOUPLED GAME LOOP ---
+
+        const LOGIC_RATE = 1000 / 30; // Physics ALWAYS run at a locked 30 ticks per second
+        let lastTime = performance.now();
+        let accumulator = 0;
+        let gpuThrottle = 0;
+
+        // 1. MATH & HARDWARE LOGIC (Locked Speed)
+        function osLogic() {
+            if (!sysRunning || !sysStatus.hasCPU || crashType) return;
+            // CLOCK INSTABILITY & CRASHES
+            if (!sysStatus.hasCLK) {
+                systemInstability += 0.5;
+                if (Math.random() > 0.6) return; // Random drastic stutter
+
+                if (systemInstability > 50) {
+                    sysRunning = false;
+                    crashType = ['BSOD_FRAG', 'FATAL_ERR', 'DATA_CORRUPT'][Math.floor(Math.random() * 3)];
+                    document.getElementById('btn-state').textContent = 'REBOOT REQ';
+                    document.getElementById('btn-state').style.background = '#e74c3c';
+                    return;
+                }
+            } else {
+                systemInstability = Math.max(0, systemInstability - 1);
+            }
+            // RAM DEGRADATION (Simulation slows down)
+            let ramThrottle = 0;
+            if (!sysStatus.hasRAM) {
+                ramThrottle++;
+                if (ramThrottle < 3) return; // Run logic at 1/3 speed if no RAM
+                ramThrottle = 0;
+            } else {
+                triggerGlow('CPU', ['CU', 'CACHE']);
+                triggerGlow('RAM', ['MEM_CTRL', 'DRAM']);
+                triggerDataPulse('CPU', 'RAM', '#2ecc71', ['CU', 'CACHE'], ['MEM_CTRL', 'DRAM']);
+            }
+
+
+            // RAM DATA PULSES
+            if (sysStatus.hasRAM) {
+                triggerGlow('CPU', ['CU', 'CACHE']);
+                triggerGlow('RAM', ['MEM_CTRL', 'DRAM']);
+                triggerDataPulse('CPU', 'RAM', '#2ecc71', ['CU', 'CACHE'], ['MEM_CTRL', 'DRAM']);
+                triggerDataPulse('RAM', 'CPU', '#2ecc71', ['DRAM', 'MEM_CTRL'], ['CACHE', 'CU']);
+            }
+
+            // GPU HARDWARE THROTTLING
+            // If GPU is missing, we skip logic frames to simulate intense CPU lag
+            if (!sysStatus.hasGPU) {
+                gpuThrottle++;
+                if (gpuThrottle < 3) return; // Run at 1/3rd speed without a GPU
+                gpuThrottle = 0;
+            } else {
+                triggerGlow('GPU', ['CORE', 'VRAM', 'TEX']);
+                triggerDataPulse('CPU', 'GPU', '#0098ff', ['ALU', 'CACHE'], ['CORE', 'VRAM']);
+            }
+
+            // ACTUAL GAME LOGIC
+            triggerGlow('CPU', ['ALU', 'REG']);
+
+            if (currentAppId.startsWith('custom_')) {
+                simData.x += simData.vx; simData.y += simData.vy;
+                if (simData.x < 0 || simData.x > 300) simData.vx *= -1;
+                if (simData.y < 0 || simData.y > 300) simData.vy *= -1;
+            } else if (apps[currentAppId] && apps[currentAppId].tick) {
                 apps[currentAppId].tick();
-                apps[currentAppId].draw();
-                // Screen refresh pulse
-                setTimeout(() => spawnPulse('gpu', 'disp', '#00ffff'), 50);
             }
         }
-        setInterval(osTick, 100); // 10 FPS OS Clock
 
-        // System Clock Hardware Heartbeat (Independent)
-        setInterval(() => spawnPulse('clk', 'cpu', '#f1c40f'), 500);
+        // 2. SCREEN RENDERING (Variable Speed based on Slider)
+        function osRender() {
+            if (!sysStatus.hasCPU && !crashType) return;
+            if (sysStatus.hasDISP) {
+                // RENDER CRASH SCREENS
+                if (crashType) {
+                    gCtx.fillStyle = crashType === 'BSOD_FRAG' ? '#0984e3' : crashType === 'FATAL_ERR' ? '#d63031' : '#2d3436';
+                    gCtx.fillRect(0, 0, 400, 300);
+                    gCtx.fillStyle = '#fff'; gCtx.font = 'bold 20px monospace'; gCtx.textAlign = 'center';
 
+                    if (crashType === 'BSOD_FRAG') {
+                        gCtx.fillText(":( BSOD", 200, 100); gCtx.font = '14px monospace'; gCtx.fillText("DATA FRAGMENTATION EXCEPTION", 200, 140);
+                    } else if (crashType === 'FATAL_ERR') {
+                        gCtx.fillText("FATAL ERROR", 200, 100); gCtx.font = '14px monospace'; gCtx.fillText("HALT: 0x000000FF", 200, 140);
+                    } else {
+                        gCtx.fillStyle = '#00ff00'; gCtx.fillText("SYSTEM CORRUPT", 200, 100); gCtx.font = '14px monospace'; gCtx.fillText("PLEASE REBOOT SYSTEM", 200, 140);
+                    }
+                    return;
+                }
+
+                if (!sysRunning) return;
+
+                // CPU DIRECT RENDER: Cap at 15 FPS
+                if (!sysStatus.hasGPU && sysStatus.cpuDirectDisp) {
+                    let now = performance.now();
+                    if (now - lastRenderTime < 1000 / 15) return;
+                    lastRenderTime = now;
+                }
+
+                if (currentAppId.startsWith('custom_')) {
+                    if (customApps[currentAppId] && customApps[currentAppId].compiled) {
+                        try { customApps[currentAppId].compiled(gCtx, simData, keys); } catch (e) { }
+                    } else {
+                        gCtx.fillStyle = '#000'; gCtx.fillRect(0, 0, 400, 300);
+                    }
+                } else if (apps[currentAppId] && apps[currentAppId].draw) {
+                    apps[currentAppId].draw();
+                }
+
+                if (sysStatus.hasGPU) triggerDataPulse('GPU', 'DISP', '#00ffff', ['VRAM', 'TEX'], ['TCON', 'PIXELS']);
+            } else {
+                gCtx.fillStyle = '#000'; gCtx.fillRect(0, 0, 300, 300);
+            }
+        }
+
+        // 3. THE MASTER LOOP ENGINE
+        function osLoop() {
+            let now = performance.now();
+            let dt = now - lastTime;
+            lastTime = now;
+            accumulator += dt;
+
+            // Run physics strictly at 30Hz. If the tab lags, the accumulator catches up!
+            while (accumulator >= LOGIC_RATE) {
+                osLogic();
+                accumulator -= LOGIC_RATE;
+            }
+
+            // Render purely based on the variable interval timer
+            osRender();
+        }
+
+        // --- FPS SLIDER CONTROLS ---
+        let osFps = 30;
+        let osTickInterval = setInterval(osLoop, 1000 / osFps);
+
+        const fpsSlider = document.getElementById('fps-slider');
+        const fpsDisplay = document.getElementById('fps-display');
+
+        if (fpsSlider) {
+            fpsSlider.addEventListener('input', (e) => {
+                osFps = e.target.value;
+                fpsDisplay.innerText = osFps + ' FPS';
+
+                // Restart the loop at the new visual speed
+                clearInterval(osTickInterval);
+                osTickInterval = setInterval(osLoop, 1000 / osFps);
+            });
+        }
+        setInterval(() => {
+            if (sysRunning && sysStatus.hasCLK && sysStatus.hasCPU) {
+                spawnPulse('clk', 'cpu', '#f1c40f');
+            }
+        }, 500);
         window.addEventListener('keydown', e => {
             keys[e.key] = true;
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                spawnPulse('kbd', 'cpu', '#e74c3c'); 
+                spawnPulse('kbd', 'cpu', '#e74c3c');
                 apps[currentAppId].input(e, 'keydown');
             }
         });
@@ -502,67 +1717,153 @@
 
         // Map mouse clicks directly to the game canvas
         gameCanvas.addEventListener('mousedown', e => {
-            spawnPulse('kbd', 'cpu', '#e74c3c'); // Mouse counts as hardware input!
-            apps[currentAppId].input(e, 'mousedown');
+
+            if (sysRunning && sysStatus.hasKBD) {
+                spawnPulse('kbd', 'cpu', '#e74c3c'); // Mouse counts as hardware input!
+                apps[currentAppId].input(e, 'mousedown');
+            }
         });
-        
+
         const btnState = document.getElementById('btn-state');
         const btnFullGame = document.getElementById('btn-full-game');
         const appSelector = document.getElementById('app-selector');
+        const modeSelector = document.getElementById('snake-mode');
+        const speedSelector = document.getElementById('snake-speed');
 
+        // Allow pre-boot Snake config to update visually if power is OFF
+        if (modeSelector) modeSelector.addEventListener('change', () => { if (!sysRunning) { apps['snake'].init(); apps['snake'].draw(); } });
+        if (speedSelector) speedSelector.addEventListener('change', () => { if (!sysRunning) { apps['snake'].init(); apps['snake'].draw(); } });
+
+        // --- Custom App UI Hookups ---
+        document.getElementById('btn-add-app').onclick = () => {
+            const name = prompt("Enter Custom App Name:");
+            if (!name) return;
+            const id = 'custom_' + Date.now();
+            customApps[id] = { name: name, blocks: [], compiled: null };
+
+            const opt = document.createElement('option');
+            opt.value = id; opt.innerText = `App: ${name}`;
+            appSelector.appendChild(opt);
+            appSelector.value = id;
+            appSelector.dispatchEvent(new Event('change'));
+        };
+
+        document.getElementById('btn-compile').onclick = () => {
+            if (currentAppId.startsWith('custom_')) {
+                customApps[currentAppId].blocks = [...currentBlocks];
+                try {
+                    customApps[currentAppId].compiled = compileBlocks(currentBlocks);
+                    alert("App Compiled Successfully!");
+                } catch (e) { alert("Compile Error!"); }
+            }
+        };
+
+        document.getElementById('btn-edit-app').onclick = () => {
+            const ide = document.getElementById('custom-ide');
+            ide.style.display = ide.style.display === 'none' ? 'flex' : 'none';
+        };
+
+        document.getElementById('btn-save-app').onclick = () => {
+            if (!currentAppId.startsWith('custom_')) return;
+            const data = JSON.stringify(customApps[currentAppId]);
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: "application/json" }));
+            a.download = `${customApps[currentAppId].name}_app.json`; a.click();
+        };
+
+        document.getElementById('btn-load-app').onclick = () => document.getElementById('app-file-input').click();
+
+        document.getElementById('app-file-input').onchange = e => {
+            const f = e.target.files[0]; if (!f) return;
+            const r = new FileReader();
+            r.onload = ev => {
+                const loadedApp = JSON.parse(ev.target.result);
+                const id = 'custom_' + Date.now();
+                customApps[id] = loadedApp;
+
+                const opt = document.createElement('option');
+                opt.value = id; opt.innerText = `App: ${loadedApp.name}`;
+                appSelector.appendChild(opt);
+                appSelector.value = id;
+                appSelector.dispatchEvent(new Event('change'));
+            };
+            r.readAsText(f);
+        };
         appSelector.addEventListener('change', (e) => {
             currentAppId = e.target.value;
-            apps[currentAppId].init();
-            apps[currentAppId].draw();
-            
-            // Toggle the "Full Game" button for Gravity
-            if (currentAppId === 'gravity') {
-                btnFullGame.style.display = 'block';
+            const isCustom = currentAppId.startsWith('custom_');
+
+            document.getElementById('btn-edit-app').style.display = isCustom ? 'block' : 'none';
+            document.getElementById('custom-ide').style.display = isCustom ? 'flex' : 'none';
+            document.getElementById('btn-save-app').style.display = isCustom ? 'block' : 'none';
+
+            if (isCustom) {
+                currentBlocks = customApps[currentAppId].blocks || [];
+                renderBlocks();
+                statTitle.innerText = "CUSTOM USER APP";
+                statContent.innerHTML = `Mode: <span style="color:#00ffff">Visual IDE Engine</span>`;
             } else {
-                btnFullGame.style.display = 'none';
+                apps[currentAppId].init();
+                apps[currentAppId].draw();
             }
+
+            const isSnake = currentAppId === 'snake';
+            if (modeSelector) modeSelector.style.display = isSnake ? 'block' : 'none';
+            if (speedSelector) speedSelector.style.display = isSnake ? 'block' : 'none';
+            if (btnFullGame) btnFullGame.style.display = currentAppId === 'gravity' ? 'block' : 'none';
         });
 
-        btnFullGame.addEventListener('click', () => {
-            const url = '2DUniSandboxSim.html'; 
-    
-            const newTab = window.open(url, '_blank');
-            
-            if (newTab) {
-                newTab.focus();
-            }
-        });
+        btnFullGame.addEventListener('click', () => { window.open('2DUniSandboxSim.html', '_blank').focus(); });
 
         btnState.addEventListener('click', () => {
-            if (systemState === 'STOPPED') {
-                systemState = 'RUNNING'; isPaused = false;
-                btnState.textContent = 'Pause System'; btnState.style.background = '#e74c3c'; btnState.style.color = '#fff';
-                
-                // DMA Boot Sequence
-                spawnPulse('cpu', 'dma', '#f39c12');
-                setTimeout(() => {
-                    for(let i=0; i<5; i++) {
-                        setTimeout(() => {
-                            spawnPulse('disk', 'dma', '#e84393');
-                            setTimeout(() => spawnPulse('dma', 'ram', '#e84393'), 200);
-                        }, i*150);
-                    }
-                }, 300);
+            sysRunning = !sysRunning;
+            if (crashType) { crashType = null; systemInstability = 0; }
+            checkHardware();
 
-            } else if (systemState === 'RUNNING') {
-                systemState = 'PAUSED'; isPaused = true;
-                btnState.textContent = 'Resume System'; btnState.style.background = '#f39c12';
-                spawnPulse('cpu', 'ram', '#2ecc71');
-            } else if (systemState === 'PAUSED') {
-                systemState = 'RUNNING'; isPaused = false;
-                btnState.textContent = 'Pause System'; btnState.style.background = '#e74c3c';
-                spawnPulse('ram', 'cpu', '#2ecc71');
+            if (sysRunning) {
+                btnState.textContent = 'Power OFF';
+                btnState.style.background = '#e74c3c';
+                btnState.style.color = '#fff';
+
+                appSelector.disabled = true;
+                if (modeSelector) modeSelector.disabled = true;
+                if (speedSelector) speedSelector.disabled = true;
+
+                if (!currentAppId.startsWith('custom_') && apps[currentAppId] && apps[currentAppId].init) apps[currentAppId].init();
+            } else {
+                btnState.textContent = 'Start System';
+                btnState.style.background = '#2ecc71';
+                btnState.style.color = '#111';
+
+                appSelector.disabled = false;
+                if (modeSelector) modeSelector.disabled = false;
+                if (speedSelector) speedSelector.disabled = false;
+
+                gCtx.fillStyle = '#000';
+                gCtx.fillRect(0, 0, 400, 300);
             }
         });
+        // Force the UI to evaluate the default app (Snake) so the menus hide/show correctly on boot
+        appSelector.dispatchEvent(new Event('change'));
 
-        // Initialize first app
-        apps[currentAppId].init();
-        apps[currentAppId].draw();
+        // --- FPS Slider Hookup (Assuming you are using the osLoop setup) ---
+        const fpsSliderEl = document.getElementById('fps-slider');
+        const fpsDisplayEl = document.getElementById('fps-display');
+        if (fpsSliderEl && typeof osLoop !== 'undefined') {
+            fpsSliderEl.addEventListener('input', (e) => {
+                osFps = e.target.value;
+                fpsDisplayEl.innerText = osFps;
+                clearInterval(osTickInterval);
+                osTickInterval = setInterval(osLoop, 1000 / osFps);
+            });
+        } else if (fpsSliderEl) {
+            // Fallback if using standard setInterval(osTick)
+            fpsSliderEl.addEventListener('input', (e) => {
+                fpsDisplayEl.innerText = e.target.value;
+                clearInterval(window.osTickIntervalTimer);
+                window.osTickIntervalTimer = setInterval(osTick, 1000 / e.target.value);
+            });
+        }
     </script>
 </body>
+
 </html>
