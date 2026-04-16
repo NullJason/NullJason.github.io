@@ -1308,149 +1308,153 @@
         let isDraggingCam = false;
 
         const hwDefs = {
-            CLK: { color: '#f1c40f', w: 40, h: 40, internals: ['Crystal Oscillator'] },
+            CLK: { 
+                color: '#f1c40f', w: 40, h: 40, 
+                desc: "The System Clock provides the rhythmic heartbeat that synchronizes all components on the motherboard.",
+                internals: [{name: 'Quartz Crystal', detail: 'Vibrates at a precise frequency.'}, {name: 'Clock Generator', detail: 'Multiplies base frequency.'}],
+                processes: "Oscillation -> Frequency Multiplication -> Signal Distribution",
+                subNodes: [{ id: 'osc', type: 'OSC', x: 0.3, y: 0.5 }, { id: 'clk_out', type: 'CLK_OUT', x: 0.7, y: 0.5 }],
+                subWires: [['osc', 'clk_out']]
+            },
             CPU: {
-                color: '#f39c12', w: 90, h: 90, internals: ['Control Unit', 'ALU', 'Registers', 'L1 Cache'],
+                color: '#f39c12', w: 100, h: 100, 
+                desc: "The Central Processing Unit is the primary operational brain of the computer. It executes instructions sequentially and routes data.",
+                internals: [
+                    { name: 'ALU', detail: 'Performs integer math.' },
+                    { name: 'Control Unit', detail: 'Decodes instructions.' },
+                    { name: 'I/O Controllers', detail: 'Routes data to RAM and PCIe.' }
+                ],
+                processes: "Instruction Fetch -> Decode -> Execute -> Memory Access -> Writeback",
                 subNodes: [
-                    { id: 'cu', type: 'CU', x: 0.5, y: 0.15 }, 
-                    { id: 'alu', type: 'ALU', x: 0.25, y: 0.4 }, 
-                    { id: 'reg', type: 'REG', x: 0.75, y: 0.4 }, 
-                    { id: 'cache', type: 'CACHE', x: 0.5, y: 0.55 },
-                    { id: 'ram_w', type: 'RAM_WRITE', x: 0.3, y: 0.85 },
-                    { id: 'ram_r', type: 'RAM_READ', x: 0.7, y: 0.85 },
-                    { id: 'pcie', type: 'PCIe_OUT', x: 0.85, y: 0.15 }
+                    { id: 'bus_in', type: 'BUS_IN', x: 0.1, y: 0.2 }, { id: 'pcie_in', type: 'PCIe_IN', x: 0.1, y: 0.8 },
+                    { id: 'cu', type: 'CU', x: 0.4, y: 0.2 }, { id: 'alu', type: 'ALU', x: 0.3, y: 0.5 }, 
+                    { id: 'reg', type: 'REG', x: 0.6, y: 0.5 }, { id: 'cache', type: 'CACHE', x: 0.5, y: 0.7 },
+                    { id: 'ram_w', type: 'RAM_WRITE', x: 0.8, y: 0.2 }, { id: 'ram_r', type: 'RAM_READ', x: 0.8, y: 0.5 },
+                    { id: 'pcie_out', type: 'PCIe_OUT', x: 0.8, y: 0.8 }
                 ],
                 subWires: [
-                    ['cu', 'alu'], ['cu', 'reg'], ['alu', 'reg'],
-                    ['cu', 'cache'], ['cache', 'ram_w'], ['ram_r', 'cache'],
-                    ['cu', 'ram_r'], ['cu', 'pcie']
-                ],
-                desc: "The Central Processing Unit is the primary operational brain of the computer. It executes instructions sequentially, handling game logic, physics, and coordinating all other hardware. Without it, the system halts entirely.",
-                internals: [
-                    { name: 'ALU (Arithmetic Logic Unit)', detail: 'Performs integer math and bitwise logic operations.' },
-                    { name: 'Control Unit (CU)', detail: 'Decodes instructions and directs data across the CPU.' },
-                    { name: 'Registers', detail: 'The absolute fastest, smallest memory inside the CPU.' },
-                    { name: 'L1/L2/L3 Cache', detail: 'SRAM built into the chip to prevent the CPU from waiting on slow system RAM.' }
-                ],
-                processes: "Instruction Fetch -> Decode -> Execute -> Memory Access -> Writeback"
+                    ['bus_in', 'cu'], ['pcie_in', 'cache'], ['cu', 'alu'], ['cu', 'reg'], 
+                    ['alu', 'reg'], ['cu', 'cache'], ['cache', 'ram_w'], ['ram_r', 'cache'],
+                    ['cu', 'ram_r'], ['cu', 'pcie_out']
+                ]
             },
             GPU: {
-                color: '#0098ff', w: 100, h: 100, internals: ['Compute Cores', 'VRAM', 'Texture Units'],
-                subNodes: [{ id: 'vram', type: 'VRAM', x: 0.8, y: 0.5 }, { id: 'core1', type: 'CORE', x: 0.3, y: 0.3 }, { id: 'core2', type: 'CORE', x: 0.3, y: 0.7 }, { id: 'tex', type: 'TEX', x: 0.5, y: 0.5 }],
-                subWires: [['core1', 'vram'], ['core2', 'vram'], ['core1', 'tex'], ['core2', 'tex']],
-                desc: "The Graphics Processing Unit is a highly parallel processor. While a CPU has 8 complex cores, a GPU has 5,000+ simple cores. It is optimized to do the exact same math on thousands of pixels simultaneously. Without it, graphics must be software-rendered by the CPU, resulting in extreme lag.",
-                internals: [
-                    { name: 'Streaming Multiprocessors', detail: 'The core clusters that perform shading and rasterization.' },
-                    { name: 'VRAM (Video RAM)', detail: 'High-bandwidth GDDR memory holding textures and framebuffers.' },
-                    { name: 'Tensor Cores', detail: 'Specialized for AI upscaling (like NVIDIA DLSS).' },
-                    { name: 'Ray Accelerators', detail: 'Hardware dedicated to calculating physical light intersections.' }
+                color: '#0098ff', w: 100, h: 100, 
+                desc: "The Graphics Processing Unit is a highly parallel processor optimized for pixel and geometry math.",
+                internals: [{ name: 'Streaming Multiprocessors', detail: 'Core clusters.' }, { name: 'VRAM', detail: 'High-bandwidth memory.' }],
+                processes: "Vertex Processing -> Rasterization -> Fragment Shading -> Output Merge",
+                subNodes: [
+                    { id: 'pcie_in', type: 'PCIe_IN', x: 0.1, y: 0.5 }, { id: 'vram', type: 'VRAM', x: 0.35, y: 0.8 }, 
+                    { id: 'core1', type: 'CORE', x: 0.4, y: 0.2 }, { id: 'core2', type: 'CORE', x: 0.6, y: 0.2 }, 
+                    { id: 'tex', type: 'TEX', x: 0.65, y: 0.8 }, { id: 'disp_out', type: 'DISP_OUT', x: 0.9, y: 0.5 }
                 ],
-                processes: "Vertex Processing -> Rasterization -> Fragment Shading -> Output Merge"
+                subWires: [
+                    ['pcie_in', 'vram'], ['pcie_in', 'core1'], ['vram', 'core1'], ['vram', 'core2'], 
+                    ['core1', 'tex'], ['core2', 'tex'], ['tex', 'disp_out']
+                ]
             },
             RAM: {
-                color: '#2ecc71', w: 70, h: 120, internals: ['Memory Banks', 'Capacitors', 'Controller'],
-                subNodes: [{ id: 'mctrl', type: 'MEM_CTRL', x: 0.5, y: 0.2 }, { id: 'b1', type: 'DRAM', x: 0.3, y: 0.6 }, { id: 'b2', type: 'DRAM', x: 0.7, y: 0.6 }],
-                subWires: [['mctrl', 'b1'], ['mctrl', 'b2']],
-                desc: "Random Access Memory. This is volatile workspace memory. It is incredibly fast but loses all data when power is cut. It holds the active OS and running application data. Without it, programs have nowhere to unpack themselves from the SSD.",
-                internals: [
-                    { name: 'DRAM Chips', detail: 'Billions of microscopic capacitors holding electrical charge (1s and 0s).' },
-                    { name: 'Memory Controller', detail: 'Manages the flow of data in and out of the DIMM sticks.' }
+                color: '#2ecc71', w: 80, h: 120, 
+                desc: "Random Access Memory. Volatile workspace memory holding the active OS and running application data.",
+                internals: [{ name: 'DRAM Chips', detail: 'Microscopic capacitors.' }, { name: 'Memory Controller', detail: 'Manages data flow.' }],
+                processes: "Row Activation -> Column Read/Write -> Precharge",
+                subNodes: [
+                    { id: 'bus_in', type: 'BUS_IN', x: 0.2, y: 0.2 }, { id: 'bus_out', type: 'BUS_OUT', x: 0.2, y: 0.8 },
+                    { id: 'mctrl', type: 'MEM_CTRL', x: 0.5, y: 0.5 }, { id: 'b1', type: 'DRAM', x: 0.8, y: 0.2 }, { id: 'b2', type: 'DRAM', x: 0.8, y: 0.8 }
                 ],
-                processes: "Row Activation -> Column Read/Write -> Precharge (Refresh)"
-
+                subWires: [['bus_in', 'mctrl'], ['mctrl', 'bus_out'], ['mctrl', 'b1'], ['mctrl', 'b2']]
             },
             DISP: {
-                color: '#00ffff', w: 80, h: 60, internals: ['LCD Matrix', 'TCON'],
-                subNodes: [{ id: 'tcon', type: 'TCON', x: 0.2, y: 0.5 }, { id: 'pxl', type: 'PIXELS', x: 0.7, y: 0.5 }],
-                subWires: [['tcon', 'pxl']],
-                desc: "The Monitor/Display. It translates the digital framebuffer generated by the GPU into physical photons you can see. If disconnected, the software continues to run invisibly (headless mode).",
-                internals: [
-                    { name: 'Pixel Matrix (LCD/OLED)', detail: 'The physical grid of Red, Green, and Blue subpixels.' },
-                    { name: 'TCON (Timing Controller)', detail: 'Translates the GPU video signal into row/column pixel updates.' }
-                ],
-                processes: "Signal Decoding -> Frame Buffering -> Refresh Rate Scanout"
-
+                color: '#00ffff', w: 80, h: 60, 
+                desc: "The Monitor/Display translates the digital framebuffer into physical photons.",
+                internals: [{ name: 'Pixel Matrix', detail: 'RGB subpixels.' }, { name: 'TCON', detail: 'Timing Controller.' }],
+                processes: "Signal Decoding -> Frame Buffering -> Refresh Rate Scanout",
+                subNodes: [{ id: 'dp_in', type: 'DP_IN', x: 0.2, y: 0.5 }, { id: 'tcon', type: 'TCON', x: 0.5, y: 0.5 }, { id: 'pxl', type: 'PIXELS', x: 0.8, y: 0.5 }],
+                subWires: [['dp_in', 'tcon'], ['tcon', 'pxl']]
             },
             KBD: {
-                color: '#e74c3c', w: 70, h: 50, internals: ['Key Matrix', 'USB IC'],
-                subNodes: [{ id: 'mat', type: 'MATRIX', x: 0.3, y: 0.5 }, { id: 'usb', type: 'USB_IC', x: 0.7, y: 0.5 }],
-                subWires: [['mat', 'usb']],
-                desc: "Input Peripherals (Keyboard/Mouse). These send hardware interrupts to the CPU, demanding immediate attention to process user actions. Without them, simulations run but cannot be interacted with.",
-                internals: [
-                    { name: 'Microcontroller', detail: 'Scans the key matrix to detect physical button presses.' },
-                    { name: 'USB Interface', detail: 'Serializes the keystroke data to send to the motherboard.' }
-                ],
-                processes: "Matrix Scan -> Debounce -> USB Interrupt Generation"
-
+                color: '#e74c3c', w: 80, h: 50, 
+                desc: "Input Peripherals (Keyboard/Mouse) send hardware interrupts to the CPU.",
+                internals: [{ name: 'Microcontroller', detail: 'Scans the key matrix.' }, { name: 'USB Interface', detail: 'Serializes keystroke data.' }],
+                processes: "Matrix Scan -> Debounce -> USB Interrupt",
+                subNodes: [{ id: 'mat', type: 'MATRIX', x: 0.2, y: 0.5 }, { id: 'usb', type: 'USB_IC', x: 0.5, y: 0.5 }, { id: 'usb_out', type: 'USB_OUT', x: 0.8, y: 0.5 }],
+                subWires: [['mat', 'usb'], ['usb', 'usb_out']]
             },
             DISK: {
-                color: '#9b59b6', w: 70, h: 100, internals: ['NAND Flash', 'DRAM Cache'],
-                subNodes: [{ id: 'fctrl', type: 'FLASH_CTRL', x: 0.5, y: 0.2 }, { id: 'dcache', type: 'CACHE', x: 0.8, y: 0.2 }, { id: 'nand1', type: 'NAND', x: 0.5, y: 0.7 }],
-                subWires: [['fctrl', 'dcache'], ['fctrl', 'nand1']],
-                desc: "Solid State Drive (SSD). Non-volatile memory that retains data without power. It is significantly slower than RAM, but holds terabytes of data. Required to boot software into RAM.",
-                internals: [
-                    { name: 'NAND Flash Memory', detail: 'The physical cells where data is trapped using floating-gate transistors.' },
-                    { name: 'Flash Controller', detail: 'A mini-CPU that manages wear-leveling and data retrieval.' },
-                    { name: 'DRAM Cache', detail: 'A small chip on the SSD to map where files are located quickly.' }
+                color: '#9b59b6', w: 80, h: 100, 
+                desc: "Solid State Drive (SSD). Non-volatile memory that retains data without power.",
+                internals: [{ name: 'NAND Flash', detail: 'Floating-gate transistors.' }, { name: 'Flash Controller', detail: 'Manages wear-leveling.' }],
+                processes: "Page Read/Write -> Block Erase -> Garbage Collection",
+                subNodes: [
+                    { id: 'pcie_in', type: 'PCIe_IN', x: 0.2, y: 0.2 }, { id: 'pcie_out', type: 'PCIe_OUT', x: 0.2, y: 0.8 },
+                    { id: 'fctrl', type: 'FLASH_CTRL', x: 0.5, y: 0.5 }, { id: 'dcache', type: 'CACHE', x: 0.8, y: 0.2 }, { id: 'nand', type: 'NAND', x: 0.8, y: 0.8 }
                 ],
-                processes: "Page Read/Write -> Block Erase -> Garbage Collection"
-
-            },
-            CLK: {
-                color: '#f1c40f', w: 40, h: 40,
-                desc: "The System Clock provides the rhythmic heartbeat that synchronizes all components on the motherboard. It dictates the speed at which the CPU executes instructions.",
-                internals: [{ name: 'Quartz Crystal', detail: 'Vibrates at a precise frequency when voltage is applied.' }, { name: 'Clock Generator', detail: 'Multiplies the base frequency to achieve gigahertz speeds.' }],
-                processes: "Oscillation -> Frequency Multiplication -> Signal Distribution"
+                subWires: [['pcie_in', 'fctrl'], ['fctrl', 'pcie_out'], ['fctrl', 'dcache'], ['fctrl', 'nand']]
             },
             DMA: {
-                color: '#e84393', w: 60, h: 50,
-                desc: "Direct Memory Access (DMA) allows hardware subsystems to access system memory independently of the CPU, massively freeing up CPU cycles during large file transfers.",
-                internals: [{ name: 'DMA Controller', detail: 'Negotiates control of the memory bus with the CPU.' }, { name: 'Address Registers', detail: 'Tracks the source and destination of the data block.' }],
+                color: '#e84393', w: 70, h: 50, 
+                desc: "Direct Memory Access allows hardware to access RAM independently of the CPU.",
+                internals: [{ name: 'DMA Controller', detail: 'Negotiates memory bus control.' }],
                 processes: "Bus Request -> CPU Grant -> Block Transfer -> Interrupt",
-                subNodes: [{ id: 'deng', type: 'DMA_ENG', x: 0.5, y: 0.5 }], subWires: []
+                subNodes: [{ id: 'req_in', type: 'REQ_IN', x: 0.2, y: 0.5 }, { id: 'deng', type: 'DMA_ENG', x: 0.5, y: 0.5 }, { id: 'bus_out', type: 'BUS_OUT', x: 0.8, y: 0.5 }],
+                subWires: [['req_in', 'deng'], ['deng', 'bus_out']]
             },
             AUDIO: {
-                color: '#e67e22', w: 70, h: 60,
-                desc: "The Audio Codec processes digital sound data from the CPU/RAM and converts it into physical analog waveforms to drive speakers or headphones.",
-                internals: [{ name: 'DAC (Digital to Analog)', detail: 'Translates binary values into voltage levels.' }, { name: 'Op-Amp', detail: 'Boosts the weak analog signal to drive physical speaker magnets.' }],
+                color: '#e67e22', w: 80, h: 60, 
+                desc: "The Audio Codec processes digital sound data and converts it into analog waveforms.",
+                internals: [{ name: 'DAC', detail: 'Digital to Analog Converter.' }, { name: 'Op-Amp', detail: 'Boosts analog signal.' }],
                 processes: "PCM Decoding -> D/A Conversion -> Amplification",
-                subNodes: [{ id: 'dac', type: 'DAC', x: 0.3, y: 0.5 }, { id: 'amp', type: 'AMP', x: 0.7, y: 0.5 }],
-                subWires: [['dac', 'amp']]
+                subNodes: [{ id: 'bus_in', type: 'BUS_IN', x: 0.2, y: 0.5 }, { id: 'dac', type: 'DAC', x: 0.5, y: 0.5 }, { id: 'amp', type: 'AMP', x: 0.7, y: 0.5 }, { id: 'spk_out', type: 'SPK_OUT', x: 0.9, y: 0.5 }],
+                subWires: [['bus_in', 'dac'], ['dac', 'amp'], ['amp', 'spk_out']]
             },
             NIC: {
-                color: '#1abc9c', w: 70, h: 70,
-                desc: "The Network Interface Card translates local data into packets formatted for transmission over Ethernet or Wi-Fi, handling the complexities of the TCP/IP stack.",
-                internals: [{ name: 'MAC (Media Access Control)', detail: 'Frames data and handles physical addressing.' }, { name: 'PHY / Radio', detail: 'Encodes bits into electrical pulses or radio waves.' }],
-                processes: "Data Encapsulation -> MAC Framing -> Modulation -> Transmission",
-                subNodes: [{ id: 'mac', type: 'MAC', x: 0.3, y: 0.5 }, { id: 'rad', type: 'RADIO', x: 0.7, y: 0.5 }],
-                subWires: [['mac', 'rad']]
+                color: '#1abc9c', w: 80, h: 70, 
+                desc: "The Network Interface Card translates local data into packets for Ethernet or Wi-Fi.",
+                internals: [{ name: 'MAC', detail: 'Handles physical addressing.' }, { name: 'Radio', detail: 'Encodes bits into EM waves.' }],
+                processes: "Data Encapsulation -> Framing -> Modulation -> Transmission",
+                subNodes: [
+                    { id: 'pcie_in', type: 'PCIe_IN', x: 0.2, y: 0.3 }, { id: 'pcie_out', type: 'PCIe_OUT', x: 0.2, y: 0.7 },
+                    { id: 'mac', type: 'MAC', x: 0.5, y: 0.5 }, { id: 'rad', type: 'RADIO', x: 0.8, y: 0.5 }
+                ],
+                subWires: [['pcie_in', 'mac'], ['mac', 'pcie_out'], ['mac', 'rad']]
             },
 
             // --- Micro-Level Chip Definitions ---
-            // --- Micro-Level Chip Definitions ---
-            CU: { color: '#e74c3c', w: 50, h: 50, desc: "The Control Unit orchestrates the processor. It reads instructions from memory, decodes them, and routes data to the correct execution units.", processes: "Fetch -> Decode -> Dispatch", internals: [{ name: 'Instruction Decoder', detail: 'Translates opcodes into micro-operations.' }] },
-            ALU: { color: '#f39c12', w: 60, h: 70, desc: "The Arithmetic Logic Unit performs all mathematical and bitwise operations. It is the calculator at the heart of the CPU.", processes: "Receive Operands -> Execute Math -> Output Flag", internals: [{ name: 'Adders/Multipliers', detail: 'Logic gates arranged to calculate sums.' }] },
-            REG: { color: '#9b59b6', w: 40, h: 70, desc: "Registers are the fastest, smallest memory locations in the system. They hold the immediate data the ALU is currently calculating.", processes: "Write Value -> Hold -> Read Value", internals: [{ name: 'Flip-Flops', detail: 'Bistable circuits holding a single bit of state.' }] },
-            CACHE: { color: '#2ecc71', w: 50, h: 40, desc: "SRAM Cache acts as a high-speed buffer between the ultra-fast CPU and the slower system RAM, storing frequently accessed data.", processes: "Tag Check -> Hit/Miss -> Fetch", internals: [{ name: 'SRAM Cells', detail: '6-transistor memory cells requiring no refresh.' }] },
-            RAM_WRITE: { color: '#2ecc71', w: 70, h: 30, desc: "The Memory Write Buffer temporarily holds data evicted from the CPU Cache before it is pushed across the system bus to RAM.", processes: "Buffer Data -> Await Bus -> Transmit", internals: [{ name: 'TX Buffer', detail: 'Queue for outgoing memory blocks.' }] },
-            RAM_READ: { color: '#2ecc71', w: 70, h: 30, desc: "The Memory Read Buffer catches incoming data fetched from system RAM before it is loaded into the CPU's internal Cache.", processes: "Await Data -> Receive Block -> Load to Cache", internals: [{ name: 'RX Buffer', detail: 'Queue for incoming memory blocks.' }] },
-            PCIe_OUT: { color: '#0098ff', w: 70, h: 30, desc: "The PCIe Root Complex manages the high-speed serial lanes connecting the CPU to bandwidth-heavy devices like the GPU and NVMe SSD.", processes: "Packetize -> Serialize -> Transmit", internals: [{ name: 'Lane Transceivers', detail: 'Differential signaling pairs for data transmission.' }] },
-            VRAM: { color: '#2ecc71', w: 50, h: 80, desc: "Video RAM stores the textures, geometry, and framebuffers required by the GPU cores to render a 3D scene.", processes: "Block Read -> Texture Filter -> Framebuffer Write", internals: [{ name: 'GDDR Modules', detail: 'High-bandwidth dual-data-rate memory.' }] },
-            CORE: { color: '#0098ff', w: 40, h: 40, desc: "A GPU Compute Core (Streaming Multiprocessor) applies the same mathematical operation to hundreds of pixels or vertices simultaneously.", processes: "Thread Dispatch -> SIMD Execution -> Output", internals: [{ name: 'ALU Clusters', detail: 'Thousands of simple math units running in parallel.' }] },
-            TEX: { color: '#e67e22', w: 40, h: 40, desc: "The Texture Mapping Unit samples 2D image data from VRAM and wraps it around 3D geometry, applying filtering and mipmapping.", processes: "Calculate Coordinates -> Fetch Texel -> Filter", internals: [{ name: 'Address Generator', detail: 'Calculates UV mapping coordinates.' }] },
-            MEM_CTRL: { color: '#f39c12', w: 60, h: 40, desc: "The Memory Controller receives addresses from the CPU and translates them into physical Row and Column commands for the DRAM chips.", processes: "Decode Address -> Activate Row -> Read/Write", internals: [{ name: 'Command Queue', detail: 'Schedules optimal memory access patterns.' }] },
-            DRAM: { color: '#2ecc71', w: 50, h: 60, desc: "A DRAM Bank consists of a massive grid of microscopic capacitors. Because they leak charge, they must be constantly refreshed.", processes: "Activate -> Sense Amp -> Precharge", internals: [{ name: 'Capacitor Grid', detail: 'Stores bits as electrical charge levels.' }] },
-            TCON: { color: '#f39c12', w: 40, h: 60, desc: "The Timing Controller receives the raw digital video signal from the GPU and dictates exactly when each pixel on the screen should change color.", processes: "Decode Signal -> Sync -> Drive Panel", internals: [{ name: 'Sync Generator', detail: 'Maintains V-Sync and H-Sync.' }] },
-            PIXELS: { color: '#00ffff', w: 60, h: 60, desc: "The physical LCD or OLED panel matrix. Millions of Red, Green, and Blue subpixels adjusting brightness to form a coherent image.", processes: "Receive Voltage -> Adjust Liquid Crystal -> Pass Light", internals: [{ name: 'Subpixel Matrix', detail: 'Physical RGB color filters.' }] },
-            MATRIX: { color: '#e74c3c', w: 50, h: 50, desc: "The physical keyboard matrix. Pressing a key completes a circuit, allowing the microcontroller to determine exactly which key was struck.", processes: "Scan Columns -> Detect Row -> Debounce", internals: [{ name: 'Membrane Switches', detail: 'Physical contact points under keys.' }] },
-            USB_IC: { color: '#f39c12', w: 40, h: 40, desc: "The USB Interface converts the raw keypress data into a standardized USB packet format and interrupts the CPU to deliver it.", processes: "Encode Packet -> Interrupt -> Transmit", internals: [{ name: 'Serial Interface', detail: 'Converts parallel key data into a serial bitstream.' }] },
-            FLASH_CTRL: { color: '#f39c12', w: 60, h: 40, desc: "The Flash Controller is a miniature processor that manages wear-leveling, garbage collection, and maps logical sectors to physical NAND pages.", processes: "Receive Request -> Map Address -> Execute", internals: [{ name: 'FTL (Flash Translation Layer)', detail: 'Maps OS sectors to physical blocks.' }] },
-            NAND: { color: '#9b59b6', w: 60, h: 60, desc: "NAND Flash chips trap electrons inside floating gate transistors to store data persistently even when power is turned off.", processes: "Erase Block -> Program Page -> Read Page", internals: [{ name: 'Floating Gates', detail: 'Transistors that hold charge without power.' }] },
-            DMA_ENG: { color: '#e84393', w: 50, h: 50, desc: "The DMA Engine takes over the system bus from the CPU to stream massive chunks of data directly from the SSD to RAM.", processes: "Request Bus -> Stream Data -> Release Bus", internals: [{ name: 'Transfer Counters', detail: 'Tracks remaining bytes in the payload.' }] },
-            DAC: { color: '#f39c12', w: 40, h: 40, desc: "The Digital-to-Analog Converter translates binary sound files (like MP3s) into smooth, continuous analog voltage waves.", processes: "Receive PCM -> Convert to Voltage -> Smooth", internals: [{ name: 'Resistor Ladder', detail: 'Converts discrete bits to continuous voltage.' }] },
-            AMP: { color: '#e67e22', w: 40, h: 40, desc: "The Amplifier boosts the extremely weak analog signal from the DAC so that it has enough electrical power to push the physical magnets in your speakers.", processes: "Receive Signal -> Multiply Voltage -> Output to Speaker", internals: [{ name: 'Transistors', detail: 'Uses PSU power to boost signal amplitude.' }] },
-            MAC: { color: '#f39c12', w: 40, h: 50, desc: "The Media Access Control layer wraps raw data payloads into standardized network packets, adding source and destination IP/MAC addresses.", processes: "Encapsulate -> Add Headers -> CRC Check", internals: [{ name: 'Framer', detail: 'Constructs the Ethernet or Wi-Fi packet.' }] },
-            RADIO: { color: '#1abc9c', w: 40, h: 50, desc: "The Physical (PHY) layer translates the digital packets into high-frequency analog radio waves (Wi-Fi) or electrical pulses (Ethernet).", processes: "Modulate -> Amplify -> Transmit/Receive", internals: [{ name: 'Antenna / Transceiver', detail: 'Broadcasts and listens for EM waves.' }] },
+            CU: { color: '#e74c3c', w: 50, h: 50, desc: "The Control Unit orchestrates the processor.", processes: "Fetch -> Decode -> Dispatch", internals: [{name: 'Instruction Decoder', detail: 'Translates opcodes.'}] },
+            ALU: { color: '#f39c12', w: 50, h: 60, desc: "The Arithmetic Logic Unit performs math.", processes: "Receive -> Execute -> Output", internals: [{name: 'Adders', detail: 'Logic gates.'}] },
+            REG: { color: '#9b59b6', w: 40, h: 60, desc: "Registers are the fastest memory locations.", processes: "Write -> Hold -> Read", internals: [{name: 'Flip-Flops', detail: 'Bistable circuits.'}] },
+            CACHE: { color: '#2ecc71', w: 50, h: 40, desc: "SRAM Cache acts as a high-speed buffer.", processes: "Tag Check -> Hit/Miss -> Fetch", internals: [{name: 'SRAM Cells', detail: '6-transistor memory.'}] },
+            VRAM: { color: '#2ecc71', w: 50, h: 60, desc: "Video RAM stores textures and framebuffers.", processes: "Block Read -> Write", internals: [{name: 'GDDR', detail: 'High-bandwidth memory.'}] },
+            CORE: { color: '#0098ff', w: 40, h: 40, desc: "GPU Compute Core.", processes: "SIMD Execution", internals: [{name: 'ALU Clusters', detail: 'Parallel math units.'}] },
+            TEX: { color: '#e67e22', w: 40, h: 40, desc: "Texture Mapping Unit.", processes: "Calculate UV -> Fetch", internals: [{name: 'Address Generator', detail: 'Maps 2D to 3D.'}] },
+            MEM_CTRL: { color: '#f39c12', w: 60, h: 40, desc: "The Memory Controller manages DRAM chips.", processes: "Decode Address -> Read/Write", internals: [{name: 'Command Queue', detail: 'Schedules access.'}] },
+            DRAM: { color: '#2ecc71', w: 50, h: 50, desc: "A DRAM Bank.", processes: "Activate -> Precharge", internals: [{name: 'Capacitor Grid', detail: 'Stores charge.'}] },
+            TCON: { color: '#f39c12', w: 40, h: 50, desc: "Timing Controller.", processes: "Decode Signal -> Drive Panel", internals: [{name: 'Sync Generator', detail: 'V-Sync/H-Sync.'}] },
+            PIXELS: { color: '#00ffff', w: 50, h: 50, desc: "LCD/OLED panel matrix.", processes: "Adjust Liquid Crystal", internals: [{name: 'Subpixels', detail: 'RGB filters.'}] },
+            MATRIX: { color: '#e74c3c', w: 40, h: 40, desc: "Keyboard matrix.", processes: "Scan Columns", internals: [{name: 'Membrane', detail: 'Physical contacts.'}] },
+            USB_IC: { color: '#f39c12', w: 40, h: 40, desc: "USB Interface.", processes: "Encode Packet -> Transmit", internals: [{name: 'Serial Interface', detail: 'Bitstream conversion.'}] },
+            FLASH_CTRL: { color: '#f39c12', w: 60, h: 40, desc: "Flash Controller.", processes: "Map Address -> Execute", internals: [{name: 'FTL', detail: 'Flash Translation Layer.'}] },
+            NAND: { color: '#9b59b6', w: 50, h: 50, desc: "NAND Flash chips.", processes: "Erase -> Program -> Read", internals: [{name: 'Floating Gates', detail: 'Traps electrons.'}] },
+            DMA_ENG: { color: '#e84393', w: 50, h: 50, desc: "DMA Engine.", processes: "Request Bus -> Stream", internals: [{name: 'Transfer Counters', detail: 'Tracks bytes.'}] },
+            DAC: { color: '#f39c12', w: 40, h: 40, desc: "Digital-to-Analog Converter.", processes: "Receive PCM -> Voltage", internals: [{name: 'Resistor Ladder', detail: 'Discrete to continuous.'}] },
+            AMP: { color: '#e67e22', w: 40, h: 40, desc: "Amplifier.", processes: "Multiply Voltage", internals: [{name: 'Transistors', detail: 'Boosts signal.'}] },
+            MAC: { color: '#f39c12', w: 40, h: 40, desc: "Media Access Control.", processes: "Encapsulate -> CRC Check", internals: [{name: 'Framer', detail: 'Constructs packet.'}] },
+            RADIO: { color: '#1abc9c', w: 40, h: 40, desc: "Physical PHY layer.", processes: "Modulate -> Transmit", internals: [{name: 'Antenna', detail: 'Broadcasts EM waves.'}] },
+            OSC: { color: '#f1c40f', w: 40, h: 40, desc: "Crystal Oscillator.", processes: "Vibrate", internals: [{name: 'Quartz', detail: 'Piezoelectric material.'}] },
+            
+            // --- NEW I/O PINS ---
+            CLK_OUT: { color: '#f1c40f', w: 60, h: 30, desc: "Clock Output Pin.", processes: "Distribute Signal", internals: [{name: 'Clock Multiplier', detail: 'Steps up frequency.'}] },
+            PCIe_IN: { color: '#0098ff', w: 60, h: 30, desc: "PCIe Receiver RX.", processes: "Deserialize -> Buffer", internals: [{name: 'RX Lanes', detail: 'Differential pairs.'}] },
+            PCIe_OUT: { color: '#0098ff', w: 60, h: 30, desc: "PCIe Transmitter TX.", processes: "Serialize -> Transmit", internals: [{name: 'TX Lanes', detail: 'Differential pairs.'}] },
+            BUS_IN: { color: '#e67e22', w: 60, h: 30, desc: "System Bus Receiver.", processes: "Latch Data", internals: [{name: 'Input Buffer', detail: 'Receives parallel data.'}] },
+            BUS_OUT: { color: '#e67e22', w: 60, h: 30, desc: "System Bus Transmitter.", processes: "Drive Bus", internals: [{name: 'Output Buffer', detail: 'Drives parallel data.'}] },
+            RAM_WRITE: { color: '#2ecc71', w: 60, h: 30, desc: "Memory Write Controller.", processes: "Buffer -> TX", internals: [{name: 'Write Queue', detail: 'Holds outgoing data.'}] },
+            RAM_READ: { color: '#2ecc71', w: 60, h: 30, desc: "Memory Read Controller.", processes: "RX -> Cache", internals: [{name: 'Read Queue', detail: 'Holds incoming data.'}] },
+            DP_IN: { color: '#00ffff', w: 60, h: 30, desc: "DisplayPort / HDMI In.", processes: "Receive Video Stream", internals: [{name: 'Decoder', detail: 'Unpacks video signal.'}] },
+            DISP_OUT: { color: '#00ffff', w: 60, h: 30, desc: "DisplayPort / HDMI Out.", processes: "Encode Video Stream", internals: [{name: 'Encoder', detail: 'Packs video signal.'}] },
+            USB_OUT: { color: '#e74c3c', w: 60, h: 30, desc: "USB Transmitter.", processes: "Send Interrupt", internals: [{name: 'TX Buffer', detail: 'Sends serialized data.'}] },
+            SPK_OUT: { color: '#e67e22', w: 60, h: 30, desc: "Analog Speaker Out.", processes: "Drive Magnets", internals: [{name: 'Audio Jack', detail: 'Physical analog connection.'}] },
+            REQ_IN: { color: '#e84393', w: 60, h: 30, desc: "DMA Request Line.", processes: "Receive Request", internals: [{name: 'Interrupt Pin', detail: 'Triggers DMA.'}] },
             MOTHERBOARD: {
                 color: '#aaa', w: 0, h: 0,
                 desc: "The Mainboard / Printed Circuit Board (PCB). It is the physical nervous system of the computer. It provides power delivery and data pathways (Buses) allowing all disparate components to communicate.",
@@ -1765,10 +1769,7 @@
             );
             if (clicked) { unlockAchievement('deep_dive'); openModal(clicked.type); }
         });
-        window.addEventListener('mouseup', () => {
-            mbCanvas.onmousemove = null;
-            if (typeof checkHardware === 'function') checkHardware();
-        });
+        
 
         const tooltip = document.getElementById('tooltip');
         mbCanvas.addEventListener('mousemove', e => {
@@ -1908,13 +1909,12 @@
             }
         });
 
-
-
         window.addEventListener('mouseup', () => {
             isDraggingCam = false;
-            wiringStartNode = null;
             draggingNode = null;
+            if (typeof checkHardware === 'function') checkHardware();
         });
+
 
         // MODULAR OPERATING SYSTEM & APPS
         const gameCanvas = document.getElementById('game-canvas');
