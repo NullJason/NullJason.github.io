@@ -16,7 +16,6 @@
             overflow: hidden;
         }
 
-        /* 1. Fix Header Flattening */
         #top-header {
             height: 50px;
             background: #222;
@@ -24,15 +23,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            /* Fixes left-right alignment */
             padding: 0 20px;
             box-sizing: border-box;
             flex-shrink: 0;
-            /* PREVENTS FLATTENING */
             z-index: 100;
         }
 
-        /* 2. Wrapper layout */
         #tab-content-wrapper {
             display: flex;
             flex-grow: 1;
@@ -41,7 +37,6 @@
             position: relative;
         }
 
-        /* 3. Fix Monitor Scrolling */
         #monitor-panel {
             flex: 1.2;
             min-width: 400px;
@@ -52,10 +47,8 @@
             padding: 20px;
             box-sizing: border-box;
             overflow-y: auto;
-            /* ALLOWS SCROLLING TO THE CODER */
         }
 
-        /* 4. Fix Buying Guide Overlay */
         #guide-container {
             display: none;
             width: 100%;
@@ -68,10 +61,8 @@
             top: 0;
             left: 0;
             z-index: 50;
-            /* Fits perfectly inside the wrapper */
         }
 
-        /* 5. Info Modal CSS (Step 5) */
         #modal-overlay {
             position: fixed;
             top: 0;
@@ -118,6 +109,233 @@
             font-size: 15px;
         }
 
+        .visual-block {
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+            margin-bottom: 8px;
+            background: #1e252d;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            transition: 0.2s;
+        }
+
+        .visual-block:hover {
+            background: #232a33;
+        }
+
+        .block-children {
+            min-height: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            margin-left: 15px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .visual-block input,
+        .visual-block select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #444;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .visual-block input:focus,
+        .visual-block select:focus {
+            border-color: #0098ff;
+            background: rgba(0, 152, 255, 0.1);
+        }
+
+        .visual-block input::placeholder {
+            color: #888;
+            font-style: italic;
+        }
+
+        #draw-context-menu {
+            position: absolute;
+            background: #1a1c23;
+            border: 1px solid #0098ff;
+            padding: 5px;
+            border-radius: 6px;
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 200;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+        }
+
+        #draw-context-menu button {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            text-align: left;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        #draw-context-menu button:hover {
+            background: #0098ff;
+        }
+
+        #custom-confirm {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .confirm-box {
+            background: #1a1c23;
+            border: 1px solid #c0392b;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+        }
+
+        .achievements-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            margin-top: 40px;
+        }
+
+        .currency-box {
+            background: #f1c40f;
+            color: #111;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 900;
+            font-size: 18px;
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.4);
+        }
+
+        .ach-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            align-items: start;
+        }
+
+        .ach-card {
+            background: #1a1c23;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            transition: 0.3s;
+            position: relative;
+            overflow: visible;
+            /* Changed to visible for dropdown */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            cursor: default;
+            z-index: 1;
+        }
+
+        .ach-card.locked {
+            opacity: 0.6;
+            filter: grayscale(100%);
+        }
+
+        .ach-card.unlocked {
+            border-color: #2ecc71;
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.15);
+            background: linear-gradient(145deg, #1a1c23, #152219);
+        }
+
+        .ach-title {
+            font-size: 18px;
+            font-weight: 900;
+            color: #fff;
+            margin: 0;
+        }
+
+        .ach-tip {
+            font-size: 12px;
+            color: #aaa;
+            font-style: italic;
+            margin: 0;
+        }
+
+        /* The Pop-out Description */
+        .ach-desc {
+            font-size: 14px;
+            color: #2ecc71;
+            margin: 0;
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: -1px;
+            width: calc(100% + 2px);
+            background: linear-gradient(145deg, #152219, #1a1c23);
+            border: 1px solid #2ecc71;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            padding: 15px;
+            box-sizing: border-box;
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.9);
+            z-index: 20;
+        }
+
+        .ach-card:hover {
+            transform: translateY(-5px);
+            z-index: 10;
+        }
+
+        .ach-card.unlocked:hover {
+            border-radius: 8px 8px 0 0;
+            z-index: 20;
+        }
+
+        .ach-card.unlocked:hover .ach-desc {
+            display: block;
+        }
+
+        details.ide-dict {
+            background: #1a1c23;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        details.ide-dict summary {
+            color: #0098ff;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+        }
+
+        details.ide-dict ul {
+            padding-left: 20px;
+            margin-bottom: 0;
+        }
+
+        details.ide-dict li {
+            margin-bottom: 5px;
+        }
+
         .schematic-graphic {
             width: 100%;
             height: 150px;
@@ -134,13 +352,11 @@
             letter-spacing: 2px;
         }
 
-        /* --- NEW: Collapsible Palette CSS --- */
         #palette {
             position: absolute;
             top: 10px;
             left: 10px;
             background: rgba(20, 22, 28, 0.3);
-            /* Transparent when collapsed */
             padding: 10px;
             border-radius: 8px;
             border: 1px solid #444;
@@ -149,7 +365,6 @@
             flex-wrap: wrap;
             width: 44px;
             height: 44px;
-            /* Small equilateral box */
             overflow: hidden;
             z-index: 10;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -183,7 +398,6 @@
             background: rgba(20, 22, 28, 0.95);
             width: 300px;
             height: 160px;
-            /* Expanded size */
             cursor: default;
         }
 
@@ -266,21 +480,217 @@
             width: 100%;
             box-sizing: border-box;
         }
+
+        #guide-container,
+        #ach-container,
+        #controls-container {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: #0f1115;
+            padding: 40px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 50;
+        }
+
+        #custom-toast {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1c23;
+            border: 2px solid #2ecc71;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            padding: 15px 30px;
+            border-radius: 50px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        #custom-toast.show {
+            top: 20px;
+        }
+
+        #toast-title {
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .waving-text span {
+            display: inline-block;
+            font-size: 20px;
+            font-weight: 900;
+            animation: wave 1s infinite ease-in-out;
+        }
+
+        @keyframes wave {
+
+            0%,
+            100% {
+                transform: translateY(0);
+                color: #00ffff;
+                text-shadow: 0 0 10px #00ffff;
+            }
+
+            50% {
+                transform: translateY(-8px);
+                color: #ff00ff;
+                text-shadow: 0 0 10px #ff00ff;
+            }
+        }
+
+        .ide-palette-btn {
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: grab;
+            font-weight: bold;
+        }
+
+        .ide-palette-btn:active {
+            cursor: grabbing;
+        }
+
+        #ach-container>div,
+        #controls-container>div {
+            margin-top: 60px;
+            /* Fixes overlapping header */
+        }
+
+        #fx-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9998;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        #custom-toast {
+            position: fixed;
+            top: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1c23;
+            border: 2px solid #2ecc71;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+            padding: 20px 40px;
+            border-radius: 12px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        #custom-toast.show {
+            top: 40px;
+        }
+
+        #toast-title {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+
+        .dynamic-text span {
+            display: inline-block;
+            font-weight: 900;
+        }
+
+        @keyframes floatText {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes shakeText {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-3px);
+            }
+
+            75% {
+                transform: translateX(3px);
+            }
+        }
     </style>
 </head>
 
 <body>
-
+    <div id="fx-overlay"></div>
+    <div id="custom-toast">
+        <div id="toast-title">Notification</div>
+        <div id="toast-msg" class="waving-text"></div>
+    </div>
+    <div id="custom-confirm">
+        <div class="confirm-box">
+            <h3 style="color: #e74c3c; margin-top: 0; font-size: 24px;">SYSTEM RESET</h3>
+            <p style="color: #ccc; margin-bottom: 25px; font-size: 16px;">Are you sure you want to restore all hardware
+                and software to factory defaults?</p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button id="btn-confirm-yes"
+                    style="background: #c0392b; color: white; font-weight: bold; padding: 10px 20px; font-size: 14px;">Yes,
+                    Purge System</button>
+                <button id="btn-confirm-no"
+                    style="background: #333; color: white; font-weight: bold; padding: 10px 20px; font-size: 14px;">Cancel</button>
+            </div>
+        </div>
+    </div>
     <div id="top-header">
         <div style="display: flex; align-items: center; gap: 20px;">
             <h2 style="margin: 0; color: #0098ff; font-weight: bold;">MAVE Macro-Architecture</h2>
 
             <div id="nav-tabs" style="display: flex; gap: 10px;">
-                <button id="tab-sim"
+                <button id="tab-sim" class="sys-tab"
                     style="background: #333; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; border-bottom: 2px solid #0098ff; font-weight: bold;">Simulator</button>
-                <button id="tab-guide"
+                <button id="tab-guide" class="sys-tab"
                     style="background: transparent; color: #aaa; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">Buying
-                    Components</button>
+                    Guide</button>
+                <button id="tab-ach" class="sys-tab"
+                    style="background: transparent; color: #aaa; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">Discovered</button>
+                <button id="tab-controls" class="sys-tab"
+                    style="background: transparent; color: #aaa; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold;">Controls</button>
             </div>
         </div>
 
@@ -392,13 +802,12 @@
                             Full Game</button>
                     </div>
 
-                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+                        <input type="text" id="new-app-name" placeholder="New App Name..."
+                            style="background: #111; color: white; border: 1px solid #555; padding: 6px; border-radius: 4px; width: 120px;">
                         <button id="btn-add-app"
                             style="background: #9b59b6; padding: 6px 12px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold;">➕
-                            New Custom App</button>
-                        <button id="btn-edit-app"
-                            style="background: #f39c12; padding: 6px 12px; border: none; border-radius: 4px; color: white; display: none; cursor: pointer; font-weight: bold;">✏️
-                            Edit Logic</button>
+                            Add</button>
                         <button id="btn-edit-app"
                             style="background: #f39c12; padding: 6px 12px; border: none; border-radius: 4px; color: white; display: none; cursor: pointer; font-weight: bold;">✏️
                             Edit Logic</button>
@@ -414,36 +823,142 @@
                     <div id="custom-ide"
                         style="display: none; flex-direction: column; gap: 10px; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
                         <strong style="color: #3498db; font-size: 14px;">Visual Block Logic Builder</strong>
-                        <div style="font-size: 11px; color: #888;">Executes top-to-bottom every frame. Built-in vars: x,
-                            y, vx, vy.</div>
+
+                        <details class="ide-dict">
+                            <summary>Block Dictionary & Guide (Click to Expand)</summary>
+                            <ul>
+                                <li><strong>CLEAR SCREEN:</strong> Wipes the canvas. Must be the FIRST block to prevent
+                                    motion blur. (Args: color)</li>
+                                <li><strong>DRAW RECT / CIRCLE:</strong> Renders shapes. (Args: color, x, y,
+                                    width/height/radius)</li>
+                                <li><strong>DRAW TEXT:</strong> Renders strings. Text must be in quotes. (e.g.
+                                    <em>"Score: " + simData.score</em>)
+                                </li>
+                                <li><strong>SET VARIABLE:</strong> Assigns a value to memory. (e.g. Var:
+                                    <em>simData.score</em>, Value: <em>0</em>)
+                                </li>
+                                <li><strong>MATH CALC:</strong> Modifies variables dynamically. (e.g. Var:
+                                    <em>simData.vx</em>, Op: <em>*=</em>, Value: <em>-1</em>)
+                                </li>
+                                <li><strong>IF CONDITION:</strong> Runs nested blocks only if true. (e.g. <em>simData.x
+                                        > 400 || simData.x < 0</em>)</li>
+                                <li><strong>LOOP:</strong> Runs nested blocks a specific number of times per frame.
+                                    (Args: count)</li>
+                                <li><strong style="color: #f1c40f;">CREATE PHYSICS ENTITY:</strong> Spawns an advanced
+                                    object that automatically handles velocity, wall bouncing, and layer collisions!
+                                    (Args: id, layer, x, y, width, height, vx, vy)</li>
+                                <li><strong style="color: #f1c40f;">RENDER PHYSICS ENGINE:</strong> Required to
+                                    physically draw your spawned entities. Must be placed at the bottom! (Args: color)
+                                </li>
+                            </ul>
+                        </details>
+
                         <div class="code-blocks" id="block-container"
-                            style="background: #0a0a0c; padding: 10px; border-radius: 4px; border: 1px solid #333; min-height: 150px; display: flex; flex-direction: column; gap: 5px; max-height: 300px; overflow-y: auto;">
+                            style="background: #0a0a0c; padding: 10px; border-radius: 4px; border: 1px solid #333; min-height: 250px; display: flex; flex-direction: column; gap: 5px; max-height: 400px; overflow-y: auto;">
                         </div>
-                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                                <button onclick="addBlock('clearScreen')"
-                                    style="background: #34495e; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">+
-                                    Clear Screen</button>
-                                <button onclick="addBlock('drawRect')"
-                                    style="background: #27ae60; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">+
-                                    Draw Rect</button>
-                                <button onclick="addBlock('drawText')"
-                                    style="background: #8e44ad; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">+
-                                    Draw Text</button>
-                                <button onclick="addBlock('setVar')"
-                                    style="background: #d35400; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">+
-                                    Set Variable</button>
-                                <button onclick="addBlock('mathOp')"
-                                    style="background: #c0392b; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">+
-                                    Math Calc</button>
-                                <button onclick="addBlock('ifKey')"
-                                    style="background: #2980b9; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">+
-                                    If Key Pressed</button>
+
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap; padding-top: 5px;">
+                            <div class="ide-palette-btn" draggable="true"
+                                ondragstart="onDragStartNewBlock(event, 'clearScreen')"
+                                onclick="addBlock('clearScreen')" style="background: #34495e;">+ Clear</div>
+                            <div class="ide-palette-btn" draggable="true"
+                                ondragstart="onDragStartNewBlock(event, 'drawRect')" onclick="showDrawMenu(event)"
+                                oncontextmenu="showDrawMenu(event); return false;" style="background: #27ae60;">+ Draw
+                                (Right Click) ▾</div>
+                            <div class="ide-palette-btn" draggable="true"
+                                ondragstart="onDragStartNewBlock(event, 'setVar')" onclick="addBlock('setVar')"
+                                style="background: #d35400;">+ Variable</div>
+                            <div class="ide-palette-btn" draggable="true"
+                                ondragstart="onDragStartNewBlock(event, 'mathOp')" onclick="addBlock('mathOp')"
+                                style="background: #c0392b;">+ Math</div>
+                            <div class="ide-palette-btn" draggable="true"
+                                ondragstart="onDragStartNewBlock(event, 'ifCond')" onclick="addBlock('ifCond')"
+                                style="background: #2980b9;">+ If Condition</div>
+                            <div class="ide-palette-btn" draggable="true"
+                                ondragstart="onDragStartNewBlock(event, 'loop')" onclick="addBlock('loop')"
+                                style="background: #8e44ad;">+ Loop</div>
+                            <div class="ide-palette-btn" draggable="true"
+                                ondragstart="onDragStartNewBlock(event, 'addPhysicsObj')"
+                                onclick="addBlock('addPhysicsObj')" style="background: #f1c40f; color:#111;">+ Create
+                                Physics Entity</div>
+                            <div class="ide-palette-btn" draggable="true"
+                                ondragstart="onDragStartNewBlock(event, 'renderPhysics')"
+                                onclick="addBlock('renderPhysics')" style="background: #f1c40f; color:#111;">+ Render
+                                Physics Engine</div>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button id="btn-compile" style="background: #2980b9; flex-grow: 1;">Save & Compile
+                                App</button>
+                            <button onclick="togglePhysicsPanel()" style="background: #e67e22;">⚙️ Physics &
+                                Layers</button>
+                        </div>
+
+                        <div id="physics-panel"
+                            style="display: none; background: #1a1c23; padding: 15px; border: 1px solid #e67e22; border-radius: 6px; margin-top: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong style="color: #e67e22; font-size: 14px;">Engine Physics Configuration</strong>
+                                <button onclick="togglePhysicsInfo()"
+                                    style="background: rgba(230,126,34,0.1); color: #e67e22; border: 1px solid #e67e22; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: 0.2s;"
+                                    onmouseover="this.style.background='#e67e22'; this.style.color='#111';"
+                                    onmouseout="this.style.background='rgba(230,126,34,0.1)'; this.style.color='#e67e22';">?</button>
                             </div>
+
+                            <div id="physics-info-panel"
+                                style="display: none; background: #15171e; padding: 12px; border-radius: 6px; margin-top: 10px; border-left: 3px solid #e67e22; font-size: 12px; color: #bbb; line-height: 1.5; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);">
+                                <strong style="color:#0098ff;">Wall Boundaries:</strong> Limits where objects can move.
+                                Default is the physical screen (0, 0, 400, 300). Alter these to create off-screen
+                                buffers or tight arenas.<br><br>
+                                <strong style="color:#0098ff;">Collision Matrix:</strong> Defines which layers bounce
+                                off each other. Add layers (comma separated) and check the boxes to enable physical
+                                interactions between them.
+                            </div>
+
+                            <div style="margin-top: 10px; display: flex; gap: 10px; align-items: center;">
+                                <label style="color:#aaa; font-size:12px;">Wall Bounds (X,Y,W,H):</label>
+                                <input type="number" id="phys-bx" value="0"
+                                    style="width: 50px; background: #111; color: white; border: 1px solid #555;">
+                                <input type="number" id="phys-by" value="0"
+                                    style="width: 50px; background: #111; color: white; border: 1px solid #555;">
+                                <input type="number" id="phys-bw" value="400"
+                                    style="width: 60px; background: #111; color: white; border: 1px solid #555;">
+                                <input type="number" id="phys-bh" value="300"
+                                    style="width: 60px; background: #111; color: white; border: 1px solid #555;">
+                            </div>
+                            <div style="margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">
+                                <label style="color:#aaa; font-size:12px; font-weight: bold;">Collision Layers &
+                                    Tags:</label>
+                                <div id="layer-tags-container"
+                                    style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; margin-bottom: 8px;">
+                                </div>
+                                <div style="display: flex; gap: 5px;">
+                                    <input type="text" id="new-layer-input" placeholder="New Layer Name (e.g. Player)"
+                                        style="flex-grow: 1; background: #111; color: white; border: 1px solid #555; padding: 6px; border-radius: 4px;">
+                                    <button onclick="addPhysicsLayer()"
+                                        style="background: #3498db; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">Add</button>
+                                </div>
+                            </div>
+                            <div id="phys-matrix"
+                                style="margin-top: 15px; font-size: 12px; color: #fff; background: #111; padding: 10px; border-radius: 4px;">
+                            </div>
+                            <button onclick="savePhysicsSettings()"
+                                style="background: #27ae60; margin-top: 15px; width: 100%;">Apply Physics
+                                Parameters</button>
                         </div>
-                        <button id="btn-compile"
-                            style="background: #2980b9; color: white; border: none; padding: 8px; border-radius: 4px; margin-top: 10px; cursor: pointer; font-weight: bold;">Save
-                            & Compile App</button>
+                    </div>
+
+                    <div id="draw-context-menu">
+                        <div class="ide-palette-btn" draggable="true"
+                            ondragstart="onDragStartNewBlock(event, 'drawRect')"
+                            onclick="addBlock('drawRect'); hideDrawMenu()"
+                            style="background: transparent; color: white; text-align: left;">⬛ Rectangle</div>
+                        <div class="ide-palette-btn" draggable="true"
+                            ondragstart="onDragStartNewBlock(event, 'drawCircle')"
+                            onclick="addBlock('drawCircle'); hideDrawMenu()"
+                            style="background: transparent; color: white; text-align: left;">🔵 Circle</div>
+                        <div class="ide-palette-btn" draggable="true"
+                            ondragstart="onDragStartNewBlock(event, 'drawText')"
+                            onclick="addBlock('drawText'); hideDrawMenu()"
+                            style="background: transparent; color: white; text-align: left;">🔤 Text</div>
                     </div>
 
                     <div id="app-stats-panel"
@@ -524,7 +1039,41 @@
         </div>
     </div>
 
+    <div id="ach-container"
+        style="display: none; width: 100%; height: 100%; background: #0f1115; padding: 40px; box-sizing: border-box; overflow-y: auto;">
+        <div style="max-width: 1000px; margin: 0 auto;">
+            <div class="achievements-header">
+                <div>
+                    <h1 style="color: white; font-size: 32px; color: #0098ff; margin: 0;">Discovery Log</h1>
+                    <p style="color: #aaa; margin: 5px 0 0 0;">Interact with the simulator to unlock hardware knowledge.
+                    </p>
+                </div>
+                <div class="currency-box">MAVE Coins: <span id="mave-coin-display">0</span></div>
+            </div>
+            <div class="ach-grid" id="ach-grid-container"></div>
+        </div>
+    </div>
 
+    <div id="controls-container"
+        style="display: none; width: 100%; height: 100%; background: #0f1115; padding: 40px; box-sizing: border-box; overflow-y: auto;">
+        <div
+            style="max-width: 800px; margin: 0 auto; background: #1a1c23; border: 1px solid #333; border-radius: 8px; padding: 30px; color: #ccc;">
+            <h1 style="color: #0098ff; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px;">System
+                Controls Manual</h1>
+            <ul style="font-size: 16px; line-height: 2;">
+                <li><strong>Drag & Drop:</strong> Drag components from the top-left + symbol onto the black Motherboard
+                    grid.
+                </li>
+                <li><strong>Shift + Click:</strong> Hold Shift and click two components in a row to draw a wire between
+                    them.</li>
+                <li><strong>Right-Click:</strong> Delete a component or wire from the Motherboard.</li>
+                <li><strong>Scroll Wheel:</strong> Zoom in and out. Zooming in reveals micro-architecture. Zooming out
+                    reveals the PCB.</li>
+                <li><strong>Double-Click:</strong> Open the detailed Blueprint Modal for a component.</li>
+                <li><strong>Pan Camera:</strong> Click and hold empty space to drag the camera view around.</li>
+            </ul>
+        </div>
+    </div>
     <div id="modal-overlay"></div>
     <div id="info-modal">
         <div id="modal-header">
@@ -537,34 +1086,209 @@
 
     <script>
         // ==========================================
-        // UI, TABS & SAVE/LOAD SYSTEM
+        // UI, TABS, & ACHIEVEMENTS ENGINE
         // ==========================================
-        const tabSim = document.getElementById('tab-sim');
-        const tabGuide = document.getElementById('tab-guide');
-        const viewSim = document.getElementById('main-container');
-        const viewGuide = document.getElementById('guide-container');
+        const views = {
+            'tab-sim': document.getElementById('main-container'),
+            'tab-guide': document.getElementById('guide-container'),
+            'tab-ach': document.getElementById('ach-container'),
+            'tab-controls': document.getElementById('controls-container')
+        };
+        const tabs = document.querySelectorAll('.sys-tab');
 
-        tabSim.addEventListener('click', () => {
-            viewSim.style.display = 'flex';
-            viewGuide.style.display = 'none';
-            tabSim.style.background = '#333'; tabSim.style.borderBottom = '2px solid #0098ff'; tabSim.style.color = 'white';
-            tabGuide.style.background = 'transparent'; tabGuide.style.borderBottom = 'none'; tabGuide.style.color = '#aaa';
-            if (typeof resizeMB === 'function') resizeMB(); // Force canvas to fix its flexbox sizing
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                Object.values(views).forEach(v => v.style.display = 'none');
+                tabs.forEach(t => { t.style.background = 'transparent'; t.style.borderBottom = 'none'; t.style.color = '#aaa'; });
+
+                views[e.target.id].style.display = e.target.id === 'tab-sim' ? 'flex' : 'block';
+                e.target.style.background = '#333'; e.target.style.borderBottom = '2px solid #0098ff'; e.target.style.color = 'white';
+                if (e.target.id === 'tab-sim' && typeof resizeMB === 'function') resizeMB();
+            });
         });
 
-        tabGuide.addEventListener('click', () => {
-            viewSim.style.display = 'none';
-            viewGuide.style.display = 'block';
-            tabGuide.style.background = '#333'; tabGuide.style.borderBottom = '2px solid #0098ff'; tabGuide.style.color = 'white';
-            tabSim.style.background = 'transparent'; tabSim.style.borderBottom = 'none'; tabSim.style.color = '#aaa';
-        });
+        // --- THE DISCOVERY ENGINE (ACHIEVEMENTS) ---
+        let maveCoins = 0;
+        const achievements = {
+            // Green & Blue Confetti Float
+            first_blood: { unlocked: false, title: "Assembly Required", tip: "Place a component on the board.", desc: "The Motherboard relies on modular components like CPUs and GPUs to function.", reward: 50, fx: { particleType: 'confetti', color1: '#2ecc71', color2: '#3498db', animType: 'floatText' } },
+            // Fiery Orange/Red Explosion Shake
+            demolition: { unlocked: false, title: "Deconstructor", tip: "Remove a component or wire.", desc: "Removing components breaks the electrical pathway, causing system halts.", reward: 50, fx: { particleType: 'explosion', color1: '#e74c3c', color2: '#f39c12', animType: 'shakeText', animSpeed: '0.3s' } },
+            // Pure Red & Black Violent Shake
+            no_cpu: { unlocked: false, title: "Does Not Compute", tip: "You removed the CPU, how could you?!", desc: "The CPU is the central brain. Without it, the entire OS loop halts and no math can be executed.", reward: 150, fx: { particleType: 'explosion', color1: '#c0392b', color2: '#000000', animType: 'shakeText', animSpeed: '0.1s', fontSize: '26px' } },
+            // Matrix Hacker Green Monospace
+            hacker: { unlocked: false, title: "Hello World", tip: "Save & Compile a Custom Visual App.", desc: "Compilers translate human-readable logic blocks into executable JavaScript for the CPU.", reward: 200, fx: { particleType: 'confetti', color1: '#00ff00', color2: '#003300', animType: 'floatText' } },
+            // NO Custom Setup = Fully Randomized!
+            zoom_in: { unlocked: false, title: "Microscopic", tip: "Zoom deep into a micro-chip.", desc: "Chips contain thousands of logic gates (ALU) and microscopic memory cells (Registers).", reward: 100 },
+            zoom_out: { unlocked: false, title: "The Big Picture", tip: "Zoom out to the full Motherboard PCB.", desc: "The Printed Circuit Board provides power delivery and data pathways (Buses).", reward: 100 },
+            // Purple/Pink Tech Flare
+            deep_dive: { unlocked: false, title: "Knowledge is Power", tip: "Double-click a component to read its blueprint.", desc: "Understanding the bottleneck between VRAM and CPU Cache is vital for system optimization.", reward: 150, fx: { particleType: 'explosion', color1: '#9b59b6', color2: '#e056fd', animType: 'floatText' } }
+        };
 
-        // Quick Reset Button
+        // --- GLOBAL PERSISTENCE ENGINE ---
+        function loadProgress() {
+            // Load Cross-Site Currency
+            const savedCoins = localStorage.getItem('mave_global_coins');
+            if (savedCoins) maveCoins = parseInt(savedCoins);
+            const coinDisp = document.getElementById('mave-coin-display');
+            if (coinDisp) coinDisp.innerText = maveCoins;
+
+            // Load Simulator Specific Visuals
+            const savedAchs = localStorage.getItem('mave_achievements');
+            if (savedAchs) {
+                const parsed = JSON.parse(savedAchs);
+                for (let id in parsed) {
+                    if (achievements[id] && parsed[id].unlocked) {
+                        achievements[id].unlocked = true;
+                    }
+                }
+            }
+        }
+        loadProgress();
+
+        function saveProgress() {
+            // We only save visual simulator progress here. Coins/Ledger are saved instantly on unlock
+            let achToSave = {};
+            for (let id in achievements) {
+                achToSave[id] = { unlocked: achievements[id].unlocked };
+            }
+            localStorage.setItem('mave_achievements', JSON.stringify(achToSave));
+        }
+
+        let toastQueue = [];
+        let isToastShowing = false;
+
+        window.showToast = function (title, message, isError = false, customStyle = null) {
+            toastQueue.push({ title, message, isError, customStyle });
+            processToastQueue();
+        };
+
+        function processToastQueue() {
+            if (isToastShowing || toastQueue.length === 0) return;
+            isToastShowing = true;
+
+            const { title, message, isError, customStyle } = toastQueue.shift();
+
+            const toast = document.getElementById('custom-toast');
+            const titleEl = document.getElementById('toast-title');
+            const msgEl = document.getElementById('toast-msg');
+            const fxLayer = document.getElementById('fx-overlay');
+
+            const style = customStyle || {
+                color1: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                color2: `hsl(${Math.random() * 360}, 100%, 70%)`,
+                fontSize: Math.floor(Math.random() * 10 + 20) + 'px',
+                animType: Math.random() > 0.5 ? 'floatText' : 'shakeText',
+                animSpeed: (Math.random() * 0.5 + 0.5) + 's',
+                particleType: Math.random() > 0.5 ? 'confetti' : 'explosion'
+            };
+
+            if (isError) { style.color1 = '#e74c3c'; style.color2 = '#c0392b'; style.particleType = 'none'; }
+
+            let dynamicHtml = '';
+            message.split('').forEach((char, i) => {
+                if (char === ' ') { dynamicHtml += '&nbsp;'; }
+                else {
+                    dynamicHtml += `<span style="
+                        font-size: ${style.fontSize};
+                        animation: ${style.animType} ${style.animSpeed} infinite ease-in-out;
+                        animation-delay: ${i * 0.05}s;
+                        background: linear-gradient(to bottom, ${style.color1}, ${style.color2});
+                        -webkit-background-clip: text; color: transparent;
+                        filter: drop-shadow(0px 0px 8px ${style.color1});
+                    ">${char}</span>`;
+                }
+            });
+
+            msgEl.innerHTML = dynamicHtml; titleEl.innerText = title;
+            toast.style.borderColor = style.color1; titleEl.style.color = '#fff';
+            toast.classList.add('show');
+
+            playBeep(isError ? 150 : (Math.random() * 400 + 400), isError ? 'sawtooth' : 'square', 0.2);
+
+            if (style.particleType !== 'none') {
+                for (let i = 0; i < 50; i++) {
+                    let p = document.createElement('div'); p.className = 'particle';
+                    p.style.background = Math.random() > 0.5 ? style.color1 : style.color2;
+                    p.style.width = Math.random() * 10 + 5 + 'px'; p.style.height = p.style.width;
+
+                    if (style.particleType === 'explosion') {
+                        p.style.left = '50%'; p.style.top = '100px';
+                        let angle = Math.random() * Math.PI * 2; let force = Math.random() * 150 + 50;
+                        p.style.transform = `translate(${Math.cos(angle) * force}px, ${Math.sin(angle) * force}px)`;
+                        p.style.transition = `all ${(Math.random() * 1 + 0.5)}s cubic-bezier(0.1, 0.8, 0.3, 1)`;
+                        p.style.opacity = 1;
+                    } else {
+                        p.style.left = Math.random() * 100 + 'vw'; p.style.top = '-20px';
+                        p.style.transform = `translateY(${window.innerHeight + 100}px) rotate(${Math.random() * 360}deg)`;
+                        p.style.transition = `all ${(Math.random() * 2 + 2)}s linear`;
+                    }
+
+                    fxLayer.appendChild(p);
+                    setTimeout(() => { if (style.particleType === 'explosion') p.style.opacity = 0; }, 50);
+                    setTimeout(() => p.remove(), 3000);
+                }
+            }
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => { isToastShowing = false; processToastQueue(); }, 600); // Unlocks queue after animation ends
+            }, 4000);
+        }
+
+        let globalClaimed = JSON.parse(localStorage.getItem('mave_global_claimed')) || {};
+
+        function unlockAchievement(id) {
+            if (achievements[id] && !achievements[id].unlocked) {
+                achievements[id].unlocked = true;
+
+                // Strict Anti-Duplication Check against the Permanent Ledger
+                if (!globalClaimed[id]) {
+                    globalClaimed[id] = true;
+                    localStorage.setItem('mave_global_claimed', JSON.stringify(globalClaimed)); // Save permanent record
+
+                    maveCoins += achievements[id].reward;
+                    localStorage.setItem('mave_global_coins', maveCoins); // Save cross-site currency
+
+                    const coinDisp = document.getElementById('mave-coin-display');
+                    if (coinDisp) coinDisp.innerText = maveCoins;
+                }
+
+                renderAchievements();
+                saveProgress(); // Saves local simulator state
+                showToast("Achievement Unlocked", achievements[id].title, false, achievements[id].fx);
+            }
+        }
+
+        function renderAchievements() {
+            const grid = document.getElementById('ach-grid-container');
+            if (!grid) return;
+            grid.innerHTML = '';
+            for (let id in achievements) {
+                const a = achievements[id];
+                grid.innerHTML += `
+                    <div class="ach-card ${a.unlocked ? 'unlocked' : 'locked'}">
+                        <h3 class="ach-title">${a.unlocked ? '🏆' : '🔒'} ${a.title}</h3>
+                        <p class="ach-tip">${a.tip}</p>
+                        ${a.unlocked ? `<p class="ach-desc"><strong>Data Core:</strong> ${a.desc}<br><br><span style="color:#f1c40f">+${a.reward} Coins</span></p>` : ''}
+                    </div>
+                `;
+            }
+        }
+        renderAchievements();
+
+        const resetModal = document.getElementById('custom-confirm');
         document.getElementById('btn-reset').addEventListener('click', () => {
-            if (confirm("Reset all hardware and software to default?")) location.reload();
+            resetModal.style.display = 'flex';
+        });
+        document.getElementById('btn-confirm-yes').addEventListener('click', () => {
+            localStorage.removeItem('mave_achievements');
+            location.reload();
+        });
+        document.getElementById('btn-confirm-no').addEventListener('click', () => {
+            resetModal.style.display = 'none';
         });
 
-        // Save/Load placeholders (We will upgrade these when we make hardware draggable in Step 3)
         document.getElementById('btn-save').addEventListener('click', () => {
             alert("Save system will activate once hardware is made interactive in Step 3!");
         });
@@ -572,24 +1296,35 @@
             document.getElementById('file-input').click();
         });
 
-        /* =========================================
-           PART 1: MOTHERBOARD VISUALIZER ENGINE
-        ========================================= */
+        // MOTHERBOARD VISUALIZER ENGINE
         const mbCanvas = document.getElementById('mb-canvas');
         const mbCtx = mbCanvas.getContext('2d');
         let mbWidth, mbHeight;
-        let pulses = []; // Holds the animated data dots
+        let pulses = [];
 
         let cam = { x: 0, y: 0, z: 1 };
         let lastMouse = { x: 0, y: 0 };
+        let draggingNode = null;
         let isDraggingCam = false;
 
         const hwDefs = {
             CLK: { color: '#f1c40f', w: 40, h: 40, internals: ['Crystal Oscillator'] },
             CPU: {
                 color: '#f39c12', w: 90, h: 90, internals: ['Control Unit', 'ALU', 'Registers', 'L1 Cache'],
-                subNodes: [{ id: 'cu', type: 'CU', x: 0.3, y: 0.3 }, { id: 'alu', type: 'ALU', x: 0.7, y: 0.5 }, { id: 'reg', type: 'REG', x: 0.3, y: 0.7 }, { id: 'l1', type: 'CACHE', x: 0.7, y: 0.8 }],
-                subWires: [['cu', 'alu'], ['cu', 'reg'], ['alu', 'reg'], ['cu', 'l1'], ['alu', 'l1']],
+                subNodes: [
+                    { id: 'cu', type: 'CU', x: 0.5, y: 0.15 }, 
+                    { id: 'alu', type: 'ALU', x: 0.25, y: 0.4 }, 
+                    { id: 'reg', type: 'REG', x: 0.75, y: 0.4 }, 
+                    { id: 'cache', type: 'CACHE', x: 0.5, y: 0.55 },
+                    { id: 'ram_w', type: 'RAM_WRITE', x: 0.3, y: 0.85 },
+                    { id: 'ram_r', type: 'RAM_READ', x: 0.7, y: 0.85 },
+                    { id: 'pcie', type: 'PCIe_OUT', x: 0.85, y: 0.15 }
+                ],
+                subWires: [
+                    ['cu', 'alu'], ['cu', 'reg'], ['alu', 'reg'],
+                    ['cu', 'cache'], ['cache', 'ram_w'], ['ram_r', 'cache'],
+                    ['cu', 'ram_r'], ['cu', 'pcie']
+                ],
                 desc: "The Central Processing Unit is the primary operational brain of the computer. It executes instructions sequentially, handling game logic, physics, and coordinating all other hardware. Without it, the system halts entirely.",
                 internals: [
                     { name: 'ALU (Arithmetic Logic Unit)', detail: 'Performs integer math and bitwise logic operations.' },
@@ -661,32 +1396,61 @@
                 processes: "Page Read/Write -> Block Erase -> Garbage Collection"
 
             },
+            CLK: {
+                color: '#f1c40f', w: 40, h: 40,
+                desc: "The System Clock provides the rhythmic heartbeat that synchronizes all components on the motherboard. It dictates the speed at which the CPU executes instructions.",
+                internals: [{ name: 'Quartz Crystal', detail: 'Vibrates at a precise frequency when voltage is applied.' }, { name: 'Clock Generator', detail: 'Multiplies the base frequency to achieve gigahertz speeds.' }],
+                processes: "Oscillation -> Frequency Multiplication -> Signal Distribution"
+            },
             DMA: {
-                color: '#e84393', w: 60, h: 50, internals: ['Bus Master'],
+                color: '#e84393', w: 60, h: 50,
+                desc: "Direct Memory Access (DMA) allows hardware subsystems to access system memory independently of the CPU, massively freeing up CPU cycles during large file transfers.",
+                internals: [{ name: 'DMA Controller', detail: 'Negotiates control of the memory bus with the CPU.' }, { name: 'Address Registers', detail: 'Tracks the source and destination of the data block.' }],
+                processes: "Bus Request -> CPU Grant -> Block Transfer -> Interrupt",
                 subNodes: [{ id: 'deng', type: 'DMA_ENG', x: 0.5, y: 0.5 }], subWires: []
             },
             AUDIO: {
-                color: '#e67e22', w: 70, h: 60, internals: ['DAC', 'Op-Amp'],
+                color: '#e67e22', w: 70, h: 60,
+                desc: "The Audio Codec processes digital sound data from the CPU/RAM and converts it into physical analog waveforms to drive speakers or headphones.",
+                internals: [{ name: 'DAC (Digital to Analog)', detail: 'Translates binary values into voltage levels.' }, { name: 'Op-Amp', detail: 'Boosts the weak analog signal to drive physical speaker magnets.' }],
+                processes: "PCM Decoding -> D/A Conversion -> Amplification",
                 subNodes: [{ id: 'dac', type: 'DAC', x: 0.3, y: 0.5 }, { id: 'amp', type: 'AMP', x: 0.7, y: 0.5 }],
                 subWires: [['dac', 'amp']]
             },
             NIC: {
-                color: '#1abc9c', w: 70, h: 70, internals: ['Radio', 'MAC/PHY'],
+                color: '#1abc9c', w: 70, h: 70,
+                desc: "The Network Interface Card translates local data into packets formatted for transmission over Ethernet or Wi-Fi, handling the complexities of the TCP/IP stack.",
+                internals: [{ name: 'MAC (Media Access Control)', detail: 'Frames data and handles physical addressing.' }, { name: 'PHY / Radio', detail: 'Encodes bits into electrical pulses or radio waves.' }],
+                processes: "Data Encapsulation -> MAC Framing -> Modulation -> Transmission",
                 subNodes: [{ id: 'mac', type: 'MAC', x: 0.3, y: 0.5 }, { id: 'rad', type: 'RADIO', x: 0.7, y: 0.5 }],
                 subWires: [['mac', 'rad']]
             },
 
             // --- Micro-Level Chip Definitions ---
-            CU: { color: '#e74c3c', w: 50, h: 50, internals: ['Decoder'] }, ALU: { color: '#f39c12', w: 60, h: 70, internals: ['Logic Gates'] },
-            REG: { color: '#9b59b6', w: 40, h: 70, internals: ['Flip-Flops'] }, CACHE: { color: '#2ecc71', w: 50, h: 40, internals: ['SRAM'] },
-            VRAM: { color: '#2ecc71', w: 50, h: 80, internals: ['GDDR6'] }, CORE: { color: '#0098ff', w: 40, h: 40, internals: ['SIMD'] },
-            TEX: { color: '#e67e22', w: 40, h: 40, internals: ['Mapper'] }, MEM_CTRL: { color: '#f39c12', w: 60, h: 40, internals: ['Bus IO'] },
-            DRAM: { color: '#2ecc71', w: 50, h: 60, internals: ['Capacitors'] }, TCON: { color: '#f39c12', w: 40, h: 60, internals: ['Timing'] },
-            PIXELS: { color: '#00ffff', w: 60, h: 60, internals: ['RGB Matrix'] }, MATRIX: { color: '#e74c3c', w: 50, h: 50, internals: ['Switches'] },
-            USB_IC: { color: '#f39c12', w: 40, h: 40, internals: ['Serial'] }, FLASH_CTRL: { color: '#f39c12', w: 60, h: 40, internals: ['Wear Leveling'] },
-            NAND: { color: '#9b59b6', w: 60, h: 60, internals: ['Flash Cells'] }, DMA_ENG: { color: '#e84393', w: 50, h: 50, internals: ['Master IO'] },
-            DAC: { color: '#f39c12', w: 40, h: 40, internals: ['Digital-to-Analog'] }, AMP: { color: '#e67e22', w: 40, h: 40, internals: ['Amplifier'] },
-            MAC: { color: '#f39c12', w: 40, h: 50, internals: ['Packet Logic'] }, RADIO: { color: '#1abc9c', w: 40, h: 50, internals: ['Antenna'] },
+            // --- Micro-Level Chip Definitions ---
+            CU: { color: '#e74c3c', w: 50, h: 50, desc: "The Control Unit orchestrates the processor. It reads instructions from memory, decodes them, and routes data to the correct execution units.", processes: "Fetch -> Decode -> Dispatch", internals: [{ name: 'Instruction Decoder', detail: 'Translates opcodes into micro-operations.' }] },
+            ALU: { color: '#f39c12', w: 60, h: 70, desc: "The Arithmetic Logic Unit performs all mathematical and bitwise operations. It is the calculator at the heart of the CPU.", processes: "Receive Operands -> Execute Math -> Output Flag", internals: [{ name: 'Adders/Multipliers', detail: 'Logic gates arranged to calculate sums.' }] },
+            REG: { color: '#9b59b6', w: 40, h: 70, desc: "Registers are the fastest, smallest memory locations in the system. They hold the immediate data the ALU is currently calculating.", processes: "Write Value -> Hold -> Read Value", internals: [{ name: 'Flip-Flops', detail: 'Bistable circuits holding a single bit of state.' }] },
+            CACHE: { color: '#2ecc71', w: 50, h: 40, desc: "SRAM Cache acts as a high-speed buffer between the ultra-fast CPU and the slower system RAM, storing frequently accessed data.", processes: "Tag Check -> Hit/Miss -> Fetch", internals: [{ name: 'SRAM Cells', detail: '6-transistor memory cells requiring no refresh.' }] },
+            RAM_WRITE: { color: '#2ecc71', w: 70, h: 30, desc: "The Memory Write Buffer temporarily holds data evicted from the CPU Cache before it is pushed across the system bus to RAM.", processes: "Buffer Data -> Await Bus -> Transmit", internals: [{ name: 'TX Buffer', detail: 'Queue for outgoing memory blocks.' }] },
+            RAM_READ: { color: '#2ecc71', w: 70, h: 30, desc: "The Memory Read Buffer catches incoming data fetched from system RAM before it is loaded into the CPU's internal Cache.", processes: "Await Data -> Receive Block -> Load to Cache", internals: [{ name: 'RX Buffer', detail: 'Queue for incoming memory blocks.' }] },
+            PCIe_OUT: { color: '#0098ff', w: 70, h: 30, desc: "The PCIe Root Complex manages the high-speed serial lanes connecting the CPU to bandwidth-heavy devices like the GPU and NVMe SSD.", processes: "Packetize -> Serialize -> Transmit", internals: [{ name: 'Lane Transceivers', detail: 'Differential signaling pairs for data transmission.' }] },
+            VRAM: { color: '#2ecc71', w: 50, h: 80, desc: "Video RAM stores the textures, geometry, and framebuffers required by the GPU cores to render a 3D scene.", processes: "Block Read -> Texture Filter -> Framebuffer Write", internals: [{ name: 'GDDR Modules', detail: 'High-bandwidth dual-data-rate memory.' }] },
+            CORE: { color: '#0098ff', w: 40, h: 40, desc: "A GPU Compute Core (Streaming Multiprocessor) applies the same mathematical operation to hundreds of pixels or vertices simultaneously.", processes: "Thread Dispatch -> SIMD Execution -> Output", internals: [{ name: 'ALU Clusters', detail: 'Thousands of simple math units running in parallel.' }] },
+            TEX: { color: '#e67e22', w: 40, h: 40, desc: "The Texture Mapping Unit samples 2D image data from VRAM and wraps it around 3D geometry, applying filtering and mipmapping.", processes: "Calculate Coordinates -> Fetch Texel -> Filter", internals: [{ name: 'Address Generator', detail: 'Calculates UV mapping coordinates.' }] },
+            MEM_CTRL: { color: '#f39c12', w: 60, h: 40, desc: "The Memory Controller receives addresses from the CPU and translates them into physical Row and Column commands for the DRAM chips.", processes: "Decode Address -> Activate Row -> Read/Write", internals: [{ name: 'Command Queue', detail: 'Schedules optimal memory access patterns.' }] },
+            DRAM: { color: '#2ecc71', w: 50, h: 60, desc: "A DRAM Bank consists of a massive grid of microscopic capacitors. Because they leak charge, they must be constantly refreshed.", processes: "Activate -> Sense Amp -> Precharge", internals: [{ name: 'Capacitor Grid', detail: 'Stores bits as electrical charge levels.' }] },
+            TCON: { color: '#f39c12', w: 40, h: 60, desc: "The Timing Controller receives the raw digital video signal from the GPU and dictates exactly when each pixel on the screen should change color.", processes: "Decode Signal -> Sync -> Drive Panel", internals: [{ name: 'Sync Generator', detail: 'Maintains V-Sync and H-Sync.' }] },
+            PIXELS: { color: '#00ffff', w: 60, h: 60, desc: "The physical LCD or OLED panel matrix. Millions of Red, Green, and Blue subpixels adjusting brightness to form a coherent image.", processes: "Receive Voltage -> Adjust Liquid Crystal -> Pass Light", internals: [{ name: 'Subpixel Matrix', detail: 'Physical RGB color filters.' }] },
+            MATRIX: { color: '#e74c3c', w: 50, h: 50, desc: "The physical keyboard matrix. Pressing a key completes a circuit, allowing the microcontroller to determine exactly which key was struck.", processes: "Scan Columns -> Detect Row -> Debounce", internals: [{ name: 'Membrane Switches', detail: 'Physical contact points under keys.' }] },
+            USB_IC: { color: '#f39c12', w: 40, h: 40, desc: "The USB Interface converts the raw keypress data into a standardized USB packet format and interrupts the CPU to deliver it.", processes: "Encode Packet -> Interrupt -> Transmit", internals: [{ name: 'Serial Interface', detail: 'Converts parallel key data into a serial bitstream.' }] },
+            FLASH_CTRL: { color: '#f39c12', w: 60, h: 40, desc: "The Flash Controller is a miniature processor that manages wear-leveling, garbage collection, and maps logical sectors to physical NAND pages.", processes: "Receive Request -> Map Address -> Execute", internals: [{ name: 'FTL (Flash Translation Layer)', detail: 'Maps OS sectors to physical blocks.' }] },
+            NAND: { color: '#9b59b6', w: 60, h: 60, desc: "NAND Flash chips trap electrons inside floating gate transistors to store data persistently even when power is turned off.", processes: "Erase Block -> Program Page -> Read Page", internals: [{ name: 'Floating Gates', detail: 'Transistors that hold charge without power.' }] },
+            DMA_ENG: { color: '#e84393', w: 50, h: 50, desc: "The DMA Engine takes over the system bus from the CPU to stream massive chunks of data directly from the SSD to RAM.", processes: "Request Bus -> Stream Data -> Release Bus", internals: [{ name: 'Transfer Counters', detail: 'Tracks remaining bytes in the payload.' }] },
+            DAC: { color: '#f39c12', w: 40, h: 40, desc: "The Digital-to-Analog Converter translates binary sound files (like MP3s) into smooth, continuous analog voltage waves.", processes: "Receive PCM -> Convert to Voltage -> Smooth", internals: [{ name: 'Resistor Ladder', detail: 'Converts discrete bits to continuous voltage.' }] },
+            AMP: { color: '#e67e22', w: 40, h: 40, desc: "The Amplifier boosts the extremely weak analog signal from the DAC so that it has enough electrical power to push the physical magnets in your speakers.", processes: "Receive Signal -> Multiply Voltage -> Output to Speaker", internals: [{ name: 'Transistors', detail: 'Uses PSU power to boost signal amplitude.' }] },
+            MAC: { color: '#f39c12', w: 40, h: 50, desc: "The Media Access Control layer wraps raw data payloads into standardized network packets, adding source and destination IP/MAC addresses.", processes: "Encapsulate -> Add Headers -> CRC Check", internals: [{ name: 'Framer', detail: 'Constructs the Ethernet or Wi-Fi packet.' }] },
+            RADIO: { color: '#1abc9c', w: 40, h: 50, desc: "The Physical (PHY) layer translates the digital packets into high-frequency analog radio waves (Wi-Fi) or electrical pulses (Ethernet).", processes: "Modulate -> Amplify -> Transmit/Receive", internals: [{ name: 'Antenna / Transceiver', detail: 'Broadcasts and listens for EM waves.' }] },
             MOTHERBOARD: {
                 color: '#aaa', w: 0, h: 0,
                 desc: "The Mainboard / Printed Circuit Board (PCB). It is the physical nervous system of the computer. It provides power delivery and data pathways (Buses) allowing all disparate components to communicate.",
@@ -699,14 +1463,13 @@
 
             }
         };
-        let boardStack = []; // Stores previous zoom levels
+        let boardStack = [];
         let currentLevelName = "MOTHERBOARD PCB";
 
         function diveIntoNode(node) {
             const def = hwDefs[node.type];
-            if (!def || !def.subNodes) return; // Cannot dive deeper
+            if (!def || !def.subNodes) return;
 
-            // 1. Save the current state to the stack
             boardStack.push({
                 nodes: JSON.parse(JSON.stringify(nodes)),
                 wires: JSON.parse(JSON.stringify(connections)),
@@ -714,30 +1477,27 @@
                 camX: cam.x, camY: cam.y
             });
 
-            // 2. Load the micro-architecture
             currentLevelName = `${node.type} INTERNAL ARCHITECTURE`;
             nodes = JSON.parse(JSON.stringify(def.subNodes));
             connections = JSON.parse(JSON.stringify(def.subWires));
 
-            // 3. Reset Camera
             cam.x = 0; cam.y = 0; cam.z = 1.0;
-            pulses = []; // Clear visual data traffic
+            pulses = [];
+
+            unlockAchievement('zoom_in');
         }
 
         function surfaceToParent() {
-            if (boardStack.length === 0) return; // Already at the top level
+            if (boardStack.length === 0) return;
 
-            // Restore the previous state
             const prevState = boardStack.pop();
             nodes = prevState.nodes;
             connections = prevState.wires;
             currentLevelName = prevState.levelName;
 
-            // Push camera slightly out so you don't instantly re-dive
             cam.x = prevState.camX; cam.y = prevState.camY; cam.z = 2.4;
             pulses = [];
         }
-        // We map the old simple nodes to use the new definitions
         let nodes = [
             { id: 'clk', type: 'CLK', x: 0.35, y: 0.4, usage: 0 },
             { id: 'cpu', type: 'CPU', x: 0.5, y: 0.5, usage: 0 },
@@ -745,10 +1505,10 @@
             { id: 'gpu', type: 'GPU', x: 0.75, y: 0.75, usage: 0 },
             { id: 'disp', type: 'DISP', x: 0.92, y: 0.9, usage: 0 },
             { id: 'kbd', type: 'KBD', x: 0.1, y: 0.8, usage: 0 },
-            { id: 'disk', type: 'DISK', x: 0.2, y: 0.25, usage: 0 },
+            { id: 'disk', type: 'DISK', x: 0.18, y: 0.25, usage: 0 },
             { id: 'dma', type: 'DMA', x: 0.48, y: 0.25, usage: 0 },
             { id: 'snd', type: 'AUDIO', x: 0.3, y: 0.8, usage: 0 },
-            { id: 'nic', type: 'NIC', x: 0.1, y: 0.1, usage: 0 }
+            { id: 'nic', type: 'NIC', x: 0.2, y: 0.1, usage: 0 }
         ];
 
         let connections = [
@@ -775,11 +1535,10 @@
         resizeMB();
 
         function spawnPulse(fromKey, toKey, color) {
-            // Find the nodes by their ID or their Type safely
             const fNode = nodes.find(n => n.id === fromKey || n.type.toLowerCase() === fromKey);
             const tNode = nodes.find(n => n.id === toKey || n.type.toLowerCase() === toKey);
 
-            if (!fNode || !tNode) return; // Failsafe: abort pulse if component was deleted
+            if (!fNode || !tNode) return;
 
             const startX = fNode.x * mbWidth;
             const startY = fNode.y * mbHeight;
@@ -795,13 +1554,11 @@
         function drawMotherboard() {
             mbCtx.clearRect(0, 0, mbWidth, mbHeight);
 
-            // 1. Apply Camera Transform
             mbCtx.save();
             mbCtx.translate(mbWidth / 2, mbHeight / 2);
             mbCtx.scale(cam.z, cam.z);
             mbCtx.translate(-mbWidth / 2 + cam.x, -mbHeight / 2 + cam.y);
 
-            // 2. Draw Background Grid
             mbCtx.fillStyle = '#1a1c23';
             for (let x = -2000; x < 2000; x += 100) {
                 for (let y = -2000; y < 2000; y += 100) {
@@ -809,20 +1566,17 @@
                 }
             }
 
-            // 3. Semantic Zoom Logic
+            // Semantic Zoom Logic
             if (cam.z < 0.5) {
-                // ZOOMED OUT: Show Overlay based on what layer we are in
                 mbCtx.fillStyle = '#0f1115';
                 mbCtx.fillRect(0, 0, mbWidth, mbHeight);
 
                 if (boardStack.length === 0) {
-                    // We are at the top level
                     mbCtx.strokeStyle = '#2ecc71'; mbCtx.lineWidth = 10;
                     mbCtx.strokeRect(0, 0, mbWidth, mbHeight);
                     mbCtx.fillStyle = '#fff'; mbCtx.font = 'bold 50px sans-serif'; mbCtx.textAlign = 'center';
                     mbCtx.fillText("MOTHERBOARD PCB", mbWidth / 2, mbHeight / 2);
                 } else {
-                    // We are inside a micro-component
                     mbCtx.strokeStyle = '#f39c12'; mbCtx.lineWidth = 10;
                     mbCtx.strokeRect(0, 0, mbWidth, mbHeight);
                     mbCtx.fillStyle = '#fff'; mbCtx.font = 'bold 40px sans-serif'; mbCtx.textAlign = 'center';
@@ -857,7 +1611,6 @@
                     const def = hwDefs[n.type];
                     if (!def) return;
 
-                    // --- THE GLOW DECAY LOGIC ---
                     if (n.usage === undefined) n.usage = 0;
                     n.usage = Math.max(0, n.usage - 0.08); // Decays to 0 in ~0.2 seconds
 
@@ -865,13 +1618,11 @@
 
                     mbCtx.fillStyle = '#111';
                     mbCtx.strokeStyle = def.color;
-                    // Make the border thicker if the user is currently holding Shift+Click to wire it
                     mbCtx.lineWidth = wiringStartNode === n ? 6 : 3;
 
-                    // --- APPLY NEON GLOW IF IN USE ---
                     if (n.usage > 0) {
                         mbCtx.shadowColor = def.color;
-                        mbCtx.shadowBlur = 25 * n.usage; // Dynamic brightness!
+                        mbCtx.shadowBlur = 25 * n.usage;
                     }
 
                     mbCtx.fillRect(cx - def.w / 2, cy - def.h / 2, def.w, def.h);
@@ -882,12 +1633,10 @@
                     mbCtx.fillStyle = def.color; mbCtx.font = 'bold 16px sans-serif'; mbCtx.textAlign = 'center'; mbCtx.textBaseline = 'middle';
                     mbCtx.fillText(n.type, cx, cy);
 
-                    // ZOOMED IN: Show Internal Components
                     if (cam.z > 1.2) {
                         mbCtx.font = '10px monospace'; mbCtx.fillStyle = '#aaa';
 
                         def.internals.forEach((item, i) => {
-                            // Check if item is an object { name, detail } or just a string
                             const label = typeof item === 'object' ? item.name : item;
 
                             mbCtx.fillText(`[${label}]`, cx, cy + 25 + (i * 12));
@@ -905,11 +1654,9 @@
 
         function getMouseWorld(e) {
             const r = mbCanvas.getBoundingClientRect();
-            // 1. Calculate absolute pixel coordinates in the camera's world
             const pixelX = (e.clientX - r.left - mbWidth / 2) / cam.z + mbWidth / 2 - cam.x;
             const pixelY = (e.clientY - r.top - mbHeight / 2) / cam.z + mbHeight / 2 - cam.y;
 
-            // 2. Convert to percentages so it matches how nodes are saved
             return {
                 x: pixelX / mbWidth,
                 y: pixelY / mbHeight
@@ -924,7 +1671,6 @@
 
             if (cam.z > 2.5 && boardStack.length === 0) {
                 const wPos = getMouseWorld(e);
-                // Convert percentages back to pixels just for the math comparison
                 const hoveredNode = nodes.slice().reverse().find(n =>
                     Math.abs((wPos.x * mbWidth) - (n.x * mbWidth)) < hwDefs[n.type].w / 2 &&
                     Math.abs((wPos.y * mbHeight) - (n.y * mbHeight)) < hwDefs[n.type].h / 2
@@ -944,43 +1690,40 @@
             }
         });
 
-        // 2. Drag, Wire, and Pan
+        // Drag, Wire, and Pan
         mbCanvas.addEventListener('mousedown', e => {
             if (e.button === 2) return;
             const wPos = getMouseWorld(e);
 
-            // Convert percentages back to pixels just for the math comparison
             const clicked = (cam.z >= 0.3) ? nodes.slice().reverse().find(n =>
                 Math.abs((wPos.x * mbWidth) - (n.x * mbWidth)) < hwDefs[n.type].w / 2 &&
                 Math.abs((wPos.y * mbHeight) - (n.y * mbHeight)) < hwDefs[n.type].h / 2
             ) : null;
 
-            if (e.shiftKey && clicked) {
-                if (!wiringStartNode) {
-                    wiringStartNode = clicked;
-                } else {
-                    if (wiringStartNode !== clicked) {
-                        connections.push(['' + wiringStartNode.id, '' + clicked.id]);
+            if (e.shiftKey) {
+                if (clicked) {
+                    if (!wiringStartNode) wiringStartNode = clicked;
+                    else {
+                        if (wiringStartNode.id !== clicked.id && !connections.some(c => (c[0] === wiringStartNode.id && c[1] === clicked.id) || (c[1] === wiringStartNode.id && c[0] === clicked.id))) {
+                            connections.push([wiringStartNode.id, clicked.id]);
+                            unlockAchievement('first_blood');
+                        }
+                        wiringStartNode = null;
+                        checkHardware();
                     }
-                    wiringStartNode = null;
-                }
-            } else if (clicked) {
-                mbCanvas.onmousemove = me => {
-                    const mw = getMouseWorld(me);
-                    clicked.x = mw.x;
-                    clicked.y = mw.y;
-                };
+                } else wiringStartNode = null;
+            } else if (clicked && cam.z >= 0.3) {
+                // START DRAGGING COMPONENT
+                draggingNode = clicked;
+                isDraggingCam = false;
             } else {
-                lastMouse = { x: e.clientX, y: e.clientY };
-                mbCanvas.onmousemove = me => {
-                    // Camera panning uses raw pixels
-                    cam.x += (me.clientX - lastMouse.x) / cam.z;
-                    cam.y += (me.clientY - lastMouse.y) / cam.z;
-                    lastMouse = { x: me.clientX, y: me.clientY };
-                };
+                // PAN CAMERA
+                isDraggingCam = true;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
             }
         });
-        // --- STEP 5: Deep Info Modals & Hover Logic ---
+        // Deep Info Modals 
         const modal = document.getElementById('info-modal');
         const overlay = document.getElementById('modal-overlay');
 
@@ -999,7 +1742,7 @@
                 </div>
                 <h3 style="color: #fff; border-bottom: 1px solid #444; padding-bottom: 5px;">Internal Sub-Components</h3>
                 <ul style="color: #bbb; margin-bottom: 25px;">
-                    ${def.internals.map(i => `<li style="margin-bottom: 10px;"><strong style="color:${def.color};">${i.name}</strong>: ${i.detail}</li>`).join('')}
+                    ${def.internals ? def.internals.map(i => `<li style="margin-bottom: 10px;"><strong style="color:${def.color};">${i.name || i}</strong>: ${i.detail || 'Base logic operation.'}</li>`).join('') : '<li>Base Logic Gates</li>'}
                 </ul>
                 <div style="background: #222; padding: 15px; border-radius: 6px;">
                     <strong style="color: #0098ff; display: block; margin-bottom: 5px;">Primary Process Flow:</strong>
@@ -1020,7 +1763,7 @@
                 Math.abs((wPos.x * mbWidth) - (n.x * mbWidth)) < hwDefs[n.type].w / 2 &&
                 Math.abs((wPos.y * mbHeight) - (n.y * mbHeight)) < hwDefs[n.type].h / 2
             );
-            if (clicked) openModal(clicked.type);
+            if (clicked) { unlockAchievement('deep_dive'); openModal(clicked.type); }
         });
         window.addEventListener('mouseup', () => {
             mbCanvas.onmousemove = null;
@@ -1029,93 +1772,151 @@
 
         const tooltip = document.getElementById('tooltip');
         mbCanvas.addEventListener('mousemove', e => {
-            if (isDraggingCam || wiringStartNode || mbCanvas.onmousemove) {
-                tooltip.style.opacity = 0;
+            if (draggingNode) {
+                const wPos = getMouseWorld(e);
+                draggingNode.x = Math.max(0.05, Math.min(0.95, wPos.x));
+                draggingNode.y = Math.max(0.05, Math.min(0.95, wPos.y));
+
+                const tooltip = document.getElementById('tooltip');
+                if (tooltip) tooltip.style.opacity = 0;
                 return;
             }
-            if (cam.z < 0.6) { tooltip.style.opacity = 0; return; }
+
+            if (isDraggingCam) {
+                cam.x += (e.clientX - lastMouseX) / cam.z;
+                cam.y += (e.clientY - lastMouseY) / cam.z;
+                lastMouseX = e.clientX;
+                lastMouseY = e.clientY;
+
+                const tooltip = document.getElementById('tooltip');
+                if (tooltip) tooltip.style.opacity = 0;
+                return;
+            }
+
+            if (wiringStartNode || e.buttons > 0) {
+                const tooltip = document.getElementById('tooltip');
+                if (tooltip) tooltip.style.opacity = 0;
+                return;
+            }
+
+            if (cam.z < 0.3) {
+                const tooltip = document.getElementById('tooltip');
+                if (tooltip) tooltip.style.opacity = 0;
+                return;
+            }
             const wPos = getMouseWorld(e);
-            const hovered = nodes.slice().reverse().find(n => Math.abs(wPos.x - n.x) < hwDefs[n.type].w / 2 && Math.abs(wPos.y - n.y) < hwDefs[n.type].h / 2);
-
-            if (hovered) {
-                tooltip.style.opacity = 1; tooltip.style.left = e.clientX + 15 + 'px'; tooltip.style.top = e.clientY + 15 + 'px';
-                document.getElementById('tt-title').innerText = `${hovered.type} Module`;
-                document.getElementById('tt-status').innerText = hovered.usage > 0.1 ? '⚡ Status: ACTIVE' : '💤 Status: IDLE';
-                document.getElementById('tt-status').style.color = hovered.usage > 0.1 ? '#f1c40f' : '#2ecc71';
-            } else tooltip.style.opacity = 0;
-        });
-        mbCanvas.addEventListener('mouseleave', () => tooltip.style.opacity = 0);
-
-
-        // 3. Right-Click to Delete
-        mbCanvas.addEventListener('contextmenu', e => {
-            e.preventDefault();
-            if (cam.z < 0.3) return;
-            const wPos = getMouseWorld(e);
-            const idx = nodes.findIndex(n =>
+            const hovered = nodes.slice().reverse().find(n =>
                 Math.abs((wPos.x * mbWidth) - (n.x * mbWidth)) < hwDefs[n.type].w / 2 &&
                 Math.abs((wPos.y * mbHeight) - (n.y * mbHeight)) < hwDefs[n.type].h / 2
             );
 
+            if (hovered) {
+                const rect = mbCanvas.getBoundingClientRect();
+                tooltip.style.opacity = 1;
+                tooltip.style.left = (e.clientX - rect.left + 15) + 'px';
+                tooltip.style.top = (e.clientY - rect.top + 15) + 'px';
+                document.getElementById('tt-title').innerText = `${hovered.type} Module`;
+                document.getElementById('tt-status').innerText = hovered.usage > 0.1 ? '⚡ Status: ACTIVE' : '💤 Status: IDLE';
+                document.getElementById('tt-status').style.color = hovered.usage > 0.1 ? '#f1c40f' : '#2ecc71';
+            } else {
+                tooltip.style.opacity = 0;
+            };
+        });
+        mbCanvas.addEventListener('mouseleave', () => tooltip.style.opacity = 0);
+
+        function distToSegmentSquared(px, py, x1, y1, x2, y2) {
+            let l2 = (x1 - x2) ** 2 + (y1 - y2) ** 2;
+            if (l2 === 0) return (px - x1) ** 2 + (py - y1) ** 2;
+            let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            return (px - (x1 + t * (x2 - x1))) ** 2 + (py - (y1 + t * (y2 - y1))) ** 2;
+        }
+
+        mbCanvas.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            if (cam.z < 0.3) return;
+            const wPos = getMouseWorld(e);
+            const mwX = wPos.x * mbWidth;
+            const mwY = wPos.y * mbHeight;
+
+            const idx = nodes.slice().reverse().findIndex(n =>
+                Math.abs(mwX - (n.x * mbWidth)) < hwDefs[n.type].w / 2 &&
+                Math.abs(mwY - (n.y * mbHeight)) < hwDefs[n.type].h / 2
+            );
+
             if (idx >= 0) {
-                const delId = nodes[idx].id;
+                const realIdx = nodes.length - 1 - idx;
+                const delId = nodes[realIdx].id;
+                const deletedType = nodes[realIdx].type;
                 connections = connections.filter(w => w[0] !== delId && w[1] !== delId);
-                nodes.splice(idx, 1);
+                nodes.splice(realIdx, 1);
+
+                unlockAchievement('demolition');
+                if (deletedType === 'CPU') unlockAchievement('no_cpu');
 
                 const tt = document.getElementById('tooltip');
                 if (tt) tt.style.opacity = 0;
+                checkHardware();
+                return;
+            }
 
-                if (typeof checkHardware === 'function') checkHardware();
-                document.getElementById('tooltip').style.opacity = 0;
+            let clickedWireIdx = -1;
+            let minDistance = 150;
+
+            for (let i = 0; i < connections.length; i++) {
+                const c1 = nodes.find(n => n.id === connections[i][0] || n.type.toLowerCase() === connections[i][0]);
+                const c2 = nodes.find(n => n.id === connections[i][1] || n.type.toLowerCase() === connections[i][1]);
+                if (c1 && c2) {
+                    let d2 = distToSegmentSquared(mwX, mwY, c1.x * mbWidth, c1.y * mbHeight, c2.x * mbWidth, c2.y * mbHeight);
+                    if (d2 < minDistance) { minDistance = d2; clickedWireIdx = i; }
+                }
+            }
+
+            if (clickedWireIdx >= 0) {
+                connections.splice(clickedWireIdx, 1);
+                unlockAchievement('demolition');
+                checkHardware();
             }
         });
 
-        // 4. Drag & Drop from Palette
-        document.querySelectorAll('.drag-item').forEach(el => el.addEventListener('dragstart', e => {
-            e.dataTransfer.setData('type', e.target.getAttribute('data-type'));
-        }));
+        //  DRAG & DROP 
+        document.querySelectorAll('.drag-item').forEach(el => {
+            el.addEventListener('dragstart', e => {
+                // Must use text/plain for cross-browser reliability
+                e.dataTransfer.setData('text/plain', e.target.getAttribute('data-type'));
+            });
+        });
 
         mbCanvas.addEventListener('dragover', e => e.preventDefault());
 
         mbCanvas.addEventListener('drop', e => {
             e.preventDefault();
-            const type = e.dataTransfer.getData('type');
+            // Retrieve safely
+            const type = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('type');
 
             if (hwDefs[type] && cam.z >= 0.3) {
                 const mw = getMouseWorld(e);
                 nodes.push({
                     id: 'n_' + Math.random().toString(36).substr(2, 9),
                     type: type,
-                    x: mw.x, // Now properly dropping as a percentage!
+                    x: mw.x,
                     y: mw.y,
                     usage: 0
                 });
+                unlockAchievement('first_blood');
                 if (typeof checkHardware === 'function') checkHardware();
             }
         });
 
-        mbCanvas.addEventListener('mousedown', e => {
-            if (e.button === 2) return; // Ignore right-clicks
-            isDraggingCam = true;
-            lastMouse = { x: e.clientX, y: e.clientY };
 
-            mbCanvas.onmousemove = me => {
-                if (!isDraggingCam) return;
-                // Move the camera based on mouse drag, accounting for zoom level
-                cam.x += (me.clientX - lastMouse.x) / cam.z;
-                cam.y += (me.clientY - lastMouse.y) / cam.z;
-                lastMouse = { x: me.clientX, y: me.clientY };
-            };
-        });
 
         window.addEventListener('mouseup', () => {
             isDraggingCam = false;
-            mbCanvas.onmousemove = null;
+            wiringStartNode = null;
+            draggingNode = null;
         });
 
-        /* =========================================
-           PART 2: MODULAR OPERATING SYSTEM & APPS
-        ========================================= */
+        // MODULAR OPERATING SYSTEM & APPS
         const gameCanvas = document.getElementById('game-canvas');
         const gCtx = gameCanvas.getContext('2d');
 
@@ -1171,14 +1972,13 @@
             sysStatus.hasCPU = mNodes.some(n => n.type === 'CPU');
             sysStatus.hasRAM = isConnectedTo('CPU', 'RAM');
             sysStatus.hasGPU = isConnectedTo('CPU', 'GPU');
-            sysStatus.hasDISP = isConnectedTo('GPU', 'DISP');
             sysStatus.hasKBD = isConnectedTo('CPU', 'KBD');
             sysStatus.hasCLK = isConnectedTo('CPU', 'CLK');
             sysStatus.hasNIC = isConnectedTo('CPU', 'NIC');
             sysStatus.hasAUDIO = isConnectedTo('CPU', 'AUDIO');
-            sysStatus.cpuDirectDisp = isConnectedTo('CPU', 'DISP');
+            sysStatus.cpuDirectDisp = !sysStatus.hasGPU && isConnectedTo('CPU', 'DISP');
+            sysStatus.hasDISP = isConnectedTo('GPU', 'DISP') || sysStatus.cpuDirectDisp;
 
-            // UI Update: Safely reset the Start button if CPU is deleted
             if (sysRunning && !sysStatus.hasCPU) {
                 sysRunning = false;
                 const btn = document.getElementById('btn-state');
@@ -1187,48 +1987,45 @@
                 btn.style.color = '#111';
             }
 
-            // Safely toggle the NO SIGNAL text
             const noSignalEl = document.getElementById('no-signal');
             if (noSignalEl) {
                 noSignalEl.style.display = sysStatus.hasDISP ? 'none' : 'block';
             }
         }
 
-        // Determines if a component should spike its glow
+
         function triggerGlow(macroType, microTypes = []) {
             const mNodes = getMacroNodes();
             const mNode = mNodes.find(n => n.type === macroType);
-            if (mNode) mNode.usage = Math.min(1.0, mNode.usage + 0.8); // Spike the glow!
+            if (mNode) mNode.usage = 1.0;
 
-            // If we are currently zoomed into THIS specific chip, glow its sub-components
             if (boardStack.length > 0 && currentLevelName.includes(macroType)) {
                 if (microTypes.length > 0) {
                     microTypes.forEach(mt => {
-                        const micro = nodes.find(n => n.type === mt);
-                        if (micro) micro.usage = Math.min(1.0, micro.usage + 0.8);
+                        const micro = nodes.find(n => n.type === mt || n.id === mt);
+                        if (micro) micro.usage = 1.0;
                     });
                 } else {
-                    nodes.forEach(n => n.usage = Math.min(1.0, n.usage + 0.8));
+                    nodes.forEach(n => n.usage = 1.0);
                 }
             }
         }
 
-        // Determines whether to fire a giant motherboard pulse, or tiny internal logic pulses
-        function triggerDataPulse(fromMacro, toMacro, color, fromMicro, toMicro) {
+        function triggerDataPulse(fromMacro, toMacro, color, microPulses = []) {
             if (boardStack.length === 0) {
-                spawnPulse(fromMacro, toMacro, color); // We are zoomed out, fire Macro pulse
-            } else {
-                // We are zoomed in. Check if we are inside the sender or receiver
-                if (currentLevelName.includes(fromMacro) && fromMicro && fromMicro.length >= 2) {
-                    spawnPulse(fromMicro[0], fromMicro[1], color); // Fire internal sender pulse
-                } else if (currentLevelName.includes(toMacro) && toMicro && toMicro.length >= 2) {
-                    spawnPulse(toMicro[0], toMicro[1], color); // Fire internal receiver pulse
-                }
+                spawnPulse(fromMacro.toLowerCase(), toMacro.toLowerCase(), color);
+            }
+
+            if (boardStack.length > 0) {
+                microPulses.forEach(mp => {
+                    if (currentLevelName.includes(mp.chip)) {
+                        spawnPulse(mp.from.toLowerCase(), mp.to.toLowerCase(), color);
+                    }
+                });
             }
         }
-
         const apps = {
-            // 1. NEON SNAKE (400x300 | 20x20 grid squares = 20 cols, 15 rows)
+            // NEON SNAKE (400x300 | 20x20 grid squares = 20 cols, 15 rows)
             snake: {
                 highScore: 0, score: 0, mode: 'classic', speed: 4, tickCounter: 0,
                 init() {
@@ -1306,7 +2103,7 @@
                 }
             },
 
-            // 2. ORBITAL GRAVITY SIMULATOR
+            // GRAVITY SIMULATOR
             gravity: {
                 bodies: [], bodyCount: 3,
                 init() {
@@ -1375,7 +2172,7 @@
                         this.bvx *= -1; this.bx = 20; this.bvy += ((this.by - (this.p1y + 30)) * 0.1);
                         playBeep(400, 'sine', 0.1); spawnPulse('cpu', 'snd', '#e67e22');
                     }
-                    // P2 Hit (Right Wall = 400)
+                    // P2 Hit 
                     if (this.bx >= 370 && this.by > this.p2y && this.by < this.p2y + 60) {
                         this.bvx *= -1; this.bx = 370; this.bvy += ((this.by - (this.p2y + 30)) * 0.1);
                         playBeep(400, 'sine', 0.1); spawnPulse('cpu', 'snd', '#e67e22');
@@ -1395,7 +2192,7 @@
                 }
             },
 
-            // 4. GAME OF LIFE (400x300 = 40 cols, 30 rows)
+            // GAME OF LIFE (400x300 = 40 cols, 30 rows)
             life: {
                 grid: [], cols: 40, rows: 30, gen: 0,
                 init() {
@@ -1448,82 +2245,262 @@
 
         let customApps = {};
         let currentBlocks = [];
+        let simData = { x: 200, y: 150, vx: 5, vy: 5 };
 
-        // --- VISUAL BLOCK IDE LOGIC ---
-        // --- UPGRADED VISUAL BLOCK IDE LOGIC ---
         const blockContainer = document.getElementById('block-container');
+        let draggedBlockId = null;
+
+        window.showDrawMenu = function (e) {
+            const menu = document.getElementById('draw-context-menu');
+            menu.style.display = 'flex';
+            const rect = e.target.getBoundingClientRect();
+            menu.style.left = rect.left + 'px';
+            menu.style.top = rect.bottom + 'px';
+        };
+        window.hideDrawMenu = function () { document.getElementById('draw-context-menu').style.display = 'none'; };
+        document.addEventListener('click', hideDrawMenu);
 
         window.addBlock = function (type) {
-            const b = { id: Math.random().toString(), type: type, args: {} };
-            // Define the default fields for each new block type
-            if (type === 'clearScreen') b.args = { color: '#000000' };
-            if (type === 'drawRect') b.args = { color: '#2ecc71', x: 'simData.x', y: 'simData.y', w: '20', h: '20' };
-            if (type === 'drawText') b.args = { color: '#ffffff', text: '"Score: " + simData.score', x: '10', y: '20', size: '16px' };
-            if (type === 'setVar') b.args = { varName: 'simData.score', value: '0' };
-            if (type === 'mathOp') b.args = { varName: 'simData.x', op: '+=', value: '5' };
-            if (type === 'ifKey') b.args = { key: 'ArrowUp', actionVar: 'simData.y', op: '-=', value: '5' };
+            const b = { id: 'blk_' + Math.random().toString(36).substr(2, 9), type: type, args: {} };
+
+            if (type === 'ifCond' || type === 'loop') {
+                b.children = [];
+            }
+
+            if (type === 'clearScreen') b.args = { color: '' };
+            if (type === 'drawRect') b.args = { color: '', x: '', y: '', w: '', h: '' };
+            if (type === 'drawCircle') b.args = { color: '', x: '', y: '', r: '' };
+            if (type === 'drawText') b.args = { color: '', text: '', x: '', y: '', font: '' };
+            if (type === 'setVar') b.args = { varName: '', value: '' };
+            if (type === 'mathOp') b.args = { varName: '', op: '+=', value: '' };
+            if (type === 'ifCond') b.args = { condition: '' };
+            if (type === 'loop') b.args = { count: '' };
+            if (b.type === 'addPhysicsObj') b.args = { id: '', layer: '', x: '', y: '', w: '', h: '', vx: '', vy: '' };
+            if (b.type === 'renderPhysics') b.args = { color: '' };
 
             currentBlocks.push(b);
             renderBlocks();
         }
 
-        window.delBlock = function (id) { currentBlocks = currentBlocks.filter(b => b.id !== id); renderBlocks(); }
-        window.updateBlockArgs = function (id, key, val) { const b = currentBlocks.find(bl => bl.id === id); if (b) b.args[key] = val; }
+        function removeBlockRecursive(blocks, id) {
+            for (let i = 0; i < blocks.length; i++) {
+                if (blocks[i].id === id) { blocks.splice(i, 1); return true; }
+                if (blocks[i].children && removeBlockRecursive(blocks[i].children, id)) return true;
+            }
+            return false;
+        }
 
-        function renderBlocks() {
-            blockContainer.innerHTML = '';
-            currentBlocks.forEach(b => {
-                const div = document.createElement('div'); div.className = 'visual-block';
-                let inner = `<strong style="color: #fff; width: 90px; display: inline-block;">${b.type}</strong> `;
+        window.delBlock = function (id) { removeBlockRecursive(currentBlocks, id); renderBlocks(); }
 
+        window.updateBlockArgs = function (id, key, val) {
+            const updateRecursive = (blocks) => {
+                for (let b of blocks) {
+                    if (b.id === id) { b.args[key] = val; return true; }
+                    if (b.children && updateRecursive(b.children)) return true;
+                }
+            };
+            updateRecursive(currentBlocks);
+        }
+
+        let draggedNewBlockType = null;
+        window.onDragStartNewBlock = (e, type) => { e.stopPropagation(); draggedNewBlockType = type; draggedBlockId = null; };
+        window.onDragStartBlock = (e, id) => { e.stopPropagation(); draggedBlockId = id; draggedNewBlockType = null; };
+        window.onDragOverBlock = (e) => { e.preventDefault(); e.stopPropagation(); };
+
+        window.onDropBlock = (e, targetId) => {
+            e.preventDefault(); e.stopPropagation();
+
+            if (draggedNewBlockType) {
+                const b = { id: 'blk_' + Math.random().toString(36).substr(2, 9), type: draggedNewBlockType, args: {} };
+                if (draggedNewBlockType === 'ifCond' || draggedNewBlockType === 'loop') b.children = [];
+
+                if (b.type === 'clearScreen') b.args = { color: '' };
+                if (b.type === 'drawRect') b.args = { color: '', x: '', y: '', w: '', h: '' };
+                if (b.type === 'drawCircle') b.args = { color: '', x: '', y: '', r: '' };
+                if (b.type === 'drawText') b.args = { color: '', text: '', x: '', y: '', font: '' };
+                if (b.type === 'setVar') b.args = { varName: '', value: '' };
+                if (b.type === 'mathOp') b.args = { varName: '', op: '+=', value: '' };
+                if (b.type === 'ifCond') b.args = { condition: '' };
+                if (b.type === 'loop') b.args = { count: '' };
+                if (b.type === 'addPhysicsObj') b.args = { id: '', layer: '', x: '', y: '', w: '', h: '', vx: '', vy: '' };
+                if (b.type === 'renderPhysics') b.args = { color: '' };
+
+                if (targetId === 'root') currentBlocks.push(b);
+                else {
+                    const insert = (blocks) => {
+                        for (let blk of blocks) {
+                            if (blk.id === targetId && blk.children) { blk.children.push(b); return true; }
+                            if (blk.children && insert(blk.children)) return true;
+                        }
+                    }; insert(currentBlocks);
+                }
+                draggedNewBlockType = null;
+                renderBlocks();
+                return;
+            }
+
+            if (!draggedBlockId || draggedBlockId === targetId) return;
+            let draggedBlock = null;
+            const extractAndRemove = (blocks) => {
+                for (let i = 0; i < blocks.length; i++) {
+                    if (blocks[i].id === draggedBlockId) { draggedBlock = blocks.splice(i, 1)[0]; return true; }
+                    if (blocks[i].children && extractAndRemove(blocks[i].children)) return true;
+                }
+            };
+            extractAndRemove(currentBlocks);
+
+            if (!draggedBlock) return;
+            if (targetId === 'root') currentBlocks.push(draggedBlock);
+            else {
+                const insertRecursive = (blocks) => {
+                    for (let b of blocks) {
+                        if (b.id === targetId && b.children) { b.children.push(draggedBlock); return true; }
+                        if (b.children && insertRecursive(b.children)) return true;
+                    }
+                }; insertRecursive(currentBlocks);
+            }
+            draggedBlockId = null; renderBlocks();
+        };
+
+        function generateHTML(blocks) {
+            const displayNames = {
+                'clearScreen': 'Clear',
+                'drawRect': 'Rect',
+                'drawCircle': 'Circle',
+                'drawText': 'Text',
+                'setVar': 'Set Var',
+                'mathOp': 'Calc',
+                'ifCond': 'If-Then',
+                'loop': 'Loop',
+                'addPhysicsObj': 'Physics Entity',
+                'renderPhysics': 'Render Physics'
+            };
+
+            let html = '';
+            blocks.forEach(b => {
+                let niceName = displayNames[b.type] || b.type;
+
+                let inner = `<div class="visual-block" draggable="true" ondragstart="onDragStartBlock(event, '${b.id}')" style="border-left-color: ${b.children ? '#e67e22' : '#3498db'}">
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <strong style="color: #f1c40f;">${niceName}</strong> `;
                 for (let key in b.args) {
+                    const uniqueId = `${b.id}_${key}`; // Fixes the browser warning spam!
                     if (key === 'color') {
-                        inner += `<input type="color" value="${b.args[key]}" onchange="updateBlockArgs('${b.id}', '${key}', this.value)" title="${key}"> `;
+                        inner += `<input type="text" id="${uniqueId}" name="${uniqueId}" onmousedown="event.stopPropagation()" onchange="updateBlockArgs('${b.id}', '${key}', this.value)" value='${b.args[key]}' placeholder="#FF0000" title="Hex Color" style="width: 70px;">`;
                     } else if (key === 'op') {
-                        // Dropdown for Math Operators
-                        inner += `<select style="color:#fff;" onchange="updateBlockArgs('${b.id}', '${key}', this.value)">
-                            <option ${b.args[key] === '+=' ? 'selected' : ''}>+=</option>
-                            <option ${b.args[key] === '-=' ? 'selected' : ''}>-=</option>
-                            <option ${b.args[key] === '=' ? 'selected' : ''}>=</option>
-                            <option ${b.args[key] === '*=' ? 'selected' : ''}>*=</option>
-                        </select> `;
-                    } else if (key === 'key') {
-                        // Dropdown for Keyboard Inputs
-                        inner += `<select style="color:#fff;" onchange="updateBlockArgs('${b.id}', '${key}', this.value)">
-                            <option ${b.args[key] === 'ArrowUp' ? 'selected' : ''}>ArrowUp</option>
-                            <option ${b.args[key] === 'ArrowDown' ? 'selected' : ''}>ArrowDown</option>
-                            <option ${b.args[key] === 'ArrowLeft' ? 'selected' : ''}>ArrowLeft</option>
-                            <option ${b.args[key] === 'ArrowRight' ? 'selected' : ''}>ArrowRight</option>
-                            <option ${b.args[key] === 'Space' ? 'selected' : ''}>Space</option>
-                        </select> `;
+                        inner += `<select id="${uniqueId}" name="${uniqueId}" onmousedown="event.stopPropagation()" onchange="updateBlockArgs('${b.id}', '${key}', this.value)">
+                            <option ${b.args[key] === '+=' ? 'selected' : ''}>+=</option><option ${b.args[key] === '-=' ? 'selected' : ''}>-=</option>
+                            <option ${b.args[key] === '=' ? 'selected' : ''}>=</option><option ${b.args[key] === '*=' ? 'selected' : ''}>*=</option>
+                        </select>`;
                     } else {
-                        inner += `<input type="text" style="color:#fff; width: 65px;" value='${b.args[key]}' onchange="updateBlockArgs('${b.id}', '${key}', this.value)" placeholder="${key}" title="${key}"> `;
+                        let ph = key === 'varName' ? 'simData.x' : key === 'condition' ? 'simData.x > 400' : key;
+                        inner += `<input type="text" id="${uniqueId}" name="${uniqueId}" onmousedown="event.stopPropagation()" onchange="updateBlockArgs('${b.id}', '${key}', this.value)" value='${b.args[key]}' placeholder="${ph}" style="width: 80px;">`;
                     }
                 }
-                inner += `<button class="btn-del-block" onclick="delBlock('${b.id}')">✖</button>`;
-                div.innerHTML = inner; blockContainer.appendChild(div);
+                inner += `<button onmousedown="event.stopPropagation()" onclick="delBlock('${b.id}')" style="margin-left:auto; background:#e74c3c; border:none; color:white; border-radius:4px; cursor:pointer;">✖</button>
+                    </div>`;
+
+                if (b.children) {
+                    inner += `<div class="block-children" ondragover="onDragOverBlock(event)" ondrop="onDropBlock(event, '${b.id}')">
+                        ${b.children.length === 0 ? '<div style="color:#666; font-size:11px; text-align:center; font-style:italic; pointer-events:none;">Drop blocks inside here</div>' : ''}
+                        ${generateHTML(b.children)}
+                    </div>`;
+                }
+                inner += `</div>`;
+                html += inner;
             });
+            return html;
         }
 
-        function compileBlocks(blocks) {
-            let code = `// Custom App Executable\n`;
-            // Auto-initialize standard variables if they don't exist
-            code += `if(simData.score === undefined) simData.score = 0;\n`;
+        window.renderBlocks = function () {
+            blockContainer.innerHTML = `<div style="min-height: 100%;" ondragover="onDragOverBlock(event)" ondrop="onDropBlock(event, 'root')">${generateHTML(currentBlocks)}</div>`;
+        }
 
+        function compileBlocks(blocks, warnings) {
+            let code = ``;
             blocks.forEach(b => {
-                if (b.type === 'clearScreen') code += `gCtx.fillStyle='${b.args.color}'; gCtx.fillRect(0,0,400,300);\n`;
-                if (b.type === 'drawRect') code += `gCtx.fillStyle='${b.args.color}'; gCtx.fillRect(${b.args.x}, ${b.args.y}, ${b.args.w}, ${b.args.h});\n`;
-                if (b.type === 'drawText') code += `gCtx.fillStyle='${b.args.color}'; gCtx.font='${b.args.size} monospace'; gCtx.fillText(${b.args.text}, ${b.args.x}, ${b.args.y});\n`;
-                if (b.type === 'setVar') code += `${b.args.varName} = ${b.args.value};\n`;
-                if (b.type === 'mathOp') code += `${b.args.varName} ${b.args.op} ${b.args.value};\n`;
-                if (b.type === 'ifKey') code += `if(keys['${b.args.key}']) { ${b.args.actionVar} ${b.args.op} ${b.args.value}; }\n`;
+                if (b.type === 'clearScreen') {
+                    let c = b.args.color || '#000000';
+                    code += `gCtx.fillStyle='${c}'; gCtx.fillRect(0,0,400,300);\n`;
+                }
+                if (b.type === 'drawRect') {
+                    let c = b.args.color || '#2ecc71';
+                    let x = b.args.x || 'simData.x'; let y = b.args.y || 'simData.y';
+                    let w = b.args.w || '20'; let h = b.args.h || '20';
+                    code += `gCtx.fillStyle='${c}'; gCtx.fillRect(${x}, ${y}, ${w}, ${h});\n`;
+                }
+                if (b.type === 'drawCircle') {
+                    let c = b.args.color || '#e74c3c';
+                    let x = b.args.x || 'simData.x'; let y = b.args.y || 'simData.y';
+                    let r = b.args.r || '15';
+                    code += `gCtx.fillStyle='${c}'; gCtx.beginPath(); gCtx.arc(${x}, ${y}, ${r}, 0, Math.PI*2); gCtx.fill();\n`;
+                }
+                if (b.type === 'drawText') {
+                    let c = b.args.color || '#ffffff';
+                    let t = b.args.text || '"Score: " + simData.score';
+                    let x = b.args.x || '10'; let y = b.args.y || '20';
+                    let f = b.args.font || '16px monospace';
+                    code += `gCtx.fillStyle='${c}'; gCtx.font='${f}'; gCtx.fillText(${t}, ${x}, ${y});\n`;
+                }
+                if (b.type === 'setVar') {
+                    let v = b.args.varName; let val = b.args.value;
+                    if (!v && !val) warnings.push("Attempted to set nil to nil");
+                    else if (!v) warnings.push(`Attempted to set nil to ${val}`);
+                    else if (!val) warnings.push(`Attempted to set ${v} to nil`);
+                    v = v || 'simData.temp'; val = val || '0';
+                    code += `${v} = ${val};\n`;
+                }
+                if (b.type === 'mathOp') {
+                    let v = b.args.varName || 'simData.x';
+                    let op = b.args.op || '+='; let val = b.args.value || '1'; code += `${v} ${op} ${val};\n`;
+                }
+                if (b.type === 'ifCond') {
+                    let cond = b.args.condition;
+                    if (!cond) { warnings.push("No condition given for IF block"); cond = 'false'; }
+                    code += `if(${cond}) {\n ${compileBlocks(b.children, warnings)} }\n`;
+                }
+                if (b.type === 'loop') {
+                    let c = b.args.count;
+                    if (!c) { warnings.push("Empty loop block detected"); c = '1'; }
+                    code += `for(let i=0; i<${c}; i++) {\n ${compileBlocks(b.children, warnings)} }\n`;
+                }
+                if (b.type === 'addPhysicsObj') {
+                    let id = b.args.id !== '' ? b.args.id : 'obj1';
+                    let lay = b.args.layer !== '' ? b.args.layer : 'Default';
+                    let x = b.args.x !== '' ? b.args.x : '200'; let y = b.args.y !== '' ? b.args.y : '150';
+                    let w = b.args.w !== '' ? b.args.w : '20'; let h = b.args.h !== '' ? b.args.h : '20';
+                    let vx = b.args.vx !== '' ? b.args.vx : '5'; let vy = b.args.vy !== '' ? b.args.vy : '5';
+                    code += `if(!simData.objects) simData.objects = [];\n`;
+                    code += `if(!simData.objects.find(o=>o.id==='${id}')) simData.objects.push({id:'${id}', layer:'${lay}', x:${x}, y:${y}, w:${w}, h:${h}, vx:${vx}, vy:${vy}});\n`;
+                }
+                if (b.type === 'renderPhysics') {
+                    let c = b.args.color !== '' ? b.args.color : '#f1c40f';
+                    code += `if(simData.objects) { gCtx.fillStyle='${c}'; simData.objects.forEach(o => { gCtx.fillRect(o.x, o.y, o.w, o.h); }); }\n`;
+                }
             });
-            // We now pass 'keys' into the function so it can read keyboard inputs!
-            return new Function('gCtx', 'simData', 'keys', code);
+            return code;
         }
 
-        window.delBlock = function (id) { currentBlocks = currentBlocks.filter(b => b.id !== id); renderBlocks(); }
-        window.updateBlockArgs = function (id, key, val) { const b = currentBlocks.find(bl => bl.id === id); if (b) b.args[key] = val; }
+        document.getElementById('btn-compile').onclick = () => {
+            if (currentAppId.startsWith('custom_')) {
+                customApps[currentAppId].blocks = JSON.parse(JSON.stringify(currentBlocks)); // Deep copy
+                try {
+                    let warnings = [];
+                    let blockCode = compileBlocks(currentBlocks, warnings);
+                    let fullCode = `if(simData.score === undefined) simData.score = 0;\n` + blockCode;
+                    customApps[currentAppId].compiled = new Function('gCtx', 'simData', 'keys', fullCode);
+
+                    if (warnings.length > 0) {
+                        showToast("Compiler Warning", warnings[0] + (warnings.length > 1 ? ` (+${warnings.length - 1} more)` : ''), true);
+                    } else {
+                        showToast("System Compiler", "COMPILE SUCCESS", false);
+                        unlockAchievement('hacker');
+                    }
+                } catch (e) {
+                    showToast("Compiler Error", "SYNTAX ERROR", true);
+                }
+            }
+        };
 
         function renderBlocks() {
             blockContainer.innerHTML = '';
@@ -1540,35 +2517,23 @@
             });
         }
 
-        function compileBlocks(blocks) {
-            let code = ``;
-            blocks.forEach(b => {
-                if (b.type === 'clear') code += `gCtx.fillStyle='${b.args.color}'; gCtx.fillRect(0,0,400,300);\n`;
-                if (b.type === 'drawRect') code += `gCtx.fillStyle='${b.args.color}'; gCtx.fillRect(${b.args.x}, ${b.args.y}, ${b.args.w}, ${b.args.h});\n`;
-                if (b.type === 'drawCircle') code += `gCtx.fillStyle='${b.args.color}'; gCtx.beginPath(); gCtx.arc(${b.args.x}, ${b.args.y}, ${b.args.r}, 0, Math.PI*2); gCtx.fill();\n`;
-                if (b.type === 'moveVar') code += `simData.${b.args.var} += simData.${b.args.val};\n`;
-                if (b.type === 'bounce') code += `if(simData.x < 0 || simData.x > ${b.args.width}) simData.vx *= -1; if(simData.y < 0 || simData.y > ${b.args.height}) simData.vy *= -1;\n`;
-            });
-            return new Function('gCtx', 'simData', code);
-        }
-        let simData = { x: 200, y: 150, vx: 5, vy: 5 };
 
-        // --- ADVANCED DECOUPLED GAME LOOP ---
 
         const LOGIC_RATE = 1000 / 30; // Physics ALWAYS run at a locked 30 ticks per second
         let lastTime = performance.now();
         let accumulator = 0;
         let gpuThrottle = 0;
+        let osFrameCount = 0;
 
-        // 1. MATH & HARDWARE LOGIC (Locked Speed)
+        // MATH & HARDWARE LOGIC (locked speed)
         function osLogic() {
             if (!sysRunning || !sysStatus.hasCPU || crashType) return;
-            // CLOCK INSTABILITY & CRASHES
+            // CLOCK INSTABILITY n CRASHES
             if (!sysStatus.hasCLK) {
-                systemInstability += 0.5;
-                if (Math.random() > 0.6) return; // Random drastic stutter
+                systemInstability += Math.random();
+                if (Math.random() > 0.6) return;
 
-                if (systemInstability > 50) {
+                if (systemInstability > 150) {
                     sysRunning = false;
                     crashType = ['BSOD_FRAG', 'FATAL_ERR', 'DATA_CORRUPT'][Math.floor(Math.random() * 3)];
                     document.getElementById('btn-state').textContent = 'REBOOT REQ';
@@ -1578,51 +2543,133 @@
             } else {
                 systemInstability = Math.max(0, systemInstability - 1);
             }
-            // RAM DEGRADATION (Simulation slows down)
+            osFrameCount++; // Tick the global sequencer
+
+            // BASE CPU LOGIC CYCLE (Fires twice a second to reduce spam)
+            if (osFrameCount % 15 === 0) {
+                triggerGlow('CPU', ['CU', 'ALU', 'REG']);
+                triggerDataPulse('CPU', 'CPU', '#f39c12', [
+                    { chip: 'CPU', from: 'cu', to: 'alu' },
+                    { chip: 'CPU', from: 'alu', to: 'reg' },
+                    { chip: 'CPU', from: 'cu', to: 'reg' }
+                ]);
+            }
+
+            // RAM COMMUNICATION (Spaced out to avoid visual overlap)
             let ramThrottle = 0;
             if (!sysStatus.hasRAM) {
                 ramThrottle++;
-                if (ramThrottle < 3) return; // Run logic at 1/3 speed if no RAM
+                if (ramThrottle < 3) return;
                 ramThrottle = 0;
             } else {
-                triggerGlow('CPU', ['CU', 'CACHE']);
-                triggerGlow('RAM', ['MEM_CTRL', 'DRAM']);
-                triggerDataPulse('CPU', 'RAM', '#2ecc71', ['CU', 'CACHE'], ['MEM_CTRL', 'DRAM']);
+                // WRITE CYCLE (Frame 5)
+                if (osFrameCount % 30 === 5) {
+                    let targetBank = Math.random() > 0.5 ? 'b1' : 'b2'; // Alternate DRAM banks!
+                    triggerGlow('RAM', ['MEM_CTRL', targetBank]);
+                    triggerGlow('CPU', ['CACHE', 'RAM_WRITE']);
+
+                    triggerDataPulse('CPU', 'RAM', '#2ecc71', [
+                        { chip: 'CPU', from: 'cu', to: 'cache' },
+                        { chip: 'CPU', from: 'cache', to: 'ram_w' },
+                        { chip: 'RAM', from: 'mctrl', to: targetBank }
+                    ]);
+                }
+                // READ CYCLE (Frame 20)
+                else if (osFrameCount % 30 === 20) {
+                    let targetBank = Math.random() > 0.5 ? 'b1' : 'b2'; // Alternate DRAM banks!
+                    triggerGlow('RAM', ['MEM_CTRL', targetBank]);
+                    triggerGlow('CPU', ['CACHE', 'RAM_READ']);
+
+                    triggerDataPulse('RAM', 'CPU', '#2ecc71', [
+                        { chip: 'CPU', from: 'cu', to: 'ram_r' }, // CU initiates the fetch!
+                        { chip: 'RAM', from: targetBank, to: 'mctrl' },
+                        { chip: 'CPU', from: 'ram_r', to: 'cache' }
+                    ]);
+                }
             }
 
-
-            // RAM DATA PULSES
-            if (sysStatus.hasRAM) {
-                triggerGlow('CPU', ['CU', 'CACHE']);
-                triggerGlow('RAM', ['MEM_CTRL', 'DRAM']);
-                triggerDataPulse('CPU', 'RAM', '#2ecc71', ['CU', 'CACHE'], ['MEM_CTRL', 'DRAM']);
-                triggerDataPulse('RAM', 'CPU', '#2ecc71', ['DRAM', 'MEM_CTRL'], ['CACHE', 'CU']);
-            }
-
-            // GPU HARDWARE THROTTLING
-            // If GPU is missing, we skip logic frames to simulate intense CPU lag
+            // GPU COMMUNICATION
             if (!sysStatus.hasGPU) {
                 gpuThrottle++;
-                if (gpuThrottle < 3) return; // Run at 1/3rd speed without a GPU
+                if (sysStatus.cpuDirectDisp) {
+                    if (Math.random() > 0.8) return;
+                } else if (gpuThrottle < 3) {
+                    return;
+                }
                 gpuThrottle = 0;
-            } else {
+            } else if (osFrameCount % 12 === 0) {
+                // GPU operates on a slightly different frequency than the CPU/RAM
+                let targetCore = Math.random() > 0.5 ? 'core1' : 'core2'; // Alternate GPU Cores!
                 triggerGlow('GPU', ['CORE', 'VRAM', 'TEX']);
-                triggerDataPulse('CPU', 'GPU', '#0098ff', ['ALU', 'CACHE'], ['CORE', 'VRAM']);
-            }
+                triggerGlow('CPU', ['PCIe_OUT']);
 
-            // ACTUAL GAME LOGIC
-            triggerGlow('CPU', ['ALU', 'REG']);
+                // Send physics/draw data over PCIe
+                triggerDataPulse('CPU', 'GPU', '#0098ff', [
+                    { chip: 'CPU', from: 'cu', to: 'pcie' },
+                    { chip: 'GPU', from: 'vram', to: targetCore },
+                    { chip: 'GPU', from: targetCore, to: 'tex' }
+                ]);
+            }
 
             if (currentAppId.startsWith('custom_')) {
-                simData.x += simData.vx; simData.y += simData.vy;
-                if (simData.x < 0 || simData.x > 300) simData.vx *= -1;
-                if (simData.y < 0 || simData.y > 300) simData.vy *= -1;
-            } else if (apps[currentAppId] && apps[currentAppId].tick) {
-                apps[currentAppId].tick();
-            }
+                let app = customApps[currentAppId];
+
+                // 1. Execute User Compiled Logic (May spawn/alter objects)
+                if (app && app.compiled) {
+                    try { app.compiled(gCtx, simData, keys); } catch (e) { }
+                }
+
+                // 2. Load Physics Configurations
+                let phys = app.physics || { bounds: { x: 0, y: 0, w: 400, h: 300 }, matrix: { 'Default': ['Default'] } };
+                let b = phys.bounds;
+
+                // 3. Fallback for the basic "Move Var" template (Fixes the invisible wall bug!)
+                if (simData.vx !== undefined && !simData.objects) {
+                    simData.x += simData.vx; simData.y += simData.vy;
+                    if (simData.x < b.x || simData.x > b.x + b.w) simData.vx *= -1;
+                    if (simData.y < b.y || simData.y > b.y + b.h) simData.vy *= -1;
+                }
+
+                // 4. Advanced Physics Engine: Handles simData.objects automatically
+                if (simData.objects) {
+                    let m = phys.matrix;
+
+                    // A: Apply Velocity & Check Boundaries
+                    simData.objects.forEach(obj => {
+                        obj.x += obj.vx || 0; obj.y += obj.vy || 0;
+
+                        if (obj.x < b.x) { obj.x = b.x; obj.vx *= -1; }
+                        if (obj.x + obj.w > b.x + b.w) { obj.x = b.x + b.w - obj.w; obj.vx *= -1; }
+                        if (obj.y < b.y) { obj.y = b.y; obj.vy *= -1; }
+                        if (obj.y + obj.h > b.y + b.h) { obj.y = b.y + b.h - obj.h; obj.vy *= -1; }
+                    });
+
+                    // B: AABB Collision Matrix Parsing (O(N^2))
+                    for (let i = 0; i < simData.objects.length; i++) {
+                        for (let j = i + 1; j < simData.objects.length; j++) {
+                            let o1 = simData.objects[i]; let o2 = simData.objects[j];
+                            let l1 = o1.layer || 'Default'; let l2 = o2.layer || 'Default';
+
+                            // Does Layer 1 interact with Layer 2 according to user matrix?
+                            if (m[l1] && m[l1].includes(l2)) {
+                                if (o1.x < o2.x + o2.w && o1.x + o1.w > o2.x &&
+                                    o1.y < o2.y + o2.h && o1.y + o1.h > o2.y) {
+
+                                    // Elastic Transfer (Swap velocities)
+                                    let tx = o1.vx; o1.vx = o2.vx; o2.vx = tx;
+                                    let ty = o1.vy; o1.vy = o2.vy; o2.vy = ty;
+
+                                    // Unstick the objects to prevent glitching
+                                    o1.x += o1.vx; o1.y += o1.vy;
+                                    o2.x += o2.vx; o2.y += o2.vy;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (apps[currentAppId] && apps[currentAppId].tick) { apps[currentAppId].tick() }
         }
 
-        // 2. SCREEN RENDERING (Variable Speed based on Slider)
         function osRender() {
             if (!sysStatus.hasCPU && !crashType) return;
             if (sysStatus.hasDISP) {
@@ -1661,26 +2708,34 @@
                     apps[currentAppId].draw();
                 }
 
-                if (sysStatus.hasGPU) triggerDataPulse('GPU', 'DISP', '#00ffff', ['VRAM', 'TEX'], ['TCON', 'PIXELS']);
+                if (sysStatus.hasGPU && isConnectedTo('GPU', 'DISP')) {
+                    if (osFrameCount % 10 === 0) {
+                        let targetCore = Math.random() > 0.5 ? 'core1' : 'core2';
+                        triggerGlow('DISP', ['TCON', 'PIXELS']);
+                        triggerDataPulse('GPU', 'DISP', '#00ffff', [
+                            { chip: 'GPU', from: 'vram', to: targetCore }, // Show the core reading the framebuffer
+                            { chip: 'DISP', from: 'tcon', to: 'pxl' }
+                        ]);
+                    }
+                }
             } else {
                 gCtx.fillStyle = '#000'; gCtx.fillRect(0, 0, 300, 300);
             }
         }
 
-        // 3. THE MASTER LOOP ENGINE
+        // main physics and render loop
         function osLoop() {
             let now = performance.now();
             let dt = now - lastTime;
             lastTime = now;
             accumulator += dt;
 
-            // Run physics strictly at 30Hz. If the tab lags, the accumulator catches up!
+            // Run physics strictly at 30Hz. If the tab lags, the accumulator catches up
             while (accumulator >= LOGIC_RATE) {
                 osLogic();
                 accumulator -= LOGIC_RATE;
             }
 
-            // Render purely based on the variable interval timer
             osRender();
         }
 
@@ -1696,7 +2751,7 @@
                 osFps = e.target.value;
                 fpsDisplay.innerText = osFps + ' FPS';
 
-                // Restart the loop at the new visual speed
+                // restart it.
                 clearInterval(osTickInterval);
                 osTickInterval = setInterval(osLoop, 1000 / osFps);
             });
@@ -1730,14 +2785,15 @@
         const modeSelector = document.getElementById('snake-mode');
         const speedSelector = document.getElementById('snake-speed');
 
-        // Allow pre-boot Snake config to update visually if power is OFF
         if (modeSelector) modeSelector.addEventListener('change', () => { if (!sysRunning) { apps['snake'].init(); apps['snake'].draw(); } });
         if (speedSelector) speedSelector.addEventListener('change', () => { if (!sysRunning) { apps['snake'].init(); apps['snake'].draw(); } });
 
-        // --- Custom App UI Hookups ---
         document.getElementById('btn-add-app').onclick = () => {
-            const name = prompt("Enter Custom App Name:");
-            if (!name) return;
+            const nameInput = document.getElementById('new-app-name');
+            const name = nameInput.value.trim();
+            if (!name) { showToast("Notice", "Please enter an app name", true); return; }
+            nameInput.value = '';
+
             const id = 'custom_' + Date.now();
             customApps[id] = { name: name, blocks: [], compiled: null };
 
@@ -1748,15 +2804,6 @@
             appSelector.dispatchEvent(new Event('change'));
         };
 
-        document.getElementById('btn-compile').onclick = () => {
-            if (currentAppId.startsWith('custom_')) {
-                customApps[currentAppId].blocks = [...currentBlocks];
-                try {
-                    customApps[currentAppId].compiled = compileBlocks(currentBlocks);
-                    alert("App Compiled Successfully!");
-                } catch (e) { alert("Compile Error!"); }
-            }
-        };
 
         document.getElementById('btn-edit-app').onclick = () => {
             const ide = document.getElementById('custom-ide');
@@ -1842,10 +2889,8 @@
                 gCtx.fillRect(0, 0, 400, 300);
             }
         });
-        // Force the UI to evaluate the default app (Snake) so the menus hide/show correctly on boot
         appSelector.dispatchEvent(new Event('change'));
 
-        // --- FPS Slider Hookup (Assuming you are using the osLoop setup) ---
         const fpsSliderEl = document.getElementById('fps-slider');
         const fpsDisplayEl = document.getElementById('fps-display');
         if (fpsSliderEl && typeof osLoop !== 'undefined') {
@@ -1855,14 +2900,106 @@
                 clearInterval(osTickInterval);
                 osTickInterval = setInterval(osLoop, 1000 / osFps);
             });
-        } else if (fpsSliderEl) {
-            // Fallback if using standard setInterval(osTick)
-            fpsSliderEl.addEventListener('input', (e) => {
-                fpsDisplayEl.innerText = e.target.value;
-                clearInterval(window.osTickIntervalTimer);
-                window.osTickIntervalTimer = setInterval(osTick, 1000 / e.target.value);
-            });
         }
+        // --- PHYSICS SETTINGS ENGINE ---
+        window.togglePhysicsPanel = function () {
+            const p = document.getElementById('physics-panel');
+            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+            if (p.style.display === 'block') loadPhysicsSettings();
+        };
+        window.togglePhysicsInfo = function () {
+            const info = document.getElementById('physics-info-panel');
+            info.style.display = info.style.display === 'none' ? 'block' : 'none';
+        };
+
+        // --- PHYSICS SETTINGS ENGINE (WITH LAYER MANAGER) ---
+        let currentPhysLayers = ['Default'];
+
+        window.togglePhysicsPanel = function () {
+            const p = document.getElementById('physics-panel');
+            p.style.display = p.style.display === 'none' ? 'block' : 'none';
+            if (p.style.display === 'block') loadPhysicsSettings();
+        };
+
+        window.addPhysicsLayer = function () {
+            const input = document.getElementById('new-layer-input');
+            const val = input.value.trim();
+            if (val && !currentPhysLayers.includes(val)) {
+                currentPhysLayers.push(val);
+                input.value = '';
+                updateCollisionMatrixUI();
+            }
+        };
+
+        window.removePhysicsLayer = function (layer) {
+            if (layer === 'Default') { showToast("Physics Error", "Cannot delete the Default layer", true); return; }
+            currentPhysLayers = currentPhysLayers.filter(l => l !== layer);
+            updateCollisionMatrixUI();
+        };
+
+        window.loadPhysicsSettings = function () {
+            let app = customApps[currentAppId];
+            if (!app.physics) app.physics = { bounds: { x: 0, y: 0, w: 400, h: 300 }, layers: ['Default'], matrix: { 'Default': ['Default'] } };
+
+            document.getElementById('phys-bx').value = app.physics.bounds.x;
+            document.getElementById('phys-by').value = app.physics.bounds.y;
+            document.getElementById('phys-bw').value = app.physics.bounds.w;
+            document.getElementById('phys-bh').value = app.physics.bounds.h;
+
+            currentPhysLayers = [...app.physics.layers];
+            if (currentPhysLayers.length === 0) currentPhysLayers = ['Default'];
+
+            updateCollisionMatrixUI(app.physics);
+        };
+
+        window.updateCollisionMatrixUI = function (existingPhys = null) {
+            // 1. Render the clickable tags
+            const tagContainer = document.getElementById('layer-tags-container');
+            tagContainer.innerHTML = '';
+            currentPhysLayers.forEach(l => {
+                tagContainer.innerHTML += `<span style="background: #2c3e50; padding: 4px 8px; border-radius: 4px; font-size: 11px; color: white; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+                    ${l} ${l !== 'Default' ? `<span onclick="removePhysicsLayer('${l}')" style="color: #e74c3c; cursor: pointer; font-weight: 900; font-size: 14px;">✖</span>` : ''}
+                </span>`;
+            });
+
+            // 2. Render the Checkbox Matrix
+            let matrix = existingPhys ? existingPhys.matrix : (customApps[currentAppId].physics?.matrix || {});
+            let html = '<strong style="color:#aaa;">Collision Interaction Matrix:</strong><br><table style="width:100%; text-align:center; margin-top: 10px; border-collapse: collapse;"><tr><th></th>';
+            currentPhysLayers.forEach(l => html += `<th style="padding: 5px; border-bottom: 1px solid #444; color:#0098ff;">${l}</th>`);
+            html += '</tr>';
+
+            currentPhysLayers.forEach(row => {
+                html += `<tr><td style="text-align:left; padding: 5px; border-bottom: 1px solid #444; font-weight: bold; color:#e67e22;">${row}</td>`;
+                currentPhysLayers.forEach(col => {
+                    let isChecked = matrix[row] && matrix[row].includes(col);
+                    html += `<td style="border-bottom: 1px solid #444; padding: 5px;"><input type="checkbox" class="phys-mat-cb" data-row="${row}" data-col="${col}" ${isChecked ? 'checked' : ''}></td>`;
+                });
+                html += `</tr>`;
+            });
+            html += '</table>';
+            document.getElementById('phys-matrix').innerHTML = html;
+        };
+
+        window.savePhysicsSettings = function () {
+            let matrix = {};
+            currentPhysLayers.forEach(l => matrix[l] = []);
+
+            document.querySelectorAll('.phys-mat-cb').forEach(cb => {
+                if (cb.checked) matrix[cb.getAttribute('data-row')].push(cb.getAttribute('data-col'));
+            });
+
+            customApps[currentAppId].physics = {
+                bounds: {
+                    x: parseFloat(document.getElementById('phys-bx').value),
+                    y: parseFloat(document.getElementById('phys-by').value),
+                    w: parseFloat(document.getElementById('phys-bw').value),
+                    h: parseFloat(document.getElementById('phys-bh').value)
+                },
+                layers: [...currentPhysLayers],
+                matrix: matrix
+            };
+            showToast("Physics Engine", "Collision Configuration Saved", false);
+        };
     </script>
 </body>
 
