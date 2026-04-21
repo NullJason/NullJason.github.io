@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAVE - User Profile & Shop</title>
+    <style>
+        :root {
+            --bg-main: #0a0c10;
+            --bg-panel: #151820;
+            --bg-card: #1c212b;
+            --accent-blue: #0098ff;
+            --accent-yellow: #f1c40f;
+            --accent-green: #2ecc71;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border-color: #2e3646;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- GLOBAL UI --- */
+        .top-nav {
+            display: flex;
+            gap: 20px;
+            padding: 20px 40px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-btn.active {
+            color: var(--accent-blue);
+        }
+
+        .nav-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--accent-blue);
+            box-shadow: 0 -2px 10px var(--accent-blue);
+        }
+
+        .coin-display {
+            position: fixed;
+            bottom: 30px;
+            right: 40px;
+            background: linear-gradient(135deg, #f1c40f, #d35400);
+            color: #111;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: 900;
+            font-size: 20px;
+            box-shadow: 0 0 20px rgba(241, 196, 15, 0.4);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tab-content {
+            flex-grow: 1;
+            display: none;
+            overflow-y: auto;
+            position: relative;
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* --- PROGRESS TAB --- */
+        .bars-container {
+            max-width: 1000px;
+            margin: 0 auto 40px auto;
+            background: var(--bg-panel);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .bar-wrapper {
+            margin-bottom: 25px;
+        }
+
+        .bar-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .track {
+            width: 100%;
+            height: 20px;
+            background: #0f1116;
+            border-radius: 10px;
+            position: relative;
+            overflow: visible;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.8);
+        }
+
+        .fill-xp {
+            height: 100%;
+            background: linear-gradient(90deg, #0052cc, var(--accent-blue));
+            border-radius: 10px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px var(--accent-blue);
+            position: relative;
+            z-index: 2;
+        }
+
+        .fill-ach {
+            height: 100%;
+            background: linear-gradient(90deg, #e67e22, var(--accent-yellow));
+            border-radius: 10px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px var(--accent-yellow);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Firefly Particles */
+        .firefly-container {
+            position: absolute;
+            top: -15px;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            pointer-events: none;
+        }
+
+        .firefly {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--accent-yellow);
+            border-radius: 50%;
+            box-shadow: 0 0 8px 2px var(--accent-yellow);
+            opacity: 0;
+            animation: floatFly 4s infinite ease-in-out;
+        }
+
+        @keyframes floatFly {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0;
+            }
+
+            50% {
+                transform: translateY(-15px) scale(1.2);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: translateY(-30px) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        /* Achievement Grid (Inherited & Upgraded from original) */
+        .ach-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .ach-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: 0.3s;
+            cursor: default;
+        }
+
+        .ach-card.locked {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+
+        .ach-card.unlocked {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.1);
+            background: linear-gradient(145deg, var(--bg-card), #152219);
+        }
+
+        .ach-title {
+            font-size: 18px;
+            font-weight: 900;
+            margin: 0;
+            color: #fff;
+        }
+
+        .ach-tip {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+            margin: 0;
+        }
+
+        .ach-desc {
+            font-size: 14px;
+            color: var(--accent-green);
+            margin: 0;
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: -1px;
+            width: calc(100% + 2px);
+            background: linear-gradient(145deg, #152219, var(--bg-card));
+            border: 1px solid var(--accent-green);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            padding: 15px;
+            box-sizing: border-box;
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.9);
+            z-index: 20;
+        }
+
+        .ach-card.unlocked:hover {
+            transform: translateY(-5px);
+            border-radius: 10px 10px 0 0;
+            z-index: 20;
+        }
+
+        .ach-card.unlocked:hover .ach-desc {
+            display: block;
+        }
+
+        /* --- SHOP TAB --- */
+        #shop-tab {
+            background: radial-gradient(circle at 50% 30%, #1a1525 0%, var(--bg-main) 70%);
+        }
+
+        .shop-layout {
+            display: flex;
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 100%;
+            gap: 20px;
+            overflow: hidden;
+        }
+
+        .shop-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .shop-right {
+            width: 0;
+            opacity: 0;
+            transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            overflow: hidden;
+            background: var(--bg-panel);
+            border: 1px solid var(--accent-blue);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .shop-right.open {
+            width: 350px;
+            opacity: 1;
+            padding: 30px;
+            margin-left: 20px;
+            overflow-y: auto;
+        }
+
+        .hotbar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .hotbar-slot {
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .hotbar-slot.filled {
+            border: 2px solid var(--accent-blue);
+            background: rgba(0, 152, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 152, 255, 0.3);
+        }
+
+        .shop-ambient {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chibi {
+            font-size: 60px;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+            animation: bounce 3s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .sub-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .sub-btn {
+            background: var(--bg-card);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .sub-btn:hover,
+        .sub-btn.active {
+            background: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 15px rgba(0, 152, 255, 0.4);
+        }
+
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .item-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .item-card:hover {
+            border-color: var(--accent-yellow);
+            transform: scale(1.02);
+        }
+
+        .item-card.selected {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 20px rgba(0, 152, 255, 0.2);
+            background: #1a2233;
+        }
+
+        .item-card.owned {
+            border-color: var(--accent-green);
+        }
+
+        .item-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .item-name {
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .item-price {
+            color: var(--accent-yellow);
+            font-weight: 900;
+            font-size: 14px;
+        }
+
+        /* Shop Detail Panel */
+        .detail-icon {
+            font-size: 80px;
+            text-align: center;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(0, 152, 255, 0.5));
+        }
+
+        .detail-name {
+            font-size: 24px;
+            font-weight: 900;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .detail-type {
+            text-align: center;
+            color: var(--accent-blue);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .detail-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .detail-effects {
+            font-size: 13px;
+            color: var(--accent-green);
+            margin-bottom: 30px;
+        }
+
+        .detail-effects ul {
+            padding-left: 20px;
+            margin-top: 5px;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: auto;
+        }
+
+        .btn-buy {
+            background: var(--accent-yellow);
+            color: #111;
+            box-shadow: 0 4px 15px rgba(241, 196, 15, 0.4);
+        }
+
+        .btn-buy:hover {
+            background: #f39c12;
+            transform: translateY(-2px);
+        }
+
+        .btn-equip {
+            background: var(--accent-blue);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(0, 152, 255, 0.4);
+        }
+
+        .btn-equip:hover {
+            background: #007acc;
+            transform: translateY(-2px);
+        }
+
+        .btn-unequip {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-unequip:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="top-nav">
+        <div style="font-size: 24px; font-weight: 900; color: #fff; margin-right: 40px; letter-spacing: 2px;"><a href="MAVE_Hub.html" style="text-decoration: none; color: inherit;">MAVE<span
+                style="color:var(--accent-blue)">HUB</span></a></div>
+        <button class="nav-btn active" data-target="progress-tab">Progress & Logs</button>
+        <button class="nav-btn" data-target="shop-tab">System Shop</button>
+    </nav>
+
+    <div class="coin-display">
+        🪙 <span id="global-coin-count">0</span>
+    </div>
+
+    <main id="progress-tab" class="tab-content active">
+        <div class="bars-container">
+            <div class="bar-wrapper">
+                <div class="bar-header">
+                    <span style="color: var(--accent-blue); font-size: 18px;">Level <span id="ui-level">1</span></span>
+                    <span style="color: var(--text-muted);"><span id="ui-xp-current">0</span> / <span
+                            id="ui-xp-max">1000</span> XP</span>
+                </div>
+                <div class="track">
+                    <div class="fill-xp" id="bar-xp" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="bar-wrapper" style="margin-bottom: 0;">
+                <div class="bar-header">
+                    <span style="color: var(--accent-yellow); font-size: 18px;">Hardware Knowledge</span>
+                    <span style="color: var(--text-muted);"><span id="ui-ach-current">0</span> / <span
+                            id="ui-ach-max">0</span> Discovered</span>
+                </div>
+                <div class="track">
+                    <div class="firefly-container" id="firefly-back"></div>
+                    <div class="fill-ach" id="bar-ach" style="width: 0%;"></div>
+                    <div class="firefly-container" id="firefly-front"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ach-grid" id="achievements-grid">
+        </div>
+    </main>
+
+    <main id="shop-tab" class="tab-content">
+        <div class="shop-layout">
+            <div class="shop-left" id="shop-main-panel">
+
+                <div class="hotbar" id="shop-hotbar">
+                    <div class="hotbar-slot"></div>
+                    <div class="hotbar-slot"></div>
+                    <div class="hotbar-slot"></div>
+                    <div class="hotbar-slot"></div>
+                    <div class="hotbar-slot"></div>
+                </div>
+
+                <div class="shop-ambient">
+                    <div class="chibi">μ</div>
+                    <div>
+                        <h2 style="margin:0 0 5px 0; color:#fff;">Replicator Node</h2>
+                        <p style="margin:0; color:var(--text-muted); font-size: 14px;">"Welcome back, architect. Trade
+                            your coins for visual upgrades and system patches."</p>
+                        <h1>DO NOT BUY / NOT IMPLEMENTED YET.</h1>
+                        <h2>The below are examples of what is to come. Subject to change.</h2>
+                    </div>
+                </div>
+
+                <div class="sub-nav" id="shop-categories">
+                    <button class="sub-btn active" data-cat="all">All Specs</button>
+                    <button class="sub-btn" data-cat="aura">Auras</button>
+                    <button class="sub-btn" data-cat="theme">Themes</button>
+                    <button class="sub-btn" data-cat="module">Modules</button>
+                </div>
+
+                <div class="item-grid" id="shop-items-grid">
+                </div>
+            </div>
+
+            <div class="shop-right" id="shop-detail-panel">
+                <button onclick="closeShopDetail()"
+                    style="background:transparent; border:none; color:var(--text-muted); font-size:24px; align-self:flex-end; cursor:pointer;">✖</button>
+                <div class="detail-icon" id="detail-icon">❓</div>
+                <div class="detail-name" id="detail-name">Item Name</div>
+                <div class="detail-type" id="detail-type">Category</div>
+                <div class="detail-desc" id="detail-desc">Item description goes here detailing the lore and the tech
+                    behind it.</div>
+                <div class="detail-effects" id="detail-effects">
+                    <strong>System Effects:</strong>
+                    <ul id="detail-fx-list"></ul>
+                </div>
+                <button class="action-btn btn-buy" id="btn-shop-action">Buy - 500 🪙</button>
+            </div>
+        </div>
+    </main>
+
+    <script src="mave_shared.js"></script>
+    <script>
+
+        const SHOP_ITEMS = [
+            { id: "aura_fire", name: "Overclock Aura", type: "aura", icon: "🔥", cost: 150, desc: "A fiery red ambient glow for your cursor, indicating unsafe voltage levels pushed to the CPU.", effects: ["Changes cursor trail to Red", "Increases visual heat dispersion"] },
+            { id: "aura_matrix", name: "Data Streamer", type: "aura", icon: "📟", cost: 300, desc: "Falling green hexadecimal code constantly drips from active components.", effects: ["Component hover emits matrix code", "Applies terminal font globally"] },
+            { id: "theme_dark", name: "Abyss PCB", type: "theme", icon: "🌌", cost: 500, desc: "Coat the motherboard in Vantablack material, making the electrical pulses pop with infinite contrast.", effects: ["Sets board background to #000", "Increases pulse brightness 200%"] },
+            { id: "theme_gold", name: "Royal Silicon", type: "theme", icon: "👑", cost: 1000, desc: "Swap standard copper traces for pure 24k gold. Highly conductive, highly expensive.", effects: ["Changes all default wires to Gold", "Unlocks Royal OS Boot Screen"] },
+            { id: "mod_turbo", name: "Turbo Switch", type: "module", icon: "⚡", cost: 750, desc: "An old-school case button that uncaps the physics engine frame-time limitations.", effects: ["Unlocks 120Hz Simulator Mode", "Adds Turbo UI Toggle"] }
+        ];
+
+        // ==========================================
+        // State & local
+        // ==========================================
+        let userData = {
+            coins: 0,
+            xp: 0,
+            level: 1,
+            claimed: {},        // claimed achievements.
+            inventory: [],      // Array of owned shop item IDs
+            equipped: []        // Array of currently active item IDs (max 5)
+        };
+
+        function loadData() {
+            userData.coins = parseInt(localStorage.getItem('mave_global_coins')) || 0;
+            userData.claimed = JSON.parse(localStorage.getItem('mave_global_claimed')) || {};
+
+            // Calculate dynamic XP based on claimed achievements from the shared registry
+            userData.xp = 0;
+            for (let id in userData.claimed) {
+                if (MASTER_ACHIEVEMENTS[id]) {
+                    userData.xp += MASTER_ACHIEVEMENTS[id].rewardXP || 0;
+                }
+            }
+            userData.level = Math.floor(userData.xp / 1000) + 1;
+
+            userData.inventory = JSON.parse(localStorage.getItem('mave_inventory')) || [];
+            userData.equipped = JSON.parse(localStorage.getItem('mave_equipped')) || [];
+        }
+
+        function saveData() {
+            localStorage.setItem('mave_global_coins', userData.coins);
+            localStorage.setItem('mave_inventory', JSON.stringify(userData.inventory));
+            localStorage.setItem('mave_equipped', JSON.stringify(userData.equipped));
+            updateUI();
+        }
+
+        // ==========================================
+        // UI RENDERING & LOGIC
+        // ==========================================
+
+        // --- Tabs ---
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                e.target.classList.add('active');
+                document.getElementById(e.target.getAttribute('data-target')).classList.add('active');
+                closeShopDetail();
+            });
+        });
+
+        function generateFireflies(containerId, count, zIndex) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                let fly = document.createElement('div');
+                fly.className = 'firefly';
+                fly.style.left = Math.random() * 100 + '%';
+                fly.style.animationDelay = (Math.random() * 4) + 's';
+                fly.style.animationDuration = (3 + Math.random() * 3) + 's';
+                fly.style.zIndex = zIndex;
+                container.appendChild(fly);
+            }
+        }
+
+        function renderProgressTab() {
+            let unlocked = Object.keys(userData.claimed).length;
+            let total = Object.keys(MASTER_ACHIEVEMENTS).length;
+
+            document.getElementById('ui-level').innerText = userData.level;
+            let currentXpInLevel = userData.xp % 1000;
+            document.getElementById('ui-xp-current').innerText = currentXpInLevel;
+            document.getElementById('bar-xp').style.width = (currentXpInLevel / 1000 * 100) + '%';
+
+            document.getElementById('ui-ach-current').innerText = unlocked;
+            document.getElementById('ui-ach-max').innerText = total;
+
+            let achPercent = total === 0 ? 0 : (unlocked / total) * 100;
+            document.getElementById('bar-ach').style.width = achPercent + '%';
+
+            generateFireflies('firefly-back', Math.floor(achPercent / 5), 1);
+            generateFireflies('firefly-front', Math.floor(achPercent / 10), 3);
+
+            // Update Grid using the shared MASTER_ACHIEVEMENTS
+            const grid = document.getElementById('achievements-grid');
+            grid.innerHTML = '';
+            for (let id in MASTER_ACHIEVEMENTS) {
+                const a = MASTER_ACHIEVEMENTS[id];
+                const isUnlocked = userData.claimed[id] === true;
+
+                grid.innerHTML += `
+                    <div class="ach-card ${isUnlocked ? 'unlocked' : 'locked'}">
+                        <h3 class="ach-title">${isUnlocked ? '🏆' : '🔒'} ${a.title}</h3>
+                        <p class="ach-tip">${a.tip}</p>
+                        ${isUnlocked ? `
+                            <div class="ach-desc">
+                                <strong>Data Core:</strong> ${a.desc}<br><br>
+                                <div style="display: flex; justify-content: space-between; border-top: 1px solid #2ecc71; padding-top: 10px; margin-top: 5px;">
+                                    <span style="color:var(--accent-yellow); font-weight: bold;">+${a.rewardCoins} Coins</span>
+                                    <span style="color:var(--accent-blue); font-weight: bold;">+${a.rewardXP} XP</span>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+        }
+
+        // --- Shop Tab Logic ---
+        let selectedItem = null;
+        let currentCategory = 'all';
+
+        function renderShopItems() {
+            const grid = document.getElementById('shop-items-grid');
+            grid.innerHTML = '';
+
+            SHOP_ITEMS.forEach(item => {
+                if (currentCategory !== 'all' && item.type !== currentCategory) return;
+
+                const isOwned = userData.inventory.includes(item.id);
+                const isEquipped = userData.equipped.includes(item.id);
+                const isSelected = selectedItem && selectedItem.id === item.id;
+
+                let cardClass = "item-card";
+                if (isSelected) cardClass += " selected";
+                else if (isOwned) cardClass += " owned";
+
+                let statusText = isEquipped ? '<span style="color:var(--accent-blue)">[EQUIPPED]</span>' : isOwned ? '<span style="color:var(--accent-green)">[OWNED]</span>' : `${item.cost} 🪙`;
+
+                grid.innerHTML += `
+                    <div class="${cardClass}" onclick="openShopDetail('${item.id}')">
+                        <span class="item-icon">${item.icon}</span>
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-price">${statusText}</div>
+                    </div>
+                `;
+            });
+            renderHotbar();
+        }
+
+        function renderHotbar() {
+            const hotbar = document.getElementById('shop-hotbar');
+            hotbar.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                if (i < userData.equipped.length) {
+                    let item = SHOP_ITEMS.find(x => x.id === userData.equipped[i]);
+                    hotbar.innerHTML += `<div class="hotbar-slot filled" title="${item.name}">${item.icon}</div>`;
+                } else {
+                    hotbar.innerHTML += `<div class="hotbar-slot"></div>`;
+                }
+            }
+        }
+
+        document.querySelectorAll('.sub-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentCategory = e.target.getAttribute('data-cat');
+                closeShopDetail();
+                renderShopItems();
+            });
+        });
+
+        function openShopDetail(itemId) {
+            selectedItem = SHOP_ITEMS.find(x => x.id === itemId);
+            document.getElementById('shop-detail-panel').classList.add('open');
+
+            document.getElementById('detail-icon').innerText = selectedItem.icon;
+            document.getElementById('detail-name').innerText = selectedItem.name;
+            document.getElementById('detail-type').innerText = selectedItem.type + " Protocol";
+            document.getElementById('detail-desc').innerText = selectedItem.desc;
+
+            const fxList = document.getElementById('detail-fx-list');
+            fxList.innerHTML = selectedItem.effects.map(fx => `<li>${fx}</li>`).join('');
+
+            updateActionButton();
+            renderShopItems();
+        }
+
+        function closeShopDetail() {
+            selectedItem = null;
+            document.getElementById('shop-detail-panel').classList.remove('open');
+            renderShopItems();
+        }
+
+        function updateActionButton() {
+            if (!selectedItem) return;
+            const btn = document.getElementById('btn-shop-action');
+            btn.className = "action-btn";
+
+            const isOwned = userData.inventory.includes(selectedItem.id);
+            const isEquipped = userData.equipped.includes(selectedItem.id);
+
+            if (isEquipped) {
+                btn.innerText = "Unequip";
+                btn.classList.add("btn-unequip");
+                btn.onclick = () => {
+                    userData.equipped = userData.equipped.filter(id => id !== selectedItem.id);
+                    saveData(); openShopDetail(selectedItem.id);
+                };
+            } else if (isOwned) {
+                if (userData.equipped.length >= 5) {
+                    btn.innerText = "Hotbar Full";
+                    btn.classList.add("btn-disabled");
+                    btn.onclick = null;
+                } else {
+                    btn.innerText = "Equip Module";
+                    btn.classList.add("btn-equip");
+                    btn.onclick = () => {
+                        userData.equipped.push(selectedItem.id);
+                        saveData(); openShopDetail(selectedItem.id);
+                    };
+                }
+            } else {
+                if (userData.coins >= selectedItem.cost) {
+                    btn.innerText = `Buy - ${selectedItem.cost} 🪙`;
+                    btn.classList.add("btn-buy");
+                    btn.onclick = () => {
+                        userData.coins -= selectedItem.cost;
+                        userData.inventory.push(selectedItem.id);
+
+                        // Use the shared toast function!
+                        if (typeof window.showToast === 'function') {
+                            window.showToast("Transaction Approved", `Acquired: ${selectedItem.name}`);
+                        }
+
+                        saveData(); openShopDetail(selectedItem.id);
+                    };
+                } else {
+                    btn.innerText = `Insufficient Funds (${selectedItem.cost} 🪙)`;
+                    btn.classList.add("btn-disabled");
+                    btn.onclick = null;
+                }
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('global-coin-count').innerText = userData.coins;
+            renderProgressTab();
+            renderShopItems();
+        }
+
+        window.onload = () => {
+            loadData();
+            updateUI();
+        };
+
+        window.addEventListener('storage', () => {
+            loadData();
+            updateUI();
+        });
+
+    </script>
+</body>
+
+</html>

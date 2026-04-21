@@ -12,9 +12,12 @@
             color: #eee;
             display: flex;
             flex-direction: column;
-            height: 100vh;
             overflow: hidden;
+
+            width: 100%;
+            height: 100vh;
         }
+
 
         #top-header {
             height: 50px;
@@ -27,19 +30,49 @@
             box-sizing: border-box;
             flex-shrink: 0;
             z-index: 100;
+
+            overflow: hidden;
+            white-space: nowrap;
+            gap: 10px;
+
+        }
+
+        #top-header div {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            flex-shrink: 1;
+        }
+
+        #nav-tabs {
+            min-width: 0;
+            flex-shrink: 1;
+        }
+
+        #top-header button {
+            min-width: 0;
+            flex-shrink: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 6px 1vw !important;
+            font-size: clamp(10px, 1.2vw, 14px) !important;
         }
 
         #tab-content-wrapper {
             display: flex;
             flex-grow: 1;
             width: 100%;
-            height: calc(100vh - 50px);
+            height: calc(100% - 50px);
             position: relative;
         }
 
         #monitor-panel {
-            flex: 1.2;
-            min-width: 400px;
+            flex: 1;
+            min-width: 350px;
+            /* Allows panel to shrink deeper on small screens */
+            max-width: 450px;
+            /* Prevents it from getting too wide */
             background: #1a1a1a;
             display: flex;
             flex-direction: column;
@@ -67,8 +100,8 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             background: rgba(0, 0, 0, 0.8);
             z-index: 150;
             display: none;
@@ -132,6 +165,7 @@
             margin-top: 10px;
         }
 
+
         .visual-block input,
         .visual-block select {
             background: rgba(255, 255, 255, 0.05);
@@ -154,6 +188,11 @@
         .visual-block input::placeholder {
             color: #888;
             font-style: italic;
+        }
+
+        .no-style-link {
+            color: inherit;
+            text-decoration: none;
         }
 
         #draw-context-menu {
@@ -189,8 +228,8 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             background: rgba(0, 0, 0, 0.8);
             z-index: 10000;
             display: none;
@@ -228,87 +267,6 @@
             box-shadow: 0 0 15px rgba(241, 196, 15, 0.4);
         }
 
-        .ach-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            align-items: start;
-        }
-
-        .ach-card {
-            background: #1a1c23;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 20px;
-            transition: 0.3s;
-            position: relative;
-            overflow: visible;
-            /* Changed to visible for dropdown */
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            cursor: default;
-            z-index: 1;
-        }
-
-        .ach-card.locked {
-            opacity: 0.6;
-            filter: grayscale(100%);
-        }
-
-        .ach-card.unlocked {
-            border-color: #2ecc71;
-            box-shadow: 0 0 20px rgba(46, 204, 113, 0.15);
-            background: linear-gradient(145deg, #1a1c23, #152219);
-        }
-
-        .ach-title {
-            font-size: 18px;
-            font-weight: 900;
-            color: #fff;
-            margin: 0;
-        }
-
-        .ach-tip {
-            font-size: 12px;
-            color: #aaa;
-            font-style: italic;
-            margin: 0;
-        }
-
-        /* The Pop-out Description */
-        .ach-desc {
-            font-size: 14px;
-            color: #2ecc71;
-            margin: 0;
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: -1px;
-            width: calc(100% + 2px);
-            background: linear-gradient(145deg, #152219, #1a1c23);
-            border: 1px solid #2ecc71;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            padding: 15px;
-            box-sizing: border-box;
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.9);
-            z-index: 20;
-        }
-
-        .ach-card:hover {
-            transform: translateY(-5px);
-            z-index: 10;
-        }
-
-        .ach-card.unlocked:hover {
-            border-radius: 8px 8px 0 0;
-            z-index: 20;
-        }
-
-        .ach-card.unlocked:hover .ach-desc {
-            display: block;
-        }
 
         details.ide-dict {
             background: #1a1c23;
@@ -468,6 +426,10 @@
             background: #000;
             border: 2px solid #555;
             display: block;
+
+            width: 100%;
+            height: auto;
+            aspect-ratio: 4 / 3;
         }
 
         .controls-info {
@@ -576,8 +538,8 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             z-index: 9998;
             overflow: hidden;
@@ -612,6 +574,7 @@
         #custom-toast.show {
             top: 40px;
         }
+
 
         #toast-title {
             color: #fff;
@@ -654,19 +617,54 @@
                 transform: translateX(3px);
             }
         }
+
+        /* monitor override */
+        #monitor-panel * {
+            box-sizing: border-box;
+        }
+
+        .monitor-bezel {
+            box-sizing: border-box;
+            /* Prevents padding from breaking width */
+        }
+
+        .controls-info>div,
+        #monitor-panel>div:first-child,
+        #monitor-panel>div:first-child>div {
+            flex-wrap: wrap !important;
+        }
+
+        .controls-info select,
+        .controls-info input[type="text"],
+        .controls-info button,
+        .ide-palette-btn {
+            flex: 1 1 auto;
+            min-width: 80px;
+            max-width: 100%;
+        }
+
+        .visual-block input,
+        .visual-block select {
+            flex: 1 1 auto !important;
+            width: auto !important;
+            min-width: 40px;
+        }
+
+        #physics-panel input[type="number"] {
+            flex: 1 1 50px;
+            min-width: 50px;
+        }
     </style>
 </head>
 
 <body>
-    <div id="fx-overlay"></div>
-    <div id="custom-toast">
-        <div id="toast-title">Notification</div>
-        <div id="toast-msg" class="waving-text"></div>
-    </div>
+
+
     <div id="custom-confirm">
         <div class="confirm-box">
             <h3 style="color: #e74c3c; margin-top: 0; font-size: 24px;">SYSTEM RESET</h3>
-            <p style="color: #ccc; margin-bottom: 25px; font-size: 16px;">Are you sure you want to restore all hardware
+            <p style="color: #ccc; margin-bottom: 25px; font-size: 16px;">Are you sure you want to restore all
+                hardware
                 and software to factory defaults?</p>
             <div style="display: flex; gap: 15px; justify-content: center;">
                 <button id="btn-confirm-yes"
@@ -677,9 +675,13 @@
             </div>
         </div>
     </div>
+
     <div id="top-header">
         <div style="display: flex; align-items: center; gap: 20px;">
-            <h2 style="margin: 0; color: #0098ff; font-weight: bold;">MAVE Macro-Architecture</h2>
+            <h2
+                style="font-size: clamp(16px, 3vw, 24px); white-space: nowrap; margin: 0; color: #ffffff; font-weight: bold;">
+                <a class="no-style-link" style="color:#0098ff" href="MAVE_Hub.html">MAVE</a> Macro-Architecture
+            </h2>
 
             <div id="nav-tabs" style="display: flex; gap: 10px;">
                 <button id="tab-sim" class="sys-tab"
@@ -696,18 +698,18 @@
 
         <div>
             <button id="btn-save"
-                style="background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾
+                style="position: relative; background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">💾
                 Save System</button>
             <button id="btn-load"
-                style="background: #8e44ad; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">📂
+                style="position: relative; background: #8e44ad; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">📂
                 Load System</button>
             <input type="file" id="file-input" style="display: none;" accept=".json">
             <button id="btn-reset"
-                style="background: #c0392b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold;">Reset</button>
+                style="position: relative; background: #c0392b; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-left: 10px; font-weight: bold;">Reset</button>
         </div>
     </div>
 
-    <div id="tab-content-wrapper" style="display: flex; flex-grow: 1; width: 100%; height: calc(100vh - 50px);">
+    <div id="tab-content-wrapper">
 
         <div id="main-container" style="display: flex; width: 100%; height: 100%;">
             <div id="mb-wrapper"
@@ -755,12 +757,9 @@
                     style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
                     <h3 style="margin: 0; color: #fff;">System Monitor</h3>
                     <div style="display: flex; align-items: center; gap: 15px;">
-                        <div style="font-size: 12px; color: #aaa;">FPS: <span id="fps-display"
+                        <div style="font-size: 14px; color: #aaa;">FPS: <span id="fps-display"
                                 style="color: #0098ff; font-weight: bold;">30</span></div>
                         <input type="range" id="fps-slider" min="5" max="60" value="30" style="width: 100px;">
-                        <button id="btn-state"
-                            style="padding: 6px 12px; background: #2ecc71; color: #111; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;">Start
-                            System</button>
                     </div>
                 </div>
 
@@ -771,6 +770,9 @@
                         style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #e74c3c; font-family: monospace; font-size: 24px; font-weight: bold; display: none; text-shadow: 0 0 10px #e74c3c; pointer-events: none;">
                         NO SIGNAL</div>
                 </div>
+                <button id="btn-state"
+                    style="margin-top: 20px; padding: 6px 12px; background: #2ecc71; color: #111; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;">Start
+                    System</button>
 
                 <div class="controls-info">
                     <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
@@ -827,7 +829,8 @@
                         <details class="ide-dict">
                             <summary>Block Dictionary & Guide (Click to Expand)</summary>
                             <ul>
-                                <li><strong>CLEAR SCREEN:</strong> Wipes the canvas. Must be the FIRST block to prevent
+                                <li><strong>CLEAR SCREEN:</strong> Wipes the canvas. Must be the FIRST block to
+                                    prevent
                                     motion blur. (Args: color)</li>
                                 <li><strong>DRAW RECT / CIRCLE:</strong> Renders shapes. (Args: color, x, y,
                                     width/height/radius)</li>
@@ -840,15 +843,19 @@
                                 <li><strong>MATH CALC:</strong> Modifies variables dynamically. (e.g. Var:
                                     <em>simData.vx</em>, Op: <em>*=</em>, Value: <em>-1</em>)
                                 </li>
-                                <li><strong>IF CONDITION:</strong> Runs nested blocks only if true. (e.g. <em>simData.x
-                                        > 400 || simData.x < 0</em>)</li>
+                                <li><strong>IF CONDITION:</strong> Runs nested blocks only if true. (e.g.
+                                    <em>simData.x
+                                        > 400 || simData.x < 0</em>)
+                                </li>
                                 <li><strong>LOOP:</strong> Runs nested blocks a specific number of times per frame.
                                     (Args: count)</li>
-                                <li><strong style="color: #f1c40f;">CREATE PHYSICS ENTITY:</strong> Spawns an advanced
+                                <li><strong style="color: #f1c40f;">CREATE PHYSICS ENTITY:</strong> Spawns an
+                                    advanced
                                     object that automatically handles velocity, wall bouncing, and layer collisions!
                                     (Args: id, layer, x, y, width, height, vx, vy)</li>
                                 <li><strong style="color: #f1c40f;">RENDER PHYSICS ENGINE:</strong> Required to
-                                    physically draw your spawned entities. Must be placed at the bottom! (Args: color)
+                                    physically draw your spawned entities. Must be placed at the bottom! (Args:
+                                    color)
                                 </li>
                             </ul>
                         </details>
@@ -863,7 +870,8 @@
                                 onclick="addBlock('clearScreen')" style="background: #34495e;">+ Clear</div>
                             <div class="ide-palette-btn" draggable="true"
                                 ondragstart="onDragStartNewBlock(event, 'drawRect')" onclick="showDrawMenu(event)"
-                                oncontextmenu="showDrawMenu(event); return false;" style="background: #27ae60;">+ Draw
+                                oncontextmenu="showDrawMenu(event); return false;" style="background: #27ae60;">+
+                                Draw
                                 (Right Click) ▾</div>
                             <div class="ide-palette-btn" draggable="true"
                                 ondragstart="onDragStartNewBlock(event, 'setVar')" onclick="addBlock('setVar')"
@@ -879,11 +887,13 @@
                                 style="background: #8e44ad;">+ Loop</div>
                             <div class="ide-palette-btn" draggable="true"
                                 ondragstart="onDragStartNewBlock(event, 'addPhysicsObj')"
-                                onclick="addBlock('addPhysicsObj')" style="background: #f1c40f; color:#111;">+ Create
+                                onclick="addBlock('addPhysicsObj')" style="background: #f1c40f; color:#111;">+
+                                Create
                                 Physics Entity</div>
                             <div class="ide-palette-btn" draggable="true"
                                 ondragstart="onDragStartNewBlock(event, 'renderPhysics')"
-                                onclick="addBlock('renderPhysics')" style="background: #f1c40f; color:#111;">+ Render
+                                onclick="addBlock('renderPhysics')" style="background: #f1c40f; color:#111;">+
+                                Render
                                 Physics Engine</div>
                         </div>
                         <div style="display: flex; gap: 10px; margin-top: 10px;">
@@ -896,7 +906,8 @@
                         <div id="physics-panel"
                             style="display: none; background: #1a1c23; padding: 15px; border: 1px solid #e67e22; border-radius: 6px; margin-top: 10px;">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <strong style="color: #e67e22; font-size: 14px;">Engine Physics Configuration</strong>
+                                <strong style="color: #e67e22; font-size: 14px;">Engine Physics
+                                    Configuration</strong>
                                 <button onclick="togglePhysicsInfo()"
                                     style="background: rgba(230,126,34,0.1); color: #e67e22; border: 1px solid #e67e22; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; transition: 0.2s;"
                                     onmouseover="this.style.background='#e67e22'; this.style.color='#111';"
@@ -905,10 +916,12 @@
 
                             <div id="physics-info-panel"
                                 style="display: none; background: #15171e; padding: 12px; border-radius: 6px; margin-top: 10px; border-left: 3px solid #e67e22; font-size: 12px; color: #bbb; line-height: 1.5; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);">
-                                <strong style="color:#0098ff;">Wall Boundaries:</strong> Limits where objects can move.
+                                <strong style="color:#0098ff;">Wall Boundaries:</strong> Limits where objects can
+                                move.
                                 Default is the physical screen (0, 0, 400, 300). Alter these to create off-screen
                                 buffers or tight arenas.<br><br>
-                                <strong style="color:#0098ff;">Collision Matrix:</strong> Defines which layers bounce
+                                <strong style="color:#0098ff;">Collision Matrix:</strong> Defines which layers
+                                bounce
                                 off each other. Add layers (comma separated) and check the boxes to enable physical
                                 interactions between them.
                             </div>
@@ -964,9 +977,11 @@
                     <div id="app-stats-panel"
                         style="margin-top: 15px; margin-bottom: 15px; padding: 10px; background: #0a0a0c; border: 1px solid #333; border-radius: 4px; border-left: 4px solid #0098ff;">
                         <strong id="stat-title"
-                            style="color: #0098ff; text-transform: uppercase; font-size: 12px;">System Stats</strong>
+                            style="color: #0098ff; text-transform: uppercase; font-size: 12px;">System
+                            Stats</strong>
                         <div id="stat-content"
-                            style="font-family: monospace; font-size: 16px; margin-top: 5px; color: #fff;">READY</div>
+                            style="font-family: monospace; font-size: 16px; margin-top: 5px; color: #fff;">READY
+                        </div>
                     </div>
                 </div>
             </div>
@@ -976,7 +991,8 @@
     <div id="guide-container"
         style="display: none; width: 100%; height: 100%; background: #15171e; padding: 40px; box-sizing: border-box; overflow-y: auto;">
         <h1 style="color: white; text-align: center; font-size: 32px; color: #0098ff;">PC Building Guide</h1>
-        <p style="color: #aaa; text-align: center; font-size: 18px;">Understanding components, avoiding bottlenecks, and
+        <p style="color: #aaa; text-align: center; font-size: 18px;">Understanding components, avoiding bottlenecks,
+            and
             buying smart.
         </p>
 
@@ -989,10 +1005,12 @@
                 <ul>
                     <li><strong>Core Count (Cores/Threads):</strong> Crucial for multitasking and workstation tasks
                         (video editing, 3D rendering). For gaming, 6 to 8 cores is currently the sweet spot.</li>
-                    <li><strong>Clock Speed (GHz):</strong> How fast a single core operates. High clock speeds are vital
+                    <li><strong>Clock Speed (GHz):</strong> How fast a single core operates. High clock speeds are
+                        vital
                         for gaming, as games rely heavily on quick single-threaded calculations.</li>
                     <li><strong>L3 Cache (3D V-Cache):</strong> The CPU's hyper-fast internal memory. Massive caches
-                        (like AMD's X3D chips) drastically improve gaming performance by reducing trips to system RAM.
+                        (like AMD's X3D chips) drastically improve gaming performance by reducing trips to system
+                        RAM.
                     </li>
                 </ul>
                 <h3>Popular Brands:</h3>
@@ -1002,18 +1020,21 @@
 
             <div>
                 <h2>2. The Graphics Processing Unit (GPU)</h2>
-                <p>The GPU is a specialized parallel processor containing thousands of tiny cores designed strictly to
+                <p>The GPU is a specialized parallel processor containing thousands of tiny cores designed strictly
+                    to
                     calculate pixel colors and 3D geometry incredibly fast.</p>
                 <h3>What to look for:</h3>
                 <ul>
-                    <li><strong>VRAM (Video RAM):</strong> Textures, models, and framebuffers live here. At 1080p, 8GB
+                    <li><strong>VRAM (Video RAM):</strong> Textures, models, and framebuffers live here. At 1080p,
+                        8GB
                         is standard. At 1440p or 4K, aim for 12GB to 16GB+ or games will stutter massively.</li>
                     <li><strong>Rasterization vs Ray Tracing:</strong> Rasterization is traditional rendering. Ray
                         Tracing simulates real light physics. NVIDIA generally holds the crown for Ray Tracing
                         performance.</li>
                 </ul>
                 <h3>The Golden Rule of Bottlenecks:</h3>
-                <p>Do not pair a $1,000 GPU with a $100 CPU. The GPU will render frames so fast that it has to stop and
+                <p>Do not pair a $1,000 GPU with a $100 CPU. The GPU will render frames so fast that it has to stop
+                    and
                     wait for the CPU to calculate the game physics, resulting in stuttering and wasted money.</p>
             </div>
             <div>
@@ -1022,18 +1043,23 @@
                     workspace).</p>
                 <h3>RAM Considerations:</h3>
                 <ul>
-                    <li><strong>Capacity:</strong> 16GB is the minimum for modern gaming. 32GB provides a comfortable
+                    <li><strong>Capacity:</strong> 16GB is the minimum for modern gaming. 32GB provides a
+                        comfortable
                         buffer for heavy games or multitasking.</li>
-                    <li><strong>Speed & Latency:</strong> Look for sweet spots in DDR5 (e.g., 6000MHz CL30). Extremely
+                    <li><strong>Speed & Latency:</strong> Look for sweet spots in DDR5 (e.g., 6000MHz CL30).
+                        Extremely
                         fast RAM yields diminishing returns.</li>
                 </ul>
                 <h3>Storage Considerations:</h3>
                 <ul>
-                    <li><strong>NVMe SSD:</strong> Essential. Connects directly to the motherboard via PCIe for speeds
+                    <li><strong>NVMe SSD:</strong> Essential. Connects directly to the motherboard via PCIe for
+                        speeds
                         up to 7,000 MB/s. Load times become near-instant.</li>
                     <li><strong>SATA SSD:</strong> Older, maxes out around 500 MB/s. Good for bulk storage.</li>
-                    <li><strong>HDD (Hard Drive):</strong> Spinning mechanical disks. Very slow (~150 MB/s). Only use
-                        for mass archiving of videos/photos, <em>never</em> install a modern game or OS on an HDD.</li>
+                    <li><strong>HDD (Hard Drive):</strong> Spinning mechanical disks. Very slow (~150 MB/s). Only
+                        use
+                        for mass archiving of videos/photos, <em>never</em> install a modern game or OS on an HDD.
+                    </li>
                 </ul>
             </div>
         </div>
@@ -1045,12 +1071,13 @@
             <div class="achievements-header">
                 <div>
                     <h1 style="color: white; font-size: 32px; color: #0098ff; margin: 0;">Discovery Log</h1>
-                    <p style="color: #aaa; margin: 5px 0 0 0;">Interact with the simulator to unlock hardware knowledge.
+                    <p style="color: #aaa; margin: 5px 0 0 0;">Interact with the simulator to unlock hardware
+                        knowledge.
                     </p>
                 </div>
                 <div class="currency-box">MAVE Coins: <span id="mave-coin-display">0</span></div>
             </div>
-            <div class="ach-grid" id="ach-grid-container"></div>
+            <div class="mave-ach-widget" data-category="hardware"></div>
         </div>
     </div>
 
@@ -1061,13 +1088,16 @@
             <h1 style="color: #0098ff; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px;">System
                 Controls Manual</h1>
             <ul style="font-size: 16px; line-height: 2;">
-                <li><strong>Drag & Drop:</strong> Drag components from the top-left + symbol onto the black Motherboard
+                <li><strong>Drag & Drop:</strong> Drag components from the top-left + symbol onto the black
+                    Motherboard
                     grid.
                 </li>
-                <li><strong>Shift + Click:</strong> Hold Shift and click two components in a row to draw a wire between
+                <li><strong>Shift + Click:</strong> Hold Shift and click two components in a row to draw a wire
+                    between
                     them.</li>
                 <li><strong>Right-Click:</strong> Delete a component or wire from the Motherboard.</li>
-                <li><strong>Scroll Wheel:</strong> Zoom in and out. Zooming in reveals micro-architecture. Zooming out
+                <li><strong>Scroll Wheel:</strong> Zoom in and out. Zooming in reveals micro-architecture. Zooming
+                    out
                     reveals the PCB.</li>
                 <li><strong>Double-Click:</strong> Open the detailed Blueprint Modal for a component.</li>
                 <li><strong>Pan Camera:</strong> Click and hold empty space to drag the camera view around.</li>
@@ -1084,6 +1114,7 @@
         <div id="modal-body"></div>
     </div>
 
+    <script src="mave_shared.js"></script>
     <script>
         // ==========================================
         // UI, TABS, & ACHIEVEMENTS ENGINE
@@ -1108,181 +1139,52 @@
         });
 
         // --- THE DISCOVERY ENGINE (ACHIEVEMENTS) ---
-        let maveCoins = 0;
-        const achievements = {
-            // Green & Blue Confetti Float
-            first_blood: { unlocked: false, title: "Assembly Required", tip: "Place a component on the board.", desc: "The Motherboard relies on modular components like CPUs and GPUs to function.", reward: 50, fx: { particleType: 'confetti', color1: '#2ecc71', color2: '#3498db', animType: 'floatText' } },
-            // Fiery Orange/Red Explosion Shake
-            demolition: { unlocked: false, title: "Deconstructor", tip: "Remove a component or wire.", desc: "Removing components breaks the electrical pathway, causing system halts.", reward: 50, fx: { particleType: 'explosion', color1: '#e74c3c', color2: '#f39c12', animType: 'shakeText', animSpeed: '0.3s' } },
-            // Pure Red & Black Violent Shake
-            no_cpu: { unlocked: false, title: "Does Not Compute", tip: "You removed the CPU, how could you?!", desc: "The CPU is the central brain. Without it, the entire OS loop halts and no math can be executed.", reward: 150, fx: { particleType: 'explosion', color1: '#c0392b', color2: '#000000', animType: 'shakeText', animSpeed: '0.1s', fontSize: '26px' } },
-            // Matrix Hacker Green Monospace
-            hacker: { unlocked: false, title: "Hello World", tip: "Save & Compile a Custom Visual App.", desc: "Compilers translate human-readable logic blocks into executable JavaScript for the CPU.", reward: 200, fx: { particleType: 'confetti', color1: '#00ff00', color2: '#003300', animType: 'floatText' } },
-            // NO Custom Setup = Fully Randomized!
-            zoom_in: { unlocked: false, title: "Microscopic", tip: "Zoom deep into a micro-chip.", desc: "Chips contain thousands of logic gates (ALU) and microscopic memory cells (Registers).", reward: 100 },
-            zoom_out: { unlocked: false, title: "The Big Picture", tip: "Zoom out to the full Motherboard PCB.", desc: "The Printed Circuit Board provides power delivery and data pathways (Buses).", reward: 100 },
-            // Purple/Pink Tech Flare
-            deep_dive: { unlocked: false, title: "Knowledge is Power", tip: "Double-click a component to read its blueprint.", desc: "Understanding the bottleneck between VRAM and CPU Cache is vital for system optimization.", reward: 150, fx: { particleType: 'explosion', color1: '#9b59b6', color2: '#e056fd', animType: 'floatText' } }
-        };
+        // --- GLOBAL PERSISTENCE ENGINE (Powered by mave_shared.js) ---
+        let maveCoins = parseInt(localStorage.getItem('mave_global_coins')) || 0;
+        document.getElementById('mave-coin-display').innerText = maveCoins;
 
-        // --- GLOBAL PERSISTENCE ENGINE ---
-        function loadProgress() {
-            // Load Cross-Site Currency
-            const savedCoins = localStorage.getItem('mave_global_coins');
-            if (savedCoins) maveCoins = parseInt(savedCoins);
-            const coinDisp = document.getElementById('mave-coin-display');
-            if (coinDisp) coinDisp.innerText = maveCoins;
+        function unlockAchievement(id) {
+            const master = MASTER_ACHIEVEMENTS[id];
+            if (!master) return;
 
-            // Load Simulator Specific Visuals
-            const savedAchs = localStorage.getItem('mave_achievements');
-            if (savedAchs) {
-                const parsed = JSON.parse(savedAchs);
-                for (let id in parsed) {
-                    if (achievements[id] && parsed[id].unlocked) {
-                        achievements[id].unlocked = true;
-                    }
+            // Single Source of Truth Check
+            let globalClaimed = MaveDB.getClaimed();
+
+            if (!globalClaimed[id]) {
+                globalClaimed[id] = true;
+                localStorage.setItem('mave_global_claimed', JSON.stringify(globalClaimed));
+
+                maveCoins += master.rewardCoins;
+                localStorage.setItem('mave_global_coins', maveCoins);
+                document.getElementById('mave-coin-display').innerText = maveCoins;
+
+                window.renderAchievementWidgets(); // Triggers the shared UI updater
+
+                // Specific FX triggers for the hardware simulator
+                let fx = { particleType: 'confetti', color1: '#2ecc71', color2: '#3498db', animType: 'floatText' };
+                if (id === 'demolition') fx = { particleType: 'explosion', color1: '#e74c3c', color2: '#f39c12', animType: 'shakeText', animSpeed: '0.3s' };
+                if (id === 'no_cpu') fx = { particleType: 'explosion', color1: '#c0392b', color2: '#000000', animType: 'shakeText', animSpeed: '0.1s', fontSize: '26px' };
+
+                if (typeof window.showToast === 'function') {
+                    window.showToast("Achievement Unlocked", master.title, false, fx);
                 }
             }
         }
-        loadProgress();
 
-        function saveProgress() {
-            // We only save visual simulator progress here. Coins/Ledger are saved instantly on unlock
-            let achToSave = {};
-            for (let id in achievements) {
-                achToSave[id] = { unlocked: achievements[id].unlocked };
-            }
-            localStorage.setItem('mave_achievements', JSON.stringify(achToSave));
-        }
 
-        let toastQueue = [];
-        let isToastShowing = false;
 
-        window.showToast = function (title, message, isError = false, customStyle = null) {
-            toastQueue.push({ title, message, isError, customStyle });
-            processToastQueue();
-        };
 
-        function processToastQueue() {
-            if (isToastShowing || toastQueue.length === 0) return;
-            isToastShowing = true;
-
-            const { title, message, isError, customStyle } = toastQueue.shift();
-
-            const toast = document.getElementById('custom-toast');
-            const titleEl = document.getElementById('toast-title');
-            const msgEl = document.getElementById('toast-msg');
-            const fxLayer = document.getElementById('fx-overlay');
-
-            const style = customStyle || {
-                color1: `hsl(${Math.random() * 360}, 100%, 50%)`,
-                color2: `hsl(${Math.random() * 360}, 100%, 70%)`,
-                fontSize: Math.floor(Math.random() * 10 + 20) + 'px',
-                animType: Math.random() > 0.5 ? 'floatText' : 'shakeText',
-                animSpeed: (Math.random() * 0.5 + 0.5) + 's',
-                particleType: Math.random() > 0.5 ? 'confetti' : 'explosion'
-            };
-
-            if (isError) { style.color1 = '#e74c3c'; style.color2 = '#c0392b'; style.particleType = 'none'; }
-
-            let dynamicHtml = '';
-            message.split('').forEach((char, i) => {
-                if (char === ' ') { dynamicHtml += '&nbsp;'; }
-                else {
-                    dynamicHtml += `<span style="
-                        font-size: ${style.fontSize};
-                        animation: ${style.animType} ${style.animSpeed} infinite ease-in-out;
-                        animation-delay: ${i * 0.05}s;
-                        background: linear-gradient(to bottom, ${style.color1}, ${style.color2});
-                        -webkit-background-clip: text; color: transparent;
-                        filter: drop-shadow(0px 0px 8px ${style.color1});
-                    ">${char}</span>`;
-                }
-            });
-
-            msgEl.innerHTML = dynamicHtml; titleEl.innerText = title;
-            toast.style.borderColor = style.color1; titleEl.style.color = '#fff';
-            toast.classList.add('show');
-
-            playBeep(isError ? 150 : (Math.random() * 400 + 400), isError ? 'sawtooth' : 'square', 0.2);
-
-            if (style.particleType !== 'none') {
-                for (let i = 0; i < 50; i++) {
-                    let p = document.createElement('div'); p.className = 'particle';
-                    p.style.background = Math.random() > 0.5 ? style.color1 : style.color2;
-                    p.style.width = Math.random() * 10 + 5 + 'px'; p.style.height = p.style.width;
-
-                    if (style.particleType === 'explosion') {
-                        p.style.left = '50%'; p.style.top = '100px';
-                        let angle = Math.random() * Math.PI * 2; let force = Math.random() * 150 + 50;
-                        p.style.transform = `translate(${Math.cos(angle) * force}px, ${Math.sin(angle) * force}px)`;
-                        p.style.transition = `all ${(Math.random() * 1 + 0.5)}s cubic-bezier(0.1, 0.8, 0.3, 1)`;
-                        p.style.opacity = 1;
-                    } else {
-                        p.style.left = Math.random() * 100 + 'vw'; p.style.top = '-20px';
-                        p.style.transform = `translateY(${window.innerHeight + 100}px) rotate(${Math.random() * 360}deg)`;
-                        p.style.transition = `all ${(Math.random() * 2 + 2)}s linear`;
-                    }
-
-                    fxLayer.appendChild(p);
-                    setTimeout(() => { if (style.particleType === 'explosion') p.style.opacity = 0; }, 50);
-                    setTimeout(() => p.remove(), 3000);
-                }
-            }
-
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => { isToastShowing = false; processToastQueue(); }, 600); // Unlocks queue after animation ends
-            }, 4000);
-        }
 
         let globalClaimed = JSON.parse(localStorage.getItem('mave_global_claimed')) || {};
 
-        function unlockAchievement(id) {
-            if (achievements[id] && !achievements[id].unlocked) {
-                achievements[id].unlocked = true;
 
-                // Strict Anti-Duplication Check against the Permanent Ledger
-                if (!globalClaimed[id]) {
-                    globalClaimed[id] = true;
-                    localStorage.setItem('mave_global_claimed', JSON.stringify(globalClaimed)); // Save permanent record
 
-                    maveCoins += achievements[id].reward;
-                    localStorage.setItem('mave_global_coins', maveCoins); // Save cross-site currency
-
-                    const coinDisp = document.getElementById('mave-coin-display');
-                    if (coinDisp) coinDisp.innerText = maveCoins;
-                }
-
-                renderAchievements();
-                saveProgress(); // Saves local simulator state
-                showToast("Achievement Unlocked", achievements[id].title, false, achievements[id].fx);
-            }
-        }
-
-        function renderAchievements() {
-            const grid = document.getElementById('ach-grid-container');
-            if (!grid) return;
-            grid.innerHTML = '';
-            for (let id in achievements) {
-                const a = achievements[id];
-                grid.innerHTML += `
-                    <div class="ach-card ${a.unlocked ? 'unlocked' : 'locked'}">
-                        <h3 class="ach-title">${a.unlocked ? '🏆' : '🔒'} ${a.title}</h3>
-                        <p class="ach-tip">${a.tip}</p>
-                        ${a.unlocked ? `<p class="ach-desc"><strong>Data Core:</strong> ${a.desc}<br><br><span style="color:#f1c40f">+${a.reward} Coins</span></p>` : ''}
-                    </div>
-                `;
-            }
-        }
-        renderAchievements();
 
         const resetModal = document.getElementById('custom-confirm');
         document.getElementById('btn-reset').addEventListener('click', () => {
             resetModal.style.display = 'flex';
         });
         document.getElementById('btn-confirm-yes').addEventListener('click', () => {
-            localStorage.removeItem('mave_achievements');
             location.reload();
         });
         document.getElementById('btn-confirm-no').addEventListener('click', () => {
@@ -1308,16 +1210,16 @@
         let isDraggingCam = false;
 
         const hwDefs = {
-            CLK: { 
-                color: '#f1c40f', w: 40, h: 40, 
+            CLK: {
+                color: '#f1c40f', w: 40, h: 40,
                 desc: "The System Clock provides the rhythmic heartbeat that synchronizes all components on the motherboard.",
-                internals: [{name: 'Quartz Crystal', detail: 'Vibrates at a precise frequency.'}, {name: 'Clock Generator', detail: 'Multiplies base frequency.'}],
+                internals: [{ name: 'Quartz Crystal', detail: 'Vibrates at a precise frequency.' }, { name: 'Clock Generator', detail: 'Multiplies base frequency.' }],
                 processes: "Oscillation -> Frequency Multiplication -> Signal Distribution",
                 subNodes: [{ id: 'osc', type: 'OSC', x: 0.3, y: 0.5 }, { id: 'clk_out', type: 'CLK_OUT', x: 0.7, y: 0.5 }],
                 subWires: [['osc', 'clk_out']]
             },
             CPU: {
-                color: '#f39c12', w: 100, h: 100, 
+                color: '#f39c12', w: 100, h: 100,
                 desc: "The Central Processing Unit is the primary operational brain of the computer. It executes instructions sequentially and routes data.",
                 internals: [
                     { name: 'ALU', detail: 'Performs integer math.' },
@@ -1327,34 +1229,34 @@
                 processes: "Instruction Fetch -> Decode -> Execute -> Memory Access -> Writeback",
                 subNodes: [
                     { id: 'bus_in', type: 'BUS_IN', x: 0.1, y: 0.2 }, { id: 'pcie_in', type: 'PCIe_IN', x: 0.1, y: 0.8 },
-                    { id: 'cu', type: 'CU', x: 0.4, y: 0.2 }, { id: 'alu', type: 'ALU', x: 0.3, y: 0.5 }, 
+                    { id: 'cu', type: 'CU', x: 0.4, y: 0.2 }, { id: 'alu', type: 'ALU', x: 0.3, y: 0.5 },
                     { id: 'reg', type: 'REG', x: 0.6, y: 0.5 }, { id: 'cache', type: 'CACHE', x: 0.5, y: 0.7 },
-                    { id: 'ram_w', type: 'RAM_WRITE', x: 0.8, y: 0.2 }, { id: 'ram_r', type: 'RAM_READ', x: 0.8, y: 0.5 },
-                    { id: 'pcie_out', type: 'PCIe_OUT', x: 0.8, y: 0.8 }
+                    { id: 'ram_w', type: 'RAM_WRITE', x: 0.8, y: 0.8 }, { id: 'ram_r', type: 'RAM_READ', x: 0.8, y: 0.5 },
+                    { id: 'pcie_out', type: 'PCIe_OUT', x: 0.8, y: 0.2 }
                 ],
                 subWires: [
-                    ['bus_in', 'cu'], ['pcie_in', 'cache'], ['cu', 'alu'], ['cu', 'reg'], 
+                    ['bus_in', 'cu'], ['pcie_in', 'cache'], ['cu', 'alu'], ['cu', 'reg'],
                     ['alu', 'reg'], ['cu', 'cache'], ['cache', 'ram_w'], ['ram_r', 'cache'],
                     ['cu', 'ram_r'], ['cu', 'pcie_out']
                 ]
             },
             GPU: {
-                color: '#0098ff', w: 100, h: 100, 
+                color: '#0098ff', w: 100, h: 100,
                 desc: "The Graphics Processing Unit is a highly parallel processor optimized for pixel and geometry math.",
                 internals: [{ name: 'Streaming Multiprocessors', detail: 'Core clusters.' }, { name: 'VRAM', detail: 'High-bandwidth memory.' }],
                 processes: "Vertex Processing -> Rasterization -> Fragment Shading -> Output Merge",
                 subNodes: [
-                    { id: 'pcie_in', type: 'PCIe_IN', x: 0.1, y: 0.5 }, { id: 'vram', type: 'VRAM', x: 0.35, y: 0.8 }, 
-                    { id: 'core1', type: 'CORE', x: 0.4, y: 0.2 }, { id: 'core2', type: 'CORE', x: 0.6, y: 0.2 }, 
+                    { id: 'pcie_in', type: 'PCIe_IN', x: 0.1, y: 0.5 }, { id: 'vram', type: 'VRAM', x: 0.35, y: 0.8 },
+                    { id: 'core1', type: 'CORE', x: 0.4, y: 0.2 }, { id: 'core2', type: 'CORE', x: 0.6, y: 0.2 },
                     { id: 'tex', type: 'TEX', x: 0.65, y: 0.8 }, { id: 'disp_out', type: 'DISP_OUT', x: 0.9, y: 0.5 }
                 ],
                 subWires: [
-                    ['pcie_in', 'vram'], ['pcie_in', 'core1'], ['vram', 'core1'], ['vram', 'core2'], 
+                    ['pcie_in', 'vram'], ['pcie_in', 'core1'], ['vram', 'core1'], ['vram', 'core2'],
                     ['core1', 'tex'], ['core2', 'tex'], ['tex', 'disp_out']
                 ]
             },
             RAM: {
-                color: '#2ecc71', w: 80, h: 120, 
+                color: '#2ecc71', w: 80, h: 120,
                 desc: "Random Access Memory. Volatile workspace memory holding the active OS and running application data.",
                 internals: [{ name: 'DRAM Chips', detail: 'Microscopic capacitors.' }, { name: 'Memory Controller', detail: 'Manages data flow.' }],
                 processes: "Row Activation -> Column Read/Write -> Precharge",
@@ -1365,7 +1267,7 @@
                 subWires: [['bus_in', 'mctrl'], ['mctrl', 'bus_out'], ['mctrl', 'b1'], ['mctrl', 'b2']]
             },
             DISP: {
-                color: '#00ffff', w: 80, h: 60, 
+                color: '#00ffff', w: 80, h: 60,
                 desc: "The Monitor/Display translates the digital framebuffer into physical photons.",
                 internals: [{ name: 'Pixel Matrix', detail: 'RGB subpixels.' }, { name: 'TCON', detail: 'Timing Controller.' }],
                 processes: "Signal Decoding -> Frame Buffering -> Refresh Rate Scanout",
@@ -1373,7 +1275,7 @@
                 subWires: [['dp_in', 'tcon'], ['tcon', 'pxl']]
             },
             KBD: {
-                color: '#e74c3c', w: 80, h: 50, 
+                color: '#e74c3c', w: 80, h: 50,
                 desc: "Input Peripherals (Keyboard/Mouse) send hardware interrupts to the CPU.",
                 internals: [{ name: 'Microcontroller', detail: 'Scans the key matrix.' }, { name: 'USB Interface', detail: 'Serializes keystroke data.' }],
                 processes: "Matrix Scan -> Debounce -> USB Interrupt",
@@ -1381,7 +1283,7 @@
                 subWires: [['mat', 'usb'], ['usb', 'usb_out']]
             },
             DISK: {
-                color: '#9b59b6', w: 80, h: 100, 
+                color: '#9b59b6', w: 80, h: 100,
                 desc: "Solid State Drive (SSD). Non-volatile memory that retains data without power.",
                 internals: [{ name: 'NAND Flash', detail: 'Floating-gate transistors.' }, { name: 'Flash Controller', detail: 'Manages wear-leveling.' }],
                 processes: "Page Read/Write -> Block Erase -> Garbage Collection",
@@ -1392,7 +1294,7 @@
                 subWires: [['pcie_in', 'fctrl'], ['fctrl', 'pcie_out'], ['fctrl', 'dcache'], ['fctrl', 'nand']]
             },
             DMA: {
-                color: '#e84393', w: 70, h: 50, 
+                color: '#e84393', w: 70, h: 50,
                 desc: "Direct Memory Access allows hardware to access RAM independently of the CPU.",
                 internals: [{ name: 'DMA Controller', detail: 'Negotiates memory bus control.' }],
                 processes: "Bus Request -> CPU Grant -> Block Transfer -> Interrupt",
@@ -1400,7 +1302,7 @@
                 subWires: [['req_in', 'deng'], ['deng', 'bus_out']]
             },
             AUDIO: {
-                color: '#e67e22', w: 80, h: 60, 
+                color: '#e67e22', w: 80, h: 60,
                 desc: "The Audio Codec processes digital sound data and converts it into analog waveforms.",
                 internals: [{ name: 'DAC', detail: 'Digital to Analog Converter.' }, { name: 'Op-Amp', detail: 'Boosts analog signal.' }],
                 processes: "PCM Decoding -> D/A Conversion -> Amplification",
@@ -1408,7 +1310,7 @@
                 subWires: [['bus_in', 'dac'], ['dac', 'amp'], ['amp', 'spk_out']]
             },
             NIC: {
-                color: '#1abc9c', w: 80, h: 70, 
+                color: '#1abc9c', w: 80, h: 70,
                 desc: "The Network Interface Card translates local data into packets for Ethernet or Wi-Fi.",
                 internals: [{ name: 'MAC', detail: 'Handles physical addressing.' }, { name: 'Radio', detail: 'Encodes bits into EM waves.' }],
                 processes: "Data Encapsulation -> Framing -> Modulation -> Transmission",
@@ -1420,41 +1322,41 @@
             },
 
             // --- Micro-Level Chip Definitions ---
-            CU: { color: '#e74c3c', w: 50, h: 50, desc: "The Control Unit orchestrates the processor.", processes: "Fetch -> Decode -> Dispatch", internals: [{name: 'Instruction Decoder', detail: 'Translates opcodes.'}] },
-            ALU: { color: '#f39c12', w: 50, h: 60, desc: "The Arithmetic Logic Unit performs math.", processes: "Receive -> Execute -> Output", internals: [{name: 'Adders', detail: 'Logic gates.'}] },
-            REG: { color: '#9b59b6', w: 40, h: 60, desc: "Registers are the fastest memory locations.", processes: "Write -> Hold -> Read", internals: [{name: 'Flip-Flops', detail: 'Bistable circuits.'}] },
-            CACHE: { color: '#2ecc71', w: 50, h: 40, desc: "SRAM Cache acts as a high-speed buffer.", processes: "Tag Check -> Hit/Miss -> Fetch", internals: [{name: 'SRAM Cells', detail: '6-transistor memory.'}] },
-            VRAM: { color: '#2ecc71', w: 50, h: 60, desc: "Video RAM stores textures and framebuffers.", processes: "Block Read -> Write", internals: [{name: 'GDDR', detail: 'High-bandwidth memory.'}] },
-            CORE: { color: '#0098ff', w: 40, h: 40, desc: "GPU Compute Core.", processes: "SIMD Execution", internals: [{name: 'ALU Clusters', detail: 'Parallel math units.'}] },
-            TEX: { color: '#e67e22', w: 40, h: 40, desc: "Texture Mapping Unit.", processes: "Calculate UV -> Fetch", internals: [{name: 'Address Generator', detail: 'Maps 2D to 3D.'}] },
-            MEM_CTRL: { color: '#f39c12', w: 60, h: 40, desc: "The Memory Controller manages DRAM chips.", processes: "Decode Address -> Read/Write", internals: [{name: 'Command Queue', detail: 'Schedules access.'}] },
-            DRAM: { color: '#2ecc71', w: 50, h: 50, desc: "A DRAM Bank.", processes: "Activate -> Precharge", internals: [{name: 'Capacitor Grid', detail: 'Stores charge.'}] },
-            TCON: { color: '#f39c12', w: 40, h: 50, desc: "Timing Controller.", processes: "Decode Signal -> Drive Panel", internals: [{name: 'Sync Generator', detail: 'V-Sync/H-Sync.'}] },
-            PIXELS: { color: '#00ffff', w: 50, h: 50, desc: "LCD/OLED panel matrix.", processes: "Adjust Liquid Crystal", internals: [{name: 'Subpixels', detail: 'RGB filters.'}] },
-            MATRIX: { color: '#e74c3c', w: 40, h: 40, desc: "Keyboard matrix.", processes: "Scan Columns", internals: [{name: 'Membrane', detail: 'Physical contacts.'}] },
-            USB_IC: { color: '#f39c12', w: 40, h: 40, desc: "USB Interface.", processes: "Encode Packet -> Transmit", internals: [{name: 'Serial Interface', detail: 'Bitstream conversion.'}] },
-            FLASH_CTRL: { color: '#f39c12', w: 60, h: 40, desc: "Flash Controller.", processes: "Map Address -> Execute", internals: [{name: 'FTL', detail: 'Flash Translation Layer.'}] },
-            NAND: { color: '#9b59b6', w: 50, h: 50, desc: "NAND Flash chips.", processes: "Erase -> Program -> Read", internals: [{name: 'Floating Gates', detail: 'Traps electrons.'}] },
-            DMA_ENG: { color: '#e84393', w: 50, h: 50, desc: "DMA Engine.", processes: "Request Bus -> Stream", internals: [{name: 'Transfer Counters', detail: 'Tracks bytes.'}] },
-            DAC: { color: '#f39c12', w: 40, h: 40, desc: "Digital-to-Analog Converter.", processes: "Receive PCM -> Voltage", internals: [{name: 'Resistor Ladder', detail: 'Discrete to continuous.'}] },
-            AMP: { color: '#e67e22', w: 40, h: 40, desc: "Amplifier.", processes: "Multiply Voltage", internals: [{name: 'Transistors', detail: 'Boosts signal.'}] },
-            MAC: { color: '#f39c12', w: 40, h: 40, desc: "Media Access Control.", processes: "Encapsulate -> CRC Check", internals: [{name: 'Framer', detail: 'Constructs packet.'}] },
-            RADIO: { color: '#1abc9c', w: 40, h: 40, desc: "Physical PHY layer.", processes: "Modulate -> Transmit", internals: [{name: 'Antenna', detail: 'Broadcasts EM waves.'}] },
-            OSC: { color: '#f1c40f', w: 40, h: 40, desc: "Crystal Oscillator.", processes: "Vibrate", internals: [{name: 'Quartz', detail: 'Piezoelectric material.'}] },
-            
+            CU: { color: '#e74c3c', w: 50, h: 50, desc: "The Control Unit orchestrates the processor.", processes: "Fetch -> Decode -> Dispatch", internals: [{ name: 'Instruction Decoder', detail: 'Translates opcodes.' }] },
+            ALU: { color: '#f39c12', w: 50, h: 60, desc: "The Arithmetic Logic Unit performs math.", processes: "Receive -> Execute -> Output", internals: [{ name: 'Adders', detail: 'Logic gates.' }] },
+            REG: { color: '#9b59b6', w: 40, h: 60, desc: "Registers are the fastest memory locations.", processes: "Write -> Hold -> Read", internals: [{ name: 'Flip-Flops', detail: 'Bistable circuits.' }] },
+            CACHE: { color: '#2ecc71', w: 50, h: 40, desc: "SRAM Cache acts as a high-speed buffer.", processes: "Tag Check -> Hit/Miss -> Fetch", internals: [{ name: 'SRAM Cells', detail: '6-transistor memory.' }] },
+            VRAM: { color: '#2ecc71', w: 50, h: 60, desc: "Video RAM stores textures and framebuffers.", processes: "Block Read -> Write", internals: [{ name: 'GDDR', detail: 'High-bandwidth memory.' }] },
+            CORE: { color: '#0098ff', w: 40, h: 40, desc: "GPU Compute Core.", processes: "SIMD Execution", internals: [{ name: 'ALU Clusters', detail: 'Parallel math units.' }] },
+            TEX: { color: '#e67e22', w: 40, h: 40, desc: "Texture Mapping Unit.", processes: "Calculate UV -> Fetch", internals: [{ name: 'Address Generator', detail: 'Maps 2D to 3D.' }] },
+            MEM_CTRL: { color: '#f39c12', w: 60, h: 40, desc: "The Memory Controller manages DRAM chips.", processes: "Decode Address -> Read/Write", internals: [{ name: 'Command Queue', detail: 'Schedules access.' }] },
+            DRAM: { color: '#2ecc71', w: 50, h: 50, desc: "A DRAM Bank.", processes: "Activate -> Precharge", internals: [{ name: 'Capacitor Grid', detail: 'Stores charge.' }] },
+            TCON: { color: '#f39c12', w: 40, h: 50, desc: "Timing Controller.", processes: "Decode Signal -> Drive Panel", internals: [{ name: 'Sync Generator', detail: 'V-Sync/H-Sync.' }] },
+            PIXELS: { color: '#00ffff', w: 50, h: 50, desc: "LCD/OLED panel matrix.", processes: "Adjust Liquid Crystal", internals: [{ name: 'Subpixels', detail: 'RGB filters.' }] },
+            MATRIX: { color: '#e74c3c', w: 40, h: 40, desc: "Keyboard matrix.", processes: "Scan Columns", internals: [{ name: 'Membrane', detail: 'Physical contacts.' }] },
+            USB_IC: { color: '#f39c12', w: 40, h: 40, desc: "USB Interface.", processes: "Encode Packet -> Transmit", internals: [{ name: 'Serial Interface', detail: 'Bitstream conversion.' }] },
+            FLASH_CTRL: { color: '#f39c12', w: 60, h: 40, desc: "Flash Controller.", processes: "Map Address -> Execute", internals: [{ name: 'FTL', detail: 'Flash Translation Layer.' }] },
+            NAND: { color: '#9b59b6', w: 50, h: 50, desc: "NAND Flash chips.", processes: "Erase -> Program -> Read", internals: [{ name: 'Floating Gates', detail: 'Traps electrons.' }] },
+            DMA_ENG: { color: '#e84393', w: 50, h: 50, desc: "DMA Engine.", processes: "Request Bus -> Stream", internals: [{ name: 'Transfer Counters', detail: 'Tracks bytes.' }] },
+            DAC: { color: '#f39c12', w: 40, h: 40, desc: "Digital-to-Analog Converter.", processes: "Receive PCM -> Voltage", internals: [{ name: 'Resistor Ladder', detail: 'Discrete to continuous.' }] },
+            AMP: { color: '#e67e22', w: 40, h: 40, desc: "Amplifier.", processes: "Multiply Voltage", internals: [{ name: 'Transistors', detail: 'Boosts signal.' }] },
+            MAC: { color: '#f39c12', w: 40, h: 40, desc: "Media Access Control.", processes: "Encapsulate -> CRC Check", internals: [{ name: 'Framer', detail: 'Constructs packet.' }] },
+            RADIO: { color: '#1abc9c', w: 40, h: 40, desc: "Physical PHY layer.", processes: "Modulate -> Transmit", internals: [{ name: 'Antenna', detail: 'Broadcasts EM waves.' }] },
+            OSC: { color: '#f1c40f', w: 40, h: 40, desc: "Crystal Oscillator.", processes: "Vibrate", internals: [{ name: 'Quartz', detail: 'Piezoelectric material.' }] },
+
             // --- NEW I/O PINS ---
-            CLK_OUT: { color: '#f1c40f', w: 60, h: 30, desc: "Clock Output Pin.", processes: "Distribute Signal", internals: [{name: 'Clock Multiplier', detail: 'Steps up frequency.'}] },
-            PCIe_IN: { color: '#0098ff', w: 60, h: 30, desc: "PCIe Receiver RX.", processes: "Deserialize -> Buffer", internals: [{name: 'RX Lanes', detail: 'Differential pairs.'}] },
-            PCIe_OUT: { color: '#0098ff', w: 60, h: 30, desc: "PCIe Transmitter TX.", processes: "Serialize -> Transmit", internals: [{name: 'TX Lanes', detail: 'Differential pairs.'}] },
-            BUS_IN: { color: '#e67e22', w: 60, h: 30, desc: "System Bus Receiver.", processes: "Latch Data", internals: [{name: 'Input Buffer', detail: 'Receives parallel data.'}] },
-            BUS_OUT: { color: '#e67e22', w: 60, h: 30, desc: "System Bus Transmitter.", processes: "Drive Bus", internals: [{name: 'Output Buffer', detail: 'Drives parallel data.'}] },
-            RAM_WRITE: { color: '#2ecc71', w: 60, h: 30, desc: "Memory Write Controller.", processes: "Buffer -> TX", internals: [{name: 'Write Queue', detail: 'Holds outgoing data.'}] },
-            RAM_READ: { color: '#2ecc71', w: 60, h: 30, desc: "Memory Read Controller.", processes: "RX -> Cache", internals: [{name: 'Read Queue', detail: 'Holds incoming data.'}] },
-            DP_IN: { color: '#00ffff', w: 60, h: 30, desc: "DisplayPort / HDMI In.", processes: "Receive Video Stream", internals: [{name: 'Decoder', detail: 'Unpacks video signal.'}] },
-            DISP_OUT: { color: '#00ffff', w: 60, h: 30, desc: "DisplayPort / HDMI Out.", processes: "Encode Video Stream", internals: [{name: 'Encoder', detail: 'Packs video signal.'}] },
-            USB_OUT: { color: '#e74c3c', w: 60, h: 30, desc: "USB Transmitter.", processes: "Send Interrupt", internals: [{name: 'TX Buffer', detail: 'Sends serialized data.'}] },
-            SPK_OUT: { color: '#e67e22', w: 60, h: 30, desc: "Analog Speaker Out.", processes: "Drive Magnets", internals: [{name: 'Audio Jack', detail: 'Physical analog connection.'}] },
-            REQ_IN: { color: '#e84393', w: 60, h: 30, desc: "DMA Request Line.", processes: "Receive Request", internals: [{name: 'Interrupt Pin', detail: 'Triggers DMA.'}] },
+            CLK_OUT: { color: '#f1c40f', w: 60, h: 30, desc: "Clock Output Pin.", processes: "Distribute Signal", internals: [{ name: 'Clock Multiplier', detail: 'Steps up frequency.' }] },
+            PCIe_IN: { color: '#0098ff', w: 60, h: 30, desc: "PCIe Receiver RX.", processes: "Deserialize -> Buffer", internals: [{ name: 'RX Lanes', detail: 'Differential pairs.' }] },
+            PCIe_OUT: { color: '#0098ff', w: 60, h: 30, desc: "PCIe Transmitter TX.", processes: "Serialize -> Transmit", internals: [{ name: 'TX Lanes', detail: 'Differential pairs.' }] },
+            BUS_IN: { color: '#e67e22', w: 60, h: 30, desc: "System Bus Receiver.", processes: "Latch Data", internals: [{ name: 'Input Buffer', detail: 'Receives parallel data.' }] },
+            BUS_OUT: { color: '#e67e22', w: 60, h: 30, desc: "System Bus Transmitter.", processes: "Drive Bus", internals: [{ name: 'Output Buffer', detail: 'Drives parallel data.' }] },
+            RAM_WRITE: { color: '#2ecc71', w: 60, h: 30, desc: "Memory Write Controller.", processes: "Buffer -> TX", internals: [{ name: 'Write Queue', detail: 'Holds outgoing data.' }] },
+            RAM_READ: { color: '#2ecc71', w: 60, h: 30, desc: "Memory Read Controller.", processes: "RX -> Cache", internals: [{ name: 'Read Queue', detail: 'Holds incoming data.' }] },
+            DP_IN: { color: '#00ffff', w: 60, h: 30, desc: "DisplayPort / HDMI In.", processes: "Receive Video Stream", internals: [{ name: 'Decoder', detail: 'Unpacks video signal.' }] },
+            DISP_OUT: { color: '#00ffff', w: 60, h: 30, desc: "DisplayPort / HDMI Out.", processes: "Encode Video Stream", internals: [{ name: 'Encoder', detail: 'Packs video signal.' }] },
+            USB_OUT: { color: '#e74c3c', w: 60, h: 30, desc: "USB Transmitter.", processes: "Send Interrupt", internals: [{ name: 'TX Buffer', detail: 'Sends serialized data.' }] },
+            SPK_OUT: { color: '#e67e22', w: 60, h: 30, desc: "Analog Speaker Out.", processes: "Drive Magnets", internals: [{ name: 'Audio Jack', detail: 'Physical analog connection.' }] },
+            REQ_IN: { color: '#e84393', w: 60, h: 30, desc: "DMA Request Line.", processes: "Receive Request", internals: [{ name: 'Interrupt Pin', detail: 'Triggers DMA.' }] },
             MOTHERBOARD: {
                 color: '#aaa', w: 0, h: 0,
                 desc: "The Mainboard / Printed Circuit Board (PCB). It is the physical nervous system of the computer. It provides power delivery and data pathways (Buses) allowing all disparate components to communicate.",
@@ -1501,6 +1403,8 @@
 
             cam.x = prevState.camX; cam.y = prevState.camY; cam.z = 2.4;
             pulses = [];
+
+            unlockAchievement('zoom_out');
         }
         let nodes = [
             { id: 'clk', type: 'CLK', x: 0.35, y: 0.4, usage: 0 },
@@ -1705,6 +1609,7 @@
             ) : null;
 
             if (e.shiftKey) {
+                if (boardStack.length > 0) return; // Prevent wiring inside chips
                 if (clicked) {
                     if (!wiringStartNode) wiringStartNode = clicked;
                     else {
@@ -1769,7 +1674,7 @@
             );
             if (clicked) { unlockAchievement('deep_dive'); openModal(clicked.type); }
         });
-        
+
 
         const tooltip = document.getElementById('tooltip');
         mbCanvas.addEventListener('mousemove', e => {
@@ -1812,10 +1717,10 @@
             );
 
             if (hovered) {
-                const rect = mbCanvas.getBoundingClientRect();
                 tooltip.style.opacity = 1;
-                tooltip.style.left = (e.clientX - rect.left + 15) + 'px';
-                tooltip.style.top = (e.clientY - rect.top + 15) + 'px';
+                tooltip.style.left = (e.clientX + 15) + 'px';
+                tooltip.style.top = (e.clientY + 15) + 'px';
+
                 document.getElementById('tt-title').innerText = `${hovered.type} Module`;
                 document.getElementById('tt-status').innerText = hovered.usage > 0.1 ? '⚡ Status: ACTIVE' : '💤 Status: IDLE';
                 document.getElementById('tt-status').style.color = hovered.usage > 0.1 ? '#f1c40f' : '#2ecc71';
@@ -1835,7 +1740,7 @@
 
         mbCanvas.addEventListener('contextmenu', e => {
             e.preventDefault();
-            if (cam.z < 0.3) return;
+            if (cam.z < 0.3 || boardStack.length > 0) return; // no delete subchip for now since no adder for it.
             const wPos = getMouseWorld(e);
             const mwX = wPos.x * mbWidth;
             const mwY = wPos.y * mbHeight;
@@ -1892,6 +1797,8 @@
 
         mbCanvas.addEventListener('drop', e => {
             e.preventDefault();
+            if (boardStack.length > 0) return; // unfortunately no sub chips for now.
+
             // Retrieve safely
             const type = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('type');
 
@@ -2605,7 +2512,7 @@
 
                 // Send physics/draw data over PCIe
                 triggerDataPulse('CPU', 'GPU', '#0098ff', [
-                    { chip: 'CPU', from: 'cu', to: 'pcie' },
+                    { chip: 'CPU', from: 'cu', to: 'pcie_out' },
                     { chip: 'GPU', from: 'vram', to: targetCore },
                     { chip: 'GPU', from: targetCore, to: 'tex' }
                 ]);
@@ -2727,6 +2634,7 @@
         function osLoop() {
             let now = performance.now();
             let dt = now - lastTime;
+            if (dt > 250) dt = 250; // Capped it to prevent accumulator death spiral
             lastTime = now;
             accumulator += dt;
 
@@ -2770,12 +2678,22 @@
         });
         window.addEventListener('keyup', e => keys[e.key] = false);
 
-        // Map mouse clicks directly to the game canvas
         gameCanvas.addEventListener('mousedown', e => {
-
             if (sysRunning && sysStatus.hasKBD) {
-                spawnPulse('kbd', 'cpu', '#e74c3c'); // Mouse counts as hardware input!
-                apps[currentAppId].input(e, 'mousedown');
+                spawnPulse('kbd', 'cpu', '#e74c3c');
+                
+                const rect = gameCanvas.getBoundingClientRect();
+                const scaleX = gameCanvas.width / rect.width;
+                const scaleY = gameCanvas.height / rect.height;
+                
+                const scaledEvent = {
+                    offsetX: (e.clientX - rect.left) * scaleX,
+                    offsetY: (e.clientY - rect.top) * scaleY,
+                    clientX: e.clientX,
+                    clientY: e.clientY
+                };
+
+                apps[currentAppId].input(scaledEvent, 'mousedown');
             }
         });
 

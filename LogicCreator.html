@@ -5,15 +5,44 @@
     <meta charset="UTF-8">
     <title>MAVE - Logic Sandbox</title>
     <style>
+        header {
+            width: 100%;
+            height: 50px;
+            background: #252526;
+            border-bottom: 1px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0px 20px;
+            box-sizing: border-box;
+            position: sticky;
+
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        header a {
+            color: inherit;
+            text-decoration: none;
+        }
+
         body {
             margin: 0;
             overflow: hidden;
             font-family: system-ui, sans-serif;
             background: #1e1e1e;
-            /* Dark mode feels more "engineering" */
             color: #eee;
             display: flex;
             height: 100vh;
+            flex-direction: column;
+        }
+
+        #main-container {
+            display: flex;
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
         }
 
         /* Left Panel: Tool Palette */
@@ -60,12 +89,12 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(40, 40, 40, 0.9);
+            background: transparent;
             padding: 10px 20px;
             border-radius: 8px;
             border: 1px solid #444;
             display: flex;
-            gap: 10px;
+            gap: 20px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
         }
 
@@ -87,13 +116,11 @@
             background: #d97706;
         }
 
-        /* Orange for edit mode */
 
         /* Right Sliding Panel */
         #ops-panel {
             position: fixed;
             right: -300px;
-            /* Hidden by default */
             top: 0;
             width: 300px;
             height: 100vh;
@@ -119,65 +146,80 @@
 </head>
 
 <body>
-
-    <div id="palette">
-        <h3>Components</h3>
-        <div class="palette-item" draggable="true" data-type="INPUT">Input Box</div>
-        <div class="palette-item" draggable="true" data-type="AND">AND Gate</div>
-        <div class="palette-item" draggable="true" data-type="OR">OR Gate</div>
-        <div class="palette-item" draggable="true" data-type="NOT">NOT Gate</div>
-        <div class="palette-item" draggable="true" data-type="XOR">XOR Gate</div>
-        <div class="palette-item" draggable="true" data-type="XOR">XOR Gate</div>
-        <div class="palette-item" draggable="true" data-type="NAND">NAND Gate</div>
-        <div class="palette-item" draggable="true" data-type="NOR">NOR Gate</div>
-        <div class="palette-item" draggable="true" data-type="XNOR">XNOR Gate</div>
-        <div class="palette-item" draggable="true" data-type="OUTPUT" style="border-color: #f1c40f;">Output Bulb</div>
-        <div class="palette-item" draggable="true" data-type="CLOCK" style="border-color: #e74c3c;">Clock Pulse</div>
-    </div>
-
-    <div id="workspace">
-        <button id="toggle-ops-btn">⚙️ Pre-made Ops</button>
-        <canvas id="gridCanvas"></canvas>
-
-        <div id="bottom-bar">
-            <button id="btn-edit" class="btn-toggle">✏️ Edit Mode</button>
-            <button id="btn-inputs">🔢 Manage Inputs</button>
-            <button id="btn-step">Step ▶</button>
-            <button id="btn-play">Play ▶▶</button>
+    <header>
+        <h2 style="margin: 0; color: #ffffff; font-weight: bold;"><a class="no-style-link" style="color:#0098ff"
+                href="MAVE_Hub.html">MAVE</a> Logic Gates</h2>
+    </header>
+    <div id="main-container">
+        <div id="palette">
+            <h3>Components</h3>
+            <div class="palette-item" draggable="true" data-type="INPUT">Input Box</div>
+            <div class="palette-item" draggable="true" data-type="AND">AND Gate</div>
+            <div class="palette-item" draggable="true" data-type="OR">OR Gate</div>
+            <div class="palette-item" draggable="true" data-type="NOT">NOT Gate</div>
+            <div class="palette-item" draggable="true" data-type="XOR">XOR Gate</div>
+            <div class="palette-item" draggable="true" data-type="NAND">NAND Gate</div>
+            <div class="palette-item" draggable="true" data-type="NOR">NOR Gate</div>
+            <div class="palette-item" draggable="true" data-type="XNOR">XNOR Gate</div>
+            <div class="palette-item" draggable="true" data-type="BUFFER">Buffer</div>
+            <div class="palette-item" draggable="true" data-type="OUTPUT" style="border-color: #f1c40f;">Output Bulb
+            </div>
+            <div class="palette-item" draggable="true" data-type="CLOCK" style="border-color: #e74c3c;">Clock Pulse
+            </div>
         </div>
-    </div>
 
-    <div id="ops-panel">
-        <button id="close-ops-btn"
-            style="position: absolute; top: 10px; right: 10px; background: transparent; color: white; border: none; font-size: 16px; cursor: pointer;">✖</button>
-                <p style="font-size: 12px; color: #aaa;">Drag a preset into the workspace.</p>
+        <div id="workspace">
+            <button id="toggle-ops-btn">⚙️ Pre-made Ops</button>
+            <canvas id="gridCanvas"></canvas>
+
+            <div id="bottom-bar">
+                <button id="btn-edit" class="btn-toggle">✏️ Edit Mode</button>
+                <button id="btn-inputs">🔢 Manage Inputs</button>
+                <button id="btn-step">Step ▶</button>
+                <button id="btn-play">Play ▶▶</button>
+            </div>
+        </div>
+
+        <div id="ops-panel">
+            <button id="close-ops-btn"
+                style="position: absolute; top: 10px; right: 10px; background: transparent; color: white; border: none; font-size: 16px; cursor: pointer;">✖</button>
+            <p style="font-size: 12px; color: #aaa;">Drag a preset into the workspace.</p>
             <h3>Single-Bit Manipulation</h3>
-        <div class="palette-item" draggable="true" data-type="HALF_ADDER">
-            Half-Adder<br><small>A + B (Sum, Carry)</small>
+            <div class="palette-item" draggable="true" data-type="HALF_ADDER">
+                Half-Adder<br><small>A + B (Sum, Carry)</small>
+            </div>
+            <div class="palette-item" draggable="true" data-type="FULL_ADDER">Full-Adder <br><small>(A, B, Cin &rarr;
+                    Sum,
+                    Cout)</small></div>
+            <div class="palette-item" draggable="true" data-type="MUX_2TO1">2-to-1 MUX <br><small>(D0, D1, Sel &rarr;
+                    Out)</small></div>
+            <div class="palette-item" draggable="true" data-type="DECODER_1TO2">1-to-2 Decoder <br><small>(In, Sel
+                    &rarr;
+                    Out0, Out1)</small></div>
+            <h3>8-Bit Components</h3>
+            <div class="palette-item" draggable="true" data-type="MACRO_ADD8" style="border-color: #2ecc71;">8-Bit Adder
+                <br><small>(A, B, Cin &rarr; Sum, Cout)</small>
+            </div>
+            <div class="palette-item" draggable="true" data-type="MACRO_MUX8" style="border-color: #9b59b6;">8-Bit MUX
+                <br><small>(D0, D1, Sel &rarr; Out)</small>
+            </div>
+            <h3>Memory / State</h3>
+            <div class="palette-item" draggable="true" data-type="D_FLIP_FLOP" style="border-color: #9b59b6;">D-Flip
+                Flop
+            </div>
         </div>
-        <div class="palette-item" draggable="true" data-type="FULL_ADDER">Full-Adder <br><small>(A, B, Cin &rarr; Sum,
-                Cout)</small></div>
-        <div class="palette-item" draggable="true" data-type="MUX_2TO1">2-to-1 MUX <br><small>(D0, D1, Sel &rarr;
-                Out)</small></div>
-        <div class="palette-item" draggable="true" data-type="DECODER_1TO2">1-to-2 Decoder <br><small>(In, Sel &rarr;
-                Out0, Out1)</small></div>
-        <h3>8-Bit Components</h3>
-        <div class="palette-item" draggable="true" data-type="MACRO_ADD8" style="border-color: #2ecc71;">8-Bit Adder <br><small>(A, B, Cin &rarr; Sum, Cout)</small></div>
-        <div class="palette-item" draggable="true" data-type="MACRO_MUX8" style="border-color: #9b59b6;">8-Bit MUX <br><small>(D0, D1, Sel &rarr; Out)</small></div>
-        <h3>Memory / State</h3>
-        <div class="palette-item" draggable="true" data-type="D_FLIP_FLOP" style="border-color: #9b59b6;">D-Flip Flop
+        <div id="input-panel"
+            style="display: none; position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); background: #252526; border: 1px solid #444; border-radius: 8px; padding: 15px; width: 300px; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; padding-bottom: 8px; margin-bottom: 10px;">
+                <h3 style="margin: 0;">Input Values (8-bit)</h3>
+                <button id="btn-toggle-base" style="font-size: 11px; padding: 4px 8px; background: #555;">Base:
+                    10</button>
+            </div>
+            <ul id="input-list" style="list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto;">
+                <li style="color: #aaa; font-size: 12px;">Drop an input box to see it here.</li>
+            </ul>
         </div>
-    </div>
-    <div id="input-panel"
-        style="display: none; position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); background: #252526; border: 1px solid #444; border-radius: 8px; padding: 15px; width: 300px; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-        <div
-            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #444; padding-bottom: 8px; margin-bottom: 10px;">
-            <h3 style="margin: 0;">Input Values (8-bit)</h3>
-            <button id="btn-toggle-base" style="font-size: 11px; padding: 4px 8px; background: #555;">Base: 10</button>
-        </div>
-        <ul id="input-list" style="list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto;">
-            <li style="color: #aaa; font-size: 12px;">Drop an input box to see it here.</li>
-        </ul>
     </div>
     <script>
         const canvas = document.getElementById('gridCanvas');
@@ -191,6 +233,10 @@
         let selectedNodeForWire = null; // Tracks the first node clicked in Edit Mode
         let offsetX, offsetY;
 
+        let cameraX = 0, cameraY = 0, cameraZoom = 1;
+        let isPanning = false;
+        let panStartX, panStartY;
+
         function resize() {
             width = canvas.parentElement.clientWidth;
             height = canvas.parentElement.clientHeight;
@@ -199,6 +245,16 @@
 
         }
         window.addEventListener('resize', resize);
+
+        function getWorldPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+            return {
+                x: (mx - cameraX) / cameraZoom,
+                y: (my - cameraY) / cameraZoom
+            };
+        }
 
         class LogicNode {
             constructor(x, y, type, label = "") {
@@ -218,7 +274,33 @@
                     this.width = 40;
                 }
             }
+            getPath() {
+                const p = new Path2D();
+                const isAND = this.type === 'AND' || this.type === 'NAND';
+                const isOR = this.type === 'OR' || this.type === 'NOR';
+                const isXOR = this.type === 'XOR' || this.type === 'XNOR';
 
+                if (isAND) {
+                    p.moveTo(0, 0); p.lineTo(this.width / 2, 0); p.arc(this.width / 2, this.height / 2, this.height / 2, -Math.PI / 2, Math.PI / 2); p.lineTo(0, this.height); p.closePath();
+                } else if (isOR) {
+                    p.moveTo(0, 0); p.quadraticCurveTo(this.width * 0.8, 0, this.width, this.height / 2); p.quadraticCurveTo(this.width * 0.8, this.height, 0, this.height); p.quadraticCurveTo(this.width * 0.3, this.height / 2, 0, 0);
+                } else if (isXOR) {
+                    p.moveTo(10, 0); p.quadraticCurveTo(this.width * 0.8, 0, this.width, this.height / 2); p.quadraticCurveTo(this.width * 0.8, this.height, 10, this.height); p.quadraticCurveTo(this.width * 0.3 + 10, this.height / 2, 10, 0);
+                    p.moveTo(0, 0); p.quadraticCurveTo(this.width * 0.3, this.height / 2, 0, this.height);
+                } else if (this.type === 'NOT' || this.type === 'BUFFER') {
+                    p.moveTo(0, 0); p.lineTo(this.width, this.height / 2); p.lineTo(0, this.height); p.closePath();
+                } else if (this.type === 'OUTPUT') {
+                    p.arc(this.width / 2, this.height / 2, 20, 0, Math.PI * 2);
+                } else {
+                    p.rect(0, 0, this.width, this.height); // Standard Rects
+                }
+
+                if (['NAND', 'NOR', 'XNOR', 'NOT'].includes(this.type)) {
+                    p.moveTo(this.width + 10, this.height / 2);
+                    p.arc(this.width + 5, this.height / 2, 5, 0, Math.PI * 2);
+                }
+                return p;
+            }
             draw(ctx) {
                 ctx.save();
                 ctx.translate(this.x, this.y);
@@ -228,88 +310,57 @@
                     ctx.shadowBlur = 15;
                 }
 
-                ctx.fillStyle = '#333';
+                ctx.fillStyle = this.type === 'OUTPUT' && this.value > 0 ? '#f1c40f' : '#333';
                 ctx.strokeStyle = '#888';
                 ctx.lineWidth = 2;
 
-                ctx.beginPath();
-                const drawInversionBubble = () => {
-                    ctx.moveTo(this.width + 10, this.height / 2);
-                    ctx.arc(this.width + 5, this.height / 2, 5, 0, Math.PI * 2);
-                };
+                const path = this.getPath();
+                ctx.fill(path);
+                ctx.stroke(path);
 
-                const isAND = this.type === 'AND' || this.type === 'NAND';
-                const isOR = this.type === 'OR' || this.type === 'NOR';
-                const isXOR = this.type === 'XOR' || this.type === 'XNOR';
-
-                if (isAND) {
-                    ctx.moveTo(0, 0); ctx.lineTo(this.width / 2, 0); ctx.arc(this.width / 2, this.height / 2, this.height / 2, -Math.PI / 2, Math.PI / 2); ctx.lineTo(0, this.height); ctx.closePath();
-                    if (this.type === 'NAND') drawInversionBubble();
-                } else if (isOR) {
-                    ctx.moveTo(0, 0); ctx.quadraticCurveTo(this.width * 0.8, 0, this.width, this.height / 2); ctx.quadraticCurveTo(this.width * 0.8, this.height, 0, this.height); ctx.quadraticCurveTo(this.width * 0.3, this.height / 2, 0, 0);
-                    if (this.type === 'NOR') drawInversionBubble();
-                } else if (isXOR) {
-                    ctx.moveTo(10, 0); ctx.quadraticCurveTo(this.width * 0.8, 0, this.width, this.height / 2); ctx.quadraticCurveTo(this.width * 0.8, this.height, 10, this.height); ctx.quadraticCurveTo(this.width * 0.3 + 10, this.height / 2, 10, 0);
-                    ctx.moveTo(0, 0); ctx.quadraticCurveTo(this.width * 0.3, this.height / 2, 0, this.height);
-                    if (this.type === 'XNOR') drawInversionBubble();
-                } else if (this.type === 'NOT') {
-                    ctx.moveTo(0, 0); ctx.lineTo(this.width, this.height / 2); ctx.lineTo(0, this.height); ctx.closePath();
-                    drawInversionBubble();
-                } else if (this.type === 'OUTPUT') {
-                    ctx.arc(this.width / 2, this.height / 2, 20, 0, Math.PI * 2);
-                    if (this.value > 0) ctx.fillStyle = '#f1c40f'; // Lights up!
-                } else if (this.type === 'D_FLIP_FLOP') {
-                    ctx.rect(0, 0, this.width, this.height);
-                    // Draw the Clock Edge Triangle
-                    ctx.moveTo(0, this.height - 15);
-                    ctx.lineTo(10, this.height - 10);
-                    ctx.lineTo(0, this.height - 5);
-                } 
-                else if (this.type === 'ADD8' || this.type === 'CARRY8' || this.type === 'MUX8') {
-                    ctx.rect(0, 0, this.width, this.height);
-                    // Add tiny port indicators for the user
+                // Internal details
+                if (this.type === 'D_FLIP_FLOP') {
+                    ctx.beginPath();
+                    ctx.moveTo(0, this.height - 15); ctx.lineTo(10, this.height - 10); ctx.lineTo(0, this.height - 5);
+                    ctx.stroke();
+                } else if (['ADD8', 'CARRY8', 'MUX8'].includes(this.type)) {
                     ctx.fillStyle = '#888';
                     if (this.type.includes('ADD')) {
-                        ctx.fillText("A", -5, this.height * 0.25);
-                        ctx.fillText("B", -5, this.height * 0.5);
-                        ctx.fillText("C", -5, this.height * 0.75);
+                        ctx.fillText("A", -5, this.height * 0.25); ctx.fillText("B", -5, this.height * 0.5); ctx.fillText("C", -5, this.height * 0.75);
                     } else if (this.type === 'MUX8') {
-                        ctx.fillText("0", -5, this.height * 0.25);
-                        ctx.fillText("1", -5, this.height * 0.5);
-                        ctx.fillText("S", -5, this.height * 0.75);
+                        ctx.fillText("0", -5, this.height * 0.25); ctx.fillText("1", -5, this.height * 0.5); ctx.fillText("S", -5, this.height * 0.75);
                     }
                 }
-                else {
-                    ctx.rect(0, 0, this.width, this.height); // INPUT or CLOCK
-                }
-                ctx.fill(); ctx.stroke();
 
-                // Draw Text/Values
                 ctx.fillStyle = '#fff';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-
-                if (this.type === 'INPUT') {
+                if (this.type === 'INPUT' || this.type === 'OUTPUT') {
                     ctx.font = 'bold 14px sans-serif';
                     ctx.fillText(this.label, this.width / 2, this.height / 2);
                 } else {
-                    // Small label inside the gate
                     ctx.font = '10px monospace';
                     ctx.fillText(this.type, this.width / 2, this.height / 2);
                 }
                 ctx.restore();
 
-                // DRAW THE OUTPUT VALUE HOVERING ABOVE THE NODE
+                // Hovering Value
                 ctx.fillStyle = '#0098ff';
                 ctx.font = 'bold 12px monospace';
                 ctx.textAlign = 'center';
-                // Format based on current base
                 let displayValue = currentBase === 10 ? this.value.toString(10) : this.value.toString(2).padStart(8, '0');
                 ctx.fillText(displayValue, this.x + this.width / 2, this.y - 10);
             }
 
-            isPointInside(x, y) {
-                return x >= this.x && x <= this.x + this.width && y >= this.y && y <= this.y + this.height;
+            isPointInside(ctx, screenX, screenY) {
+                ctx.save();
+                ctx.setTransform(1, 0, 0, 1, 0, 0); // Safely reset transforms
+                ctx.translate(cameraX, cameraY);
+                ctx.scale(cameraZoom, cameraZoom);
+                ctx.translate(this.x, this.y);
+                const hit = ctx.isPointInPath(this.getPath(), screenX, screenY);
+                ctx.restore();
+                return hit;
             }
         }
 
@@ -370,15 +421,35 @@
             ctx.fillStyle = '#1e1e1e';
             ctx.fillRect(0, 0, width, height);
 
+            ctx.save();
+            ctx.translate(cameraX, cameraY);
+            ctx.scale(cameraZoom, cameraZoom);
+
             ctx.fillStyle = '#333';
-            for (let x = 0; x < width; x += 20) {
-                for (let y = 0; y < height; y += 20) {
+            const startX = -cameraX / cameraZoom;
+            const startY = -cameraY / cameraZoom;
+            const endX = startX + width / cameraZoom;
+            const endY = startY + height / cameraZoom;
+
+            for (let x = Math.floor(startX / 20) * 20; x < endX; x += 20) {
+                for (let y = Math.floor(startY / 20) * 20; y < endY; y += 20) {
                     ctx.beginPath(); ctx.arc(x, y, 1, 0, Math.PI * 2); ctx.fill();
                 }
             }
 
             drawWiresAndPackets();
             nodes.forEach(node => node.draw(ctx));
+
+            ctx.restore();
+
+            if (isEditMode) {
+                ctx.fillStyle = 'rgba(0, 152, 255, 1)';
+                ctx.font = 'bold 18px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText("Select nodes to connect wires", width / 2, 40);
+            }
+
+
 
             // Process animations
             let animationFinished = false;
@@ -410,9 +481,9 @@
         canvas.addEventListener('drop', (e) => {
             e.preventDefault();
             const type = e.dataTransfer.getData('type');
-            const rect = canvas.getBoundingClientRect();
-            const x = Math.round((e.clientX - rect.left) / 20) * 20;
-            const y = Math.round((e.clientY - rect.top) / 20) * 20;
+            const pos = getWorldPos(e);
+            const x = Math.round(pos.x / 20) * 20;
+            const y = Math.round(pos.y / 20) * 20;
 
             // --- PRE-MADE MACROS ---
             if (type === 'HALF_ADDER') {
@@ -426,7 +497,7 @@
                 wires.push({ from: inputB, to: xorGate });
                 wires.push({ from: inputA, to: andGate });
                 wires.push({ from: inputB, to: andGate });
-                
+
                 updateInputPanel();
                 return; // <-- Stops the code from falling through to the bottom!
 
@@ -451,10 +522,10 @@
                     { from: and1, to: or1 }, { from: and2, to: or1 },
                     { from: xor2, to: oSum }, { from: or1, to: oCout }
                 );
-                
+
                 updateInputPanel();
                 return;
-                
+
             } else if (type === 'MUX_2TO1') {
                 const iD0 = new LogicNode(x, y, 'INPUT', 'D0');
                 const iD1 = new LogicNode(x, y + 80, 'INPUT', 'D1');
@@ -472,10 +543,10 @@
                     { from: iD0, to: and0 }, { from: iD1, to: and1 },
                     { from: and0, to: orOut }, { from: and1, to: orOut }, { from: orOut, to: oOut }
                 );
-                
+
                 updateInputPanel();
                 return;
-                
+
             } else if (type === 'DECODER_1TO2') {
                 const iIn = new LogicNode(x, y, 'INPUT', 'IN');
                 const iSel = new LogicNode(x, y + 80, 'INPUT', 'SEL');
@@ -492,45 +563,45 @@
                     { from: iIn, to: and0 }, { from: iIn, to: and1 },
                     { from: and0, to: out0 }, { from: and1, to: out1 }
                 );
-                
+
                 updateInputPanel();
                 return;
-                
+
             } else if (type === 'MACRO_ADD8') {
                 const iA = new LogicNode(x, y, 'INPUT', 'A');
                 const iB = new LogicNode(x, y + 60, 'INPUT', 'B');
                 const iC = new LogicNode(x, y + 120, 'INPUT', 'Cin');
-                
+
                 const add8 = new LogicNode(x + 150, y + 20, 'ADD8');
                 const carry8 = new LogicNode(x + 150, y + 100, 'CARRY8');
-                
+
                 const oSum = new LogicNode(x + 300, y + 20, 'OUTPUT', 'SUM');
                 const oCout = new LogicNode(x + 300, y + 100, 'OUTPUT', 'COUT');
-                
+
                 nodes.push(iA, iB, iC, add8, carry8, oSum, oCout);
                 wires.push(
-                    {from: iA, to: add8}, {from: iB, to: add8}, {from: iC, to: add8},
-                    {from: iA, to: carry8}, {from: iB, to: carry8}, {from: iC, to: carry8},
-                    {from: add8, to: oSum}, {from: carry8, to: oCout}
+                    { from: iA, to: add8 }, { from: iB, to: add8 }, { from: iC, to: add8 },
+                    { from: iA, to: carry8 }, { from: iB, to: carry8 }, { from: iC, to: carry8 },
+                    { from: add8, to: oSum }, { from: carry8, to: oCout }
                 );
-                
+
                 updateInputPanel();
                 return;
-                
+
             } else if (type === 'MACRO_MUX8') {
                 const iD0 = new LogicNode(x, y, 'INPUT', 'D0');
                 const iD1 = new LogicNode(x, y + 60, 'INPUT', 'D1');
                 const iSel = new LogicNode(x, y + 120, 'INPUT', 'SEL');
-                
+
                 const mux8 = new LogicNode(x + 150, y + 60, 'MUX8');
                 const oOut = new LogicNode(x + 300, y + 60, 'OUTPUT', 'OUT');
-                
+
                 nodes.push(iD0, iD1, iSel, mux8, oOut);
                 wires.push(
-                    {from: iD0, to: mux8}, {from: iD1, to: mux8}, {from: iSel, to: mux8},
-                    {from: mux8, to: oOut}
+                    { from: iD0, to: mux8 }, { from: iD1, to: mux8 }, { from: iSel, to: mux8 },
+                    { from: mux8, to: oOut }
                 );
-                
+
                 updateInputPanel();
                 return;
             }
@@ -548,39 +619,44 @@
             updateInputPanel();
         });
         canvas.addEventListener('contextmenu', (e) => {
-            e.preventDefault(); // Stop browser context menu
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
+            e.preventDefault();
+            const r = canvas.getBoundingClientRect();
+            const mx = (e.clientX - r.left) * (canvas.width / r.width);
+            const my = (e.clientY - r.top) * (canvas.height / r.height);
 
             for (let i = nodes.length - 1; i >= 0; i--) {
-                if (nodes[i].isPointInside(mouseX, mouseY)) {
+                if (nodes[i].isPointInside(ctx, mx, my)) {
                     const deletedNode = nodes[i];
-                    // Remove node
                     nodes.splice(i, 1);
-                    // Remove any wires attached to this node
                     wires = wires.filter(w => w.from !== deletedNode && w.to !== deletedNode);
-                    // Update UI if it was an input
                     if (deletedNode.type === 'INPUT') updateInputPanel();
                     break;
                 }
             }
         });
         canvas.addEventListener('mousedown', e => {
+            if (e.button !== 0) return;
             const r = canvas.getBoundingClientRect();
-            const mx = e.clientX - r.left;
-            const my = e.clientY - r.top;
-
-            // Find the top-most node clicked
-            let clicked = nodes.slice().reverse().find(n => n.isPointInside(mx, my));
+            const mx = (e.clientX - r.left) * (canvas.width / r.width);
+            const my = (e.clientY - r.top) * (canvas.height / r.height);
+            
+            const pos = getWorldPos(e);
+            let clicked = nodes.slice().reverse().find(n => n.isPointInside(ctx, mx, my));
+            // Pan if clicking empty space
+            if (!clicked && !isEditMode) {
+                isPanning = true;
+                panStartX = e.clientX - cameraX;
+                panStartY = e.clientY - cameraY;
+                canvas.style.cursor = 'grabbing';
+                return;
+            }
 
             if (isEditMode) {
                 if (clicked) {
                     if (!selectedNodeForWire) {
-                        selectedNodeForWire = clicked; // Select first node
+                        selectedNodeForWire = clicked;
                     } else {
                         if (selectedNodeForWire !== clicked) {
-                            // Connect or Disconnect
                             const idx = wires.findIndex(w => (w.from === selectedNodeForWire && w.to === clicked) || (w.from === clicked && w.to === selectedNodeForWire));
                             if (idx >= 0) wires.splice(idx, 1);
                             else wires.push({ from: selectedNodeForWire, to: clicked });
@@ -588,17 +664,56 @@
                         selectedNodeForWire = null;
                     }
                 } else {
-                    selectedNodeForWire = null; // Clicked empty space, reset
+                    selectedNodeForWire = null;
                 }
             } else {
-                // DRAG MODE
                 if (clicked) {
                     draggingNode = clicked;
-                    offsetX = mx - clicked.x;
-                    offsetY = my - clicked.y;
+                    offsetX = pos.x - clicked.x;
+                    offsetY = pos.y - clicked.y;
                 }
             }
         });
+
+        canvas.addEventListener('mousemove', e => {
+            if (isPanning) {
+                cameraX = e.clientX - panStartX;
+                cameraY = e.clientY - panStartY;
+                return;
+            }
+
+            if (draggingNode && !isEditMode) {
+                const pos = getWorldPos(e);
+                let newX = Math.round((pos.x - offsetX) / 20) * 20;
+                let newY = Math.round((pos.y - offsetY) / 20) * 20;
+
+                draggingNode.x = newX;
+                draggingNode.y = newY;
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            draggingNode = null;
+            isPanning = false;
+            canvas.style.cursor = 'crosshair';
+        });
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+            const worldX = (mouseX - cameraX) / cameraZoom;
+            const worldY = (mouseY - cameraY) / cameraZoom;
+
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+            cameraZoom *= zoomFactor;
+            cameraZoom = Math.max(0.2, Math.min(cameraZoom, 5));
+
+            cameraX = mouseX - worldX * cameraZoom;
+            cameraY = mouseY - worldY * cameraZoom;
+        }, { passive: false });
+
         // --- Logic Simulator Engine ---
         let playInterval = null;
 
@@ -626,22 +741,24 @@
         function calculateNodeLogic() {
             nodes.forEach(n => {
                 // Ignore inputs and clocks, they manage their own state
-                if (['INPUT', 'CLOCK'].includes(n.type)) { 
-                    n.nextValue = n.value; 
-                    return; 
+                if (['INPUT', 'CLOCK'].includes(n.type)) {
+                    n.nextValue = n.value;
+                    return;
                 }
 
                 const incomingWires = wires.filter(w => w.to === n);
                 const inVals = incomingWires.map(w => w.from.value);
 
                 // If nothing is connected, output 0
-                if (inVals.length === 0) { 
-                    n.nextValue = 0; 
-                    return; 
+                if (inVals.length === 0) {
+                    n.nextValue = 0;
+                    return;
                 }
-                
+
                 if (n.type === 'NOT') {
                     n.nextValue = (~inVals[0]) & 255;
+                } else if (n.type === 'BUFFER') {
+                    n.nextValue = inVals[0];
                 } else if (n.type === 'OUTPUT') {
                     n.nextValue = inVals[0];
                 } else if (n.type === 'D_FLIP_FLOP') {
@@ -658,14 +775,14 @@
                 } else if (n.type === 'ADD8' || n.type === 'CARRY8') {
                     // Sort wires by vertical position: Top=A, Mid=B, Bottom=Cin
                     const sorted = incomingWires.sort((a, b) => a.from.y - b.from.y);
-                    
+
                     // Safely extract values (defaults to 0 if a wire is missing)
                     let a = sorted.length > 0 ? sorted[0].from.value : 0;
                     let b = sorted.length > 1 ? sorted[1].from.value : 0;
                     let cin = sorted.length > 2 ? sorted[2].from.value : 0;
-                    
+
                     let mathSum = a + b + cin;
-                    
+
                     if (n.type === 'ADD8') {
                         n.nextValue = mathSum & 255; // Wrap at 255
                     } else {
@@ -678,8 +795,8 @@
                     let d0 = sorted.length > 0 ? sorted[0].from.value : 0;
                     let d1 = sorted.length > 1 ? sorted[1].from.value : 0;
                     let sel = sorted.length > 2 ? sorted[2].from.value : 0;
-                    
-                    n.nextValue = sel > 0 ? d1 : d0; 
+
+                    n.nextValue = sel > 0 ? d1 : d0;
 
                 } else {
                     let res = inVals[0];
@@ -692,18 +809,18 @@
                             res |= inVals[i];
                         }
                     }
-                    
+
                     if (['NAND', 'NOR', 'XNOR'].includes(n.type)) {
                         res = ~res;
                     }
-                    
+
                     n.nextValue = res & 255; // Clamp to 8-bit unsigned
                 }
             });
 
             // appl all calculated states simultaneously
-            nodes.forEach(n => { 
-                if (!['INPUT', 'CLOCK'].includes(n.type)) n.value = n.nextValue; 
+            nodes.forEach(n => {
+                if (!['INPUT', 'CLOCK'].includes(n.type)) n.value = n.nextValue;
             });
         }
 
@@ -727,20 +844,8 @@
             }
         });
 
-        canvas.addEventListener('mousemove', e => {
-            if (draggingNode && !isEditMode) {
-                const r = canvas.getBoundingClientRect();
-                // Calculate new position, snapping to 20px grid
-                let newX = Math.round((e.clientX - r.left - offsetX) / 20) * 20;
-                let newY = Math.round((e.clientY - r.top - offsetY) / 20) * 20;
 
-                // Prevent dragging completely off-screen
-                draggingNode.x = Math.max(0, Math.min(newX, width - draggingNode.width));
-                draggingNode.y = Math.max(0, Math.min(newY, height - draggingNode.height));
-            }
-        });
 
-        window.addEventListener('mouseup', () => { draggingNode = null; });
         // --- UI Controls ---
         document.getElementById('btn-edit').addEventListener('click', (e) => {
             isEditMode = !isEditMode;

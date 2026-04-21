@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>MAVE - Data Representation Lab</title>
@@ -23,7 +24,7 @@
             border-bottom: 1px solid #444;
             display: flex;
             align-items: center;
-            padding: 0 20px;
+            padding: 15px 20px;
             box-sizing: border-box;
             position: sticky;
             top: 0;
@@ -38,7 +39,12 @@
             margin: 20px;
             width: 100%;
             max-width: 800px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .no-style-link {
+            color: inherit;
+            text-decoration: none;
         }
 
         input {
@@ -61,7 +67,9 @@
             font-weight: bold;
         }
 
-        button:hover { background: #0098ff; }
+        button:hover {
+            background: #0098ff;
+        }
 
         /* IEEE 754 Visualizer Styles */
         .bit-box {
@@ -74,32 +82,120 @@
             font-family: monospace;
             font-size: 14px;
             background: #1e1e1e;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.1s;
         }
-        .bit-sign { border-color: #e74c3c; color: #e74c3c; } /* Red */
-        .bit-exp { border-color: #2ecc71; color: #2ecc71; }  /* Green */
-        .bit-frac { border-color: #0098ff; color: #0098ff; } /* Blue */
-        
+
+        .bit-box:hover {
+            background: #444;
+        }
+
+        /*
+        colors for the formatted bits
+        */
+        .bit-sign {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .bit-exp {
+            border-color: #2ecc71;
+            color: #2ecc71;
+        }
+
+        .bit-frac {
+            border-color: #0098ff;
+            color: #0098ff;
+        }
+
+
+        /* Responsive Overrides */
+        @media (max-width: 600px) {
+            .data-panel {
+                padding: 10px;
+                margin: 10px;
+                width: calc(100% - 20px);
+            }
+
+            input[type="text"],
+            input[type="number"],
+            select {
+                width: 100% !important;
+                margin-bottom: 5px;
+            }
+
+            .bit-box {
+                width: 10px;
+                font-size: 12px;
+                padding: 4px 1px;
+            }
+        }
+
         .math-breakdown {
-            background: #1e1e1e; 
-            padding: 15px; 
-            border-radius: 4px; 
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 4px;
             border: 1px solid #333;
-            font-family: monospace; 
+            font-family: monospace;
             font-size: 14px;
             line-height: 1.6;
             margin-top: 15px;
         }
+
+        /* Info Section Styles */
+        .info-panel {
+            background: #1e1e1e;
+            border-left: 4px solid #0098ff;
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        .info-panel h4 {
+            color: #fff;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .info-panel p {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .info-panel ul {
+            font-size: 14px;
+            padding-left: 20px;
+        }
+
+        .highlight-text {
+            color: #0098ff;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </style>
 </head>
+
 <body>
 
     <div id="top-header">
-        <h2 style="margin: 0; font-size: 20px; color: white;">MAVE - Data Rep Lab</h2>
+        <h2 style="margin: 0; color: #ffffff; font-weight: bold;"><a class="no-style-link" style="color:#0098ff"
+                href="MAVE_Hub.html">MAVE</a> Data Lab</h2>
     </div>
     <div class="data-panel">
         <h3 style="margin-top: 0;">Universal Base Converter</h3>
-        <p style="font-size: 14px; color: #aaa;">Convert data between different numerical bases (Base 2 through Base 36).</p>
-        
+        <p style="font-size: 14px; color: #aaa;">Convert data between different numerical bases (Base 2 through Base
+            36).</p>
+
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <input type="text" id="base-input" value="255" style="width: 200px;">
             <span>from Base</span>
@@ -108,20 +204,23 @@
             <input type="number" id="base-to" value="2" min="2" max="36" style="width: 60px;">
             <button id="btn-convert">Convert</button>
         </div>
-        
+
         <div style="margin-top: 20px; padding: 15px; background: #1e1e1e; border: 1px solid #333; border-radius: 4px;">
             <span style="color: #aaa; font-size: 14px;">Result:</span>
-            <h2 id="base-result" style="margin: 10px 0 0 0; color: #0098ff; font-family: monospace; word-break: break-all;">11111111</h2>
+            <input type="text" id="base-result" value="11111111"
+                style="width: 100%; box-sizing: border-box; margin-top: 10px; font-size: 24px; color: #0098ff; font-family: monospace; background: transparent; border: 1px dashed #555; padding: 5px;">
         </div>
     </div>
 
     <div class="data-panel">
         <h3 style="margin-top: 0;">Floating-Point Architecture Visualizer</h3>
-        
+
         <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
-            <input type="number" id="float-input" value="-0.84375" step="any" style="width: 150px; padding: 8px; font-size: 16px; background: #1e1e1e; color: white; border: 1px solid #555;">
-            
-            <select id="float-format" style="padding: 8px; font-size: 14px; background: #1e1e1e; color: white; border: 1px solid #555; border-radius: 4px; cursor: pointer;">
+            <input type="number" id="float-input" value="-0.84375" step="any"
+                style="width: 150px; padding: 8px; font-size: 16px; background: #1e1e1e; color: white; border: 1px solid #555;">
+
+            <select id="float-format"
+                style="padding: 8px; font-size: 14px; background: #1e1e1e; color: white; border: 1px solid #555; border-radius: 4px; cursor: pointer;">
                 <option value="ieee32">32-bit IEEE 754 Standard (Implied 1.x)</option>
                 <option value="text32">32-bit Textbook Standard (No Implied 1, 0.1x)</option>
                 <option value="text11" selected>11-bit Classroom Example (5-Exp, 5-Frac)</option>
@@ -136,162 +235,340 @@
             <div id="float-math-breakdown"></div>
         </div>
     </div>
+    <div class="data-panel info-panel">
+        <h3 style="margin-top: 0; text-align: center; color: #789cff;">General Information</h3>
 
+        <h4>Universal Base Conversion Mechanics</h4>
+        <p>Converting values between bases relies on positional numeral systems. Here are the core methodologies:</p>
+        <ul>
+            <li><span class="highlight-text">Positional Weighting (Expansion):</span> Used primarily to convert <em>any
+                    base to Decimal (Base 10)</em>. Each digit is multiplied by the base raised to its positional index:
+                $$N = d_n \times B^n + d_{n-1} \times B^{n-1} \dots + d_0 \times B^0$$</li>
+            <li><span class="highlight-text">Repeated Division (Modulo):</span> Used to convert <em>Decimal to any
+                    target base</em>. You continuously divide the integer by the target base, extracting the remainder
+                at each step. The sequence of remainders (read bottom-to-top) forms the new value.</li>
+            <li><span class="highlight-text">Bit Grouping:</span> Used exclusively for powers of 2 (e.g., Binary to
+                Hexadecimal or Octal). Because $16 = 2^4$, every exactly four bits of binary map directly to one
+                hexadecimal digit.</li>
+        </ul>
+        <p><strong>Human vs. Computer:</strong> For humans, <span class="highlight-text">Bit Grouping</span> is by far
+            the easiest method when moving between Binary, Octal, and Hexadecimal, as it requires zero arithmetic—only
+            pattern matching. Conversely, computers do not "convert" bases internally; they process binary
+            fundamentally. When forced to format outputs into strings (like decimal), computers exclusively use <span
+                class="highlight-text">Repeated Division</span> optimized via bitwise shifting and hardware modulo
+            arithmetic.</p>
+
+        <h4 style="margin-top: 30px;">Floating-Point Mathematics</h4>
+        <p>Floating-point architecture is the computer's native implementation of scientific notation, prioritizing
+            dynamic range over fixed precision. The generalized formula is: $$\text{Value} = (-1)^{\text{Sign}} \times
+            \text{Significand} \times 2^{\text{Exponent} - \text{Bias}}$$</p>
+        <ul>
+            <li><strong>The Sign Bit:</strong> A single bit where $0$ is positive and $1$ is negative.</li>
+            <li><strong>The Biased Exponent:</strong> Instead of using Two's Complement for negative exponents, standard
+                hardware uses a "Bias." If the exponent uses $k$ bits, the bias is $2^{k-1} - 1$. This maps all possible
+                exponents to positive unsigned integers, allowing the CPU hardware to sort and compare floating-point
+                numbers faster using standard integer logic gates.</li>
+            <li><strong>The Significand (Fraction):</strong> The normalized mantissa containing the significant digits
+                of the value.</li>
+        </ul>
+
+        <h4 style="margin-top: 30px;">Architecture Standards & Examples</h4>
+        <ul>
+            <li><span class="highlight-text">32-bit IEEE 754 Standard (Implied 1.x):</span> The global industry
+                standard. Normalization forces the binary to be in the format $1.xxxxx$. Because the leading bit is
+                <em>always</em> 1 (except for literal zero), hardware engineers drop it. This "Implied 1" grants 24 bits
+                of mathematical precision while only physically storing 23 bits in RAM. Formula: $(-1)^S \times (1 +
+                \text{Fraction}) \times 2^{E - 127}$</li>
+            <li><span class="highlight-text">32-bit Textbook Standard (No Implied 1, 0.1x):</span> Common in academia to
+                bridge the gap before introducing the Implied 1 hardware optimization. It normalizes numbers to
+                fractions strictly between $0.5 \le M < 1.0$, meaning the binary always starts with $0.1$. It requires
+                    the full storage of the significand. Formula: $(-1)^S \times (0 + \text{Fraction}) \times 2^{E -
+                    \text{Bias}}$</li>
+            <li><span class="highlight-text">11-bit Classroom Example:</span> A miniaturized architecture designed for
+                manual, pencil-and-paper tracing. It utilizes 1 Sign bit, 5 Exponent bits, and 5 Fraction bits. To
+                calculate the bias for a 5-bit exponent: $2^{5-1} - 1 = 15$. Formula: $(-1)^S \times (0 +
+                \text{Fraction}) \times 2^{E - 15}$</li>
+        </ul>
+
+        <h3 style="margin-top: 0; text-align: center; color: #789cff;">How-To</h3>
+        
+        <h4>Base Conversion</h4>
+        <p>A "base" simply tells you how many unique digits exist before you have to carry over to the next column. Base 10 uses 0-9. Base 2 (Binary) uses 0-1. Base 16 (Hexadecimal) uses 0-9 and A-F. Here is how to manually translate between them:</p>
+        
+        <ul>
+            <li>
+                <span class="highlight-text">Positional Weighting (Any Base &rarr; Decimal Base 10)</span><br>
+                Think of each position in a number as a bucket holding a specific "weight." The weight is the base raised to the power of its position (starting at 0 on the far right).<br>
+                <em>Example: Convert Binary $1101_2$ to Decimal</em>
+                <ul style="list-style-type: circle; padding-left: 20px; margin-top: 5px;">
+                    <li>Position 3: $1 \times 2^3 = 8$</li>
+                    <li>Position 2: $1 \times 2^2 = 4$</li>
+                    <li>Position 1: $0 \times 2^1 = 0$</li>
+                    <li>Position 0: $1 \times 2^0 = 1$</li>
+                    <li><strong>Result:</strong> $8 + 4 + 0 + 1 = 13$</li>
+                </ul>
+            </li>
+            
+            <li style="margin-top: 15px;">
+                <span class="highlight-text">Repeated Division (Decimal Base 10 &rarr; Any Base)</span><br>
+                To pull a decimal number apart into another base, you continuously divide by your target base and keep the remainders. The remainders build your new number from right to left.<br>
+                <em>Example: Convert Decimal $255$ to Hexadecimal (Base 16)</em>
+                <ul style="list-style-type: circle; padding-left: 20px; margin-top: 5px;">
+                    <li>$255 \div 16 = 15$ with a remainder of $15$. In Hex, 15 is written as <strong>F</strong>.</li>
+                    <li>$15 \div 16 = 0$ with a remainder of $15$. In Hex, 15 is written as <strong>F</strong>.</li>
+                    <li><strong>Result:</strong> Read remainders from bottom to top: <strong>FF</strong></li>
+                </ul>
+            </li>
+
+            <li style="margin-top: 15px;">
+                <span class="highlight-text">Bit Grouping (Binary &harr; Hexadecimal/Octal)</span><br>
+                Because computers process binary, moving between Binary and Hexadecimal is highly optimized. Hexadecimal (Base 16) is exactly $2^4$. This means exactly four binary bits perfectly represent one Hex letter. No math is required, just pattern matching.<br>
+                <em>Example: Convert Hex $0x3A$ to Binary</em>
+                <ul style="list-style-type: circle; padding-left: 20px; margin-top: 5px;">
+                    <li>$3 \rightarrow 0011$</li>
+                    <li>$A \rightarrow 1010$ (A is 10 in decimal)</li>
+                    <li><strong>Result:</strong> $00111010$</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4 style="margin-top: 30px;">Floating-Point Mathematics (The Concepts)</h4>
+        <p>Computers cannot store infinite decimals. Instead, they use a form of scientific notation called Floating-Point. The generalized formula is: $$\text{Value} = (-1)^{\text{Sign}} \times \text{Significand} \times 2^{\text{Exponent} - \text{Bias}}$$</p>
+        <ul>
+            <li><strong>The Sign Bit:</strong> $0$ means positive. $1$ means negative.</li>
+            <li><strong>The Biased Exponent:</strong> Hardware circuits struggle with negative numbers. Instead of making the exponent capable of being negative, engineers add a "Bias" (like 127) to the actual power. This forces all exponents to be stored as positive numbers, making it incredibly fast for the CPU to compare which number is larger.</li>
+            <li><strong>The Significand (Fraction):</strong> This stores the actual digits of your number after it has been normalized (shifted so the decimal point is in a standard place).</li>
+        </ul>
+
+        <h4 style="margin-top: 30px;">How to Convert Floating-Point by Hand (IEEE 754 32-bit)</h4>
+        
+        <p><span class="highlight-text">Decimal to IEEE 754 Binary:</span></p>
+        <ol style="margin-top: 5px; margin-bottom: 15px;">
+            <li><strong>Find the Sign:</strong> If positive, bit is $0$. If negative, bit is $1$.</li>
+            <li><strong>Convert the absolute value to Binary:</strong> Whole numbers use standard division. For the decimal fraction, multiply by 2. The whole number part of the answer becomes your bit. Take the remaining fraction and repeat.<br>
+                <em>Example for 0.84375:</em><br>
+                $0.84375 \times 2 = \mathbf{1}.6875 \rightarrow$ Bit is 1<br>
+                $0.6875 \times 2 = \mathbf{1}.375 \rightarrow$ Bit is 1<br>
+                $0.375 \times 2 = \mathbf{0}.75 \rightarrow$ Bit is 0<br>
+                $0.75 \times 2 = \mathbf{1}.5 \rightarrow$ Bit is 1<br>
+                $0.5 \times 2 = \mathbf{1}.0 \rightarrow$ Bit is 1. (Fraction is now 0, we stop). Binary: $0.11011$</li>
+            <li><strong>Normalize:</strong> Shift the decimal point until you get a number like $1.\text{something}$.<br>
+                $0.11011 \rightarrow 1.1011 \times 2^{-1}$. (We shifted right by 1, so the actual exponent is -1).</li>
+            <li><strong>Calculate Biased Exponent:</strong> Add the standard 32-bit bias (127) to your actual exponent. $-1 + 127 = 126$. Convert $126$ to 8-bit binary $\rightarrow 01111110$.</li>
+            <li><strong>Extract Significand (The Storage Hack):</strong> Because every normalized binary number starts with "1.", hardware designers don't bother storing it to save memory. Drop the leading 1, take the $.1011$, and pad it with zeros until it is 23 bits long: $10110000000000000000000$.</li>
+            <li><strong>Assemble:</strong> Put the Sign, Exponent, and Significand bits together.</li>
+        </ol>
+
+        <p><span class="highlight-text">IEEE 754 Binary to Decimal:</span></p>
+        <ol style="margin-top: 5px; margin-bottom: 15px;">
+            <li><strong>Split the string:</strong> Break the 32 bits into a 1-bit Sign, 8-bit Exponent, and 23-bit Significand.</li>
+            <li><strong>Unbias Exponent:</strong> Convert the 8-bit exponent to decimal and subtract 127 to get your actual shift value.</li>
+            <li><strong>Restore the Implied 1:</strong> Put "1." back in front of your 23-bit Significand.</li>
+            <li><strong>De-normalize:</strong> Move the decimal point left or right based on the actual exponent you found in step 2.</li>
+            <li><strong>Convert back to Base 10:</strong> Use positional weighting on the resulting binary number to find your final decimal value, applying the negative sign if your Sign bit was 1.</li>
+        </ol>
+
+        
+    
+    </div>
     <script>
-       const btnConvert = document.getElementById('btn-convert');
-    const inputStr = document.getElementById('base-input');
-    const baseFrom = document.getElementById('base-from');
-    const baseTo = document.getElementById('base-to');
-    const resultDisplay = document.getElementById('base-result');
-
-    function convertBase() {
-        const val = inputStr.value.trim();
-        const from = parseInt(baseFrom.value, 10);
-        const to = parseInt(baseTo.value, 10);
-        
-        try {
-            // Validate bases
-            if (from < 2 || from > 36 || to < 2 || to > 36) {
-                throw new Error("Bases must be between 2 and 36.");
-            }
-
-            // Parse the string into a native decimal integer using the 'from' base
-            const parsedDecimal = parseInt(val, from);
-            
-            if (isNaN(parsedDecimal)) {
-                throw new Error("Invalid characters for the selected starting base.");
-            }
-
-            // Convert the decimal integer to the 'to' base string
-            const resultStr = parsedDecimal.toString(to).toUpperCase();
-            
-            resultDisplay.style.color = '#0098ff'; // Normal blue color
-            resultDisplay.textContent = resultStr;
-        } catch (e) {
-            resultDisplay.style.color = '#e74c3c'; // Red for errors
-            resultDisplay.textContent = e.message;
-        }
-    }
-
-    // Run conversion when button is clicked or when user hits 'Enter'
-    btnConvert.addEventListener('click', convertBase);
-    inputStr.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') convertBase();
-    });
-
-
-   // --- ADVANCED FLOATING POINT LOGIC ---
-    const floatInput = document.getElementById('float-input');
-    const formatSelect = document.getElementById('float-format');
-    const visContainer = document.getElementById('float-visuals');
-    const breakdown = document.getElementById('float-math-breakdown');
-    const formulaDisplay = document.getElementById('float-formula');
-
-    function updateFloat() {
-        const num = parseFloat(floatInput.value);
-        const format = formatSelect.value;
-        if (isNaN(num)) return;
-
-        // Default to standard 32-bit IEEE variables
-        let expLen = 8, fracLen = 23, bias = 127;
-        let isImplied1 = true;
-
-        // Override variables based on the selected architecture
-        if (format === 'text32') {
-            isImplied1 = false;
-        } else if (format === 'text11') {
-            expLen = 5; 
-            fracLen = 5; 
-            bias = 15; // Custom bias for 5-bit exponent
-            isImplied1 = false;
-        }
-
-        let signBit = num < 0 || (1/num === -Infinity) ? '1' : '0';
-        let absNum = Math.abs(num);
-        let expBits = '', fracBits = '';
-        let expActual = 0, expDec = 0, fracDec = 0;
-
-        // Handle exact 0
-        if (absNum === 0) {
-            expBits = '0'.repeat(expLen);
-            fracBits = '0'.repeat(fracLen);
-            expActual = -bias;
-        } else if (isImplied1 && format === 'ieee32') {
-            // STANDARD IEEE 32-BIT (Real Hardware Extraction)
-            const buffer = new ArrayBuffer(4);
-            const view = new DataView(buffer);
-            view.setFloat32(0, num, false);
-            let bin = "";
-            for (let i = 0; i < 4; i++) bin += view.getUint8(i).toString(2).padStart(8, '0');
-            
-            expBits = bin.substring(1, 9);
-            fracBits = bin.substring(9, 32);
-            expDec = parseInt(expBits, 2);
-            expActual = expDec - bias;
-            
-            for (let i = 0; i < fracLen; i++) {
-                if (fracBits[i] === '1') fracDec += Math.pow(2, -(i + 1));
-            }
-        } else {
-            // TEXTBOOK NORMALIZATION (0.1xxxx * 2^e)
-            // 1. Find power of 2 so that 0.5 <= f < 1.0
-            let e = Math.floor(Math.log2(absNum)) + 1;
-            let f = absNum / Math.pow(2, e); 
-
-            expActual = e;
-            expDec = e + bias;
-
-            // Clamp exponent to available bits to prevent UI crash on massive numbers
-            let maxExp = (1 << expLen) - 1;
-            if (expDec < 0) expDec = 0; 
-            if (expDec > maxExp) expDec = maxExp; 
-
-            expBits = expDec.toString(2).padStart(expLen, '0');
-
-            // 2. Extract Fraction Bits (multiply by 2^fracLen)
-            let fInt = Math.floor(f * Math.pow(2, fracLen));
-            fracBits = fInt.toString(2).padStart(fracLen, '0');
-
-            // 3. Re-calculate decimal fraction for the breakdown display
-            for (let i = 0; i < fracLen; i++) {
-                if (fracBits[i] === '1') fracDec += Math.pow(2, -(i + 1));
+        const btnConvert = document.getElementById('btn-convert');
+        const inputStr = document.getElementById('base-input');
+        const baseFrom = document.getElementById('base-from');
+        const baseTo = document.getElementById('base-to');
+        const resultDisplay = document.getElementById('base-result');
+        function convertForward() {
+            const val = inputStr.value.trim();
+            if (!val) return;
+            const from = parseInt(baseFrom.value, 10);
+            const to = parseInt(baseTo.value, 10);
+            try {
+                const parsedDecimal = parseInt(val, from);
+                if (isNaN(parsedDecimal)) throw new Error("Invalid input");
+                resultDisplay.style.color = '#0098ff';
+                resultDisplay.value = parsedDecimal.toString(to).toUpperCase();
+            } catch (e) {
+                resultDisplay.style.color = '#e74c3c';
             }
         }
 
-        // --- RENDER VISUALS ---
-        visContainer.innerHTML = '';
-        const createBox = (b, cls, tooltip) => `<div class="bit-box ${cls}" title="${tooltip}">${b}</div>`;
+        function convertReverse() {
+            const val = resultDisplay.value.trim();
+            if (!val) return;
+            const from = parseInt(baseFrom.value, 10);
+            const to = parseInt(baseTo.value, 10);
+            try {
+                const parsedDecimal = parseInt(val, to);
+                if (isNaN(parsedDecimal)) throw new Error("Invalid input");
+                inputStr.style.color = 'white';
+                inputStr.value = parsedDecimal.toString(from).toUpperCase();
+            } catch (e) {
+                inputStr.style.color = '#e74c3c';
+            }
+        }
 
-        visContainer.innerHTML += createBox(signBit, 'bit-sign', 'Sign Bit');
-        visContainer.innerHTML += `<span style="margin: 0 8px;"> </span>`;
-        for(let i=0; i<expLen; i++) visContainer.innerHTML += createBox(expBits[i], 'bit-exp', 'Exponent');
-        visContainer.innerHTML += `<span style="margin: 0 8px;"> </span>`;
-        for(let i=0; i<fracLen; i++) visContainer.innerHTML += createBox(fracBits[i], 'bit-frac', 'Fraction / Significand');
+        // Two-way bindings on real-time input
+        inputStr.addEventListener('input', convertForward);
+        resultDisplay.addEventListener('input', convertReverse);
+        baseFrom.addEventListener('change', convertForward);
+        baseTo.addEventListener('change', convertForward);
+        btnConvert.addEventListener('click', convertForward);
 
-        // --- RENDER MATH BREAKDOWN ---
-        const signMult = signBit === '1' ? -1 : 1;
-        const calcBase = isImplied1 ? 1 : 0; // Toggles the math between 1.x and 0.1x
-        
-        formulaDisplay.innerHTML = `<strong>Formula:</strong> (-1)<sup style="color:#e74c3c;">Sign</sup> &times; (${calcBase} + <span style="color:#0098ff;">Significand</span>) &times; 2<sup>(<span style="color:#2ecc71;">Exponent</span> - ${bias})</sup>`;
 
-        let breakdownHTML = `
+        // --- ADVANCED FLOATING POINT LOGIC ---
+        const floatInput = document.getElementById('float-input');
+        const formatSelect = document.getElementById('float-format');
+        const visContainer = document.getElementById('float-visuals');
+        const breakdown = document.getElementById('float-math-breakdown');
+        const formulaDisplay = document.getElementById('float-formula');
+
+        function updateFloat() {
+            const num = parseFloat(floatInput.value);
+            const format = formatSelect.value;
+            if (isNaN(num)) return;
+
+            // Default to standard 32-bit IEEE variables
+            let expLen = 8, fracLen = 23, bias = 127;
+            let isImplied1 = true;
+
+            // Override variables based on the selected architecture
+            if (format === 'text32') {
+                isImplied1 = false;
+            } else if (format === 'text11') {
+                expLen = 5;
+                fracLen = 5;
+                bias = 15; // Custom bias for 5-bit exponent
+                isImplied1 = false;
+            }
+
+            let signBit = num < 0 || (1 / num === -Infinity) ? '1' : '0';
+            let absNum = Math.abs(num);
+            let expBits = '', fracBits = '';
+            let expActual = 0, expDec = 0, fracDec = 0;
+
+            // Handle exact 0
+            if (absNum === 0) {
+                expBits = '0'.repeat(expLen);
+                fracBits = '0'.repeat(fracLen);
+                expActual = -bias;
+            } else if (isImplied1 && format === 'ieee32') {
+                // STANDARD IEEE 32-BIT (Real Hardware Extraction)
+                const buffer = new ArrayBuffer(4);
+                const view = new DataView(buffer);
+                view.setFloat32(0, num, false);
+                let bin = "";
+                for (let i = 0; i < 4; i++) bin += view.getUint8(i).toString(2).padStart(8, '0');
+
+                expBits = bin.substring(1, 9);
+                fracBits = bin.substring(9, 32);
+                expDec = parseInt(expBits, 2);
+                expActual = expDec - bias;
+
+                for (let i = 0; i < fracLen; i++) {
+                    if (fracBits[i] === '1') fracDec += Math.pow(2, -(i + 1));
+                }
+            } else {
+                // TEXTBOOK NORMALIZATION (0.1xxxx * 2^e)
+                // 1. Find power of 2 so that 0.5 <= f < 1.0
+                let e = Math.floor(Math.log2(absNum)) + 1;
+                let f = absNum / Math.pow(2, e);
+
+                expActual = e;
+                expDec = e + bias;
+
+                // Clamp exponent to available bits to prevent UI crash on massive numbers
+                let maxExp = (1 << expLen) - 1;
+                if (expDec < 0) expDec = 0;
+                if (expDec > maxExp) expDec = maxExp;
+
+                expBits = expDec.toString(2).padStart(expLen, '0');
+
+                // 2. Extract Fraction Bits (multiply by 2^fracLen)
+                let fInt = Math.floor(f * Math.pow(2, fracLen));
+                fracBits = fInt.toString(2).padStart(fracLen, '0');
+
+                // 3. Re-calculate decimal fraction for the breakdown display
+                for (let i = 0; i < fracLen; i++) {
+                    if (fracBits[i] === '1') fracDec += Math.pow(2, -(i + 1));
+                }
+            }
+
+            // --- RENDER VISUALS ---
+            visContainer.innerHTML = '';
+            const createBox = (b, cls, tooltip) => `<div class="bit-box ${cls}" title="${tooltip}">${b}</div>`;
+
+            visContainer.innerHTML += createBox(signBit, 'bit-sign', 'Sign Bit');
+            visContainer.innerHTML += `<span style="margin: 0 8px;"> </span>`;
+            for (let i = 0; i < expLen; i++) visContainer.innerHTML += createBox(expBits[i], 'bit-exp', 'Exponent');
+            visContainer.innerHTML += `<span style="margin: 0 8px;"> </span>`;
+            for (let i = 0; i < fracLen; i++) visContainer.innerHTML += createBox(fracBits[i], 'bit-frac', 'Fraction / Significand');
+
+            // --- RENDER MATH BREAKDOWN ---
+            const signMult = signBit === '1' ? -1 : 1;
+            const calcBase = isImplied1 ? 1 : 0;
+
+            formulaDisplay.innerHTML = `<strong>Formula:</strong> (-1)<sup style="color:#e74c3c;">Sign</sup> &times; (${calcBase} + <span style="color:#0098ff;">Significand</span>) &times; 2<sup>(<span style="color:#2ecc71;">Exponent</span> - ${bias})</sup>`;
+
+            let breakdownHTML = `
             <div><strong>Sign:</strong> <span style="color:#e74c3c;">${signBit}</span> &rarr; ${signMult}</div>
             <div><strong>Exponent:</strong> <span style="color:#2ecc71;">${expBits}</span> &rarr; ${expDec} - ${bias} (bias) = <strong>${expActual}</strong></div>
             <div><strong>Significand:</strong> <span style="color:#0098ff;">${fracBits}</span> &rarr; <strong>${fracDec.toFixed(5)}</strong></div>
             <br>
         `;
 
-        let finalVal = signMult * (calcBase + fracDec) * Math.pow(2, expActual);
-        breakdownHTML += `<div><strong>Calculation:</strong> ${signMult} &times; (${calcBase} + ${fracDec.toFixed(5)}) &times; 2<sup>${expActual}</sup> = <strong style="color:#0098ff; font-size:16px;">${finalVal}</strong></div>`;
+            let finalVal = signMult * (calcBase + fracDec) * Math.pow(2, expActual);
+            breakdownHTML += `<div><strong>Calculation:</strong> ${signMult} &times; (${calcBase} + ${fracDec.toFixed(5)}) &times; 2<sup>${expActual}</sup> = <strong style="color:#0098ff; font-size:16px;">${finalVal}</strong></div>`;
 
-        breakdown.innerHTML = breakdownHTML;
-    }
+            breakdown.innerHTML = breakdownHTML;
+        }
 
-    floatInput.addEventListener('input', updateFloat);
-    formatSelect.addEventListener('change', updateFloat);
+        // --- REVERSE CALCULATION LOGIC ---
+        visContainer.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('bit-box')) return;
 
-    // Initialize on page load
-    updateFloat();
+            // Toggle bit
+            e.target.textContent = e.target.textContent === '1' ? '0' : '1';
+
+            // Scrape current visual state
+            const sign = document.querySelector('.bit-sign').textContent;
+            const expBits = Array.from(document.querySelectorAll('.bit-exp')).map(el => el.textContent).join('');
+            const fracBits = Array.from(document.querySelectorAll('.bit-frac')).map(el => el.textContent).join('');
+
+            const format = formatSelect.value;
+            let bias = format === 'text11' ? 15 : 127;
+            let isImplied1 = format === 'ieee32';
+            let newDecimal = 0;
+
+            if (format === 'ieee32') {
+                const binStr = sign + expBits + fracBits;
+                const intVal = parseInt(binStr, 2);
+                const buffer = new ArrayBuffer(4);
+                new DataView(buffer).setUint32(0, intVal, false);
+                newDecimal = new DataView(buffer).getFloat32(0, false);
+            } else {
+                const signMult = sign === '1' ? -1 : 1;
+                const calcBase = isImplied1 ? 1 : 0;
+                const expDec = parseInt(expBits, 2);
+                const expActual = expDec - bias;
+                let fracDec = 0;
+
+                for (let i = 0; i < fracBits.length; i++) {
+                    if (fracBits[i] === '1') fracDec += Math.pow(2, -(i + 1));
+                }
+                newDecimal = signMult * (calcBase + fracDec) * Math.pow(2, expActual);
+            }
+
+            // Update input field and trigger standard render flow
+            floatInput.value = newDecimal;
+            updateFloat();
+        });
+
+        floatInput.addEventListener('input', updateFloat);
+        formatSelect.addEventListener('change', updateFloat);
+
+        // Initialize on page load
+        updateFloat();
     </script>
 </body>
+
 </html>
