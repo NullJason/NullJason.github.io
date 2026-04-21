@@ -364,10 +364,32 @@
             border-bottom-color: #00d4ff;
             background: rgba(0, 212, 255, 0.1);
         }
+
+        .devGuy {
+            position: fixed;
+            top: 10px;
+            right: 10px;            
+            background-color: rgba(0, 0, 0, 0.06); 
+            color: rgba(0, 128, 255, 0.3);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: sans-serif;
+            font-size: 12px;
+            user-select: none;
+            z-index: 1;
+            transition: all .3 ease;
+        }
+        .devGuy:hover{
+            background-color: rgba(0,0,0,.3);
+            color:rgba(255, 255, 255, .7)
+        }
     </style>
 </head>
 
 <body>
+    <div class="devGuy">
+        Developed by <a href="https://nulljason.github.io/" style="color: inherit; text-decoration: inherit;"><b>&copy;NullJason</b></a>
+    </div>
     <div id="ui-toggle">MENU</div>
     <div id="ui">
         <h3>UNIVERSE SIMULATOR</h3>
