@@ -368,8 +368,8 @@
         .devGuy {
             position: fixed;
             top: 10px;
-            right: 10px;            
-            background-color: rgba(0, 0, 0, 0.06); 
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.06);
             color: rgba(0, 128, 255, 0.3);
             padding: 10px 15px;
             border-radius: 5px;
@@ -379,16 +379,18 @@
             z-index: 1;
             transition: all .3 ease;
         }
-        .devGuy:hover{
-            background-color: rgba(0,0,0,.3);
-            color:rgba(255, 255, 255, .7)
+
+        .devGuy:hover {
+            background-color: rgba(0, 0, 0, .3);
+            color: rgba(255, 255, 255, .7)
         }
     </style>
 </head>
 
 <body>
     <div class="devGuy">
-        Developed by <a href="https://nulljason.github.io/" style="color: inherit; text-decoration: inherit;"><b>&copy;NullJason</b></a>
+        Developed by <a href="https://nulljason.github.io/"
+            style="color: inherit; text-decoration: inherit;"><b>&copy;NullJason</b></a>
     </div>
     <div id="ui-toggle">MENU</div>
     <div id="ui">
@@ -405,11 +407,32 @@
             <label>Brush Mass <span id="mVal">30</span></label>
             <input type="range" id="massRange" min="0" max="100" step="1" value="30">
         </div>
+        <div class="control-group">
+            <label>Tool Mode</label>
+            <select id="toolMode"
+                style="width:100%; background:#222; color:#00d4ff; padding:5px; border:1px solid #444; border-radius:4px; outline:none; margin-top:5px;">
+                <option value="spawn">Spawn Body</option>
+                <option value="circular">Auto-Circular Orbit</option>
+                <option value="debris">Debris Blast</option>
+                <option value="explode">Explode Target</option>
+                <option value="inspect">Inspect / Focus</option>
+                <option value="ring">Spawn Ring</option>
+            </select>
+        </div>
         <div class="control-group" style="margin-top: 10px;">
             <label style="cursor:pointer;"><input type="checkbox" id="showHabZone"
                     style="width:auto; margin-right:5px;"> Show Habitable Zones</label>
+            <label style="cursor:pointer;"><input type="checkbox" id="showAxis" style="width:auto; margin-right:5px;">
+                Show 3D Axis</label>
+            <label style="cursor:pointer;"><input type="checkbox" id="showRotation"
+                    style="width:auto; margin-right:5px;"> Show Rotation Swirl</label>
         </div>
-
+        <div class="control-group">
+            <label>Prefabs</label>
+            <select id="prefabSelect"
+                style="width:100%; background:#222; color:#00d4ff; padding:5px; border:1px solid #444; border-radius:4px; outline:none; margin-bottom:5px;"></select>
+            <button id="savePrefabBtn">Save Target as Prefab</button>
+        </div>
         <button id="clearBtn">Wipe Universe</button>
         <div class="instructions">
             • <b>Left-Drag:</b> Aim & Predict Trajectory<br>
@@ -452,8 +475,11 @@
                     <div class="prop-row">Radius <span class="val" id="ins-rad">0</span></div>
                     <div class="prop-row">Density (kg/m³) <span class="val" id="ins-den">0</span></div>
                     <div class="prop-row">Volume <span class="val" id="ins-vol">0</span></div>
-                    <div class="prop-row">Rot (rad/s) <input type="number" id="ins-rot" step="0.05"></div>
-                    <div class="prop-row"><label style="color:#00d4ff; cursor:pointer;"><input type="checkbox" id="ins-anchor" style="width:auto; margin-right:5px;"> Anchored Position</label></div>
+                    <div class="prop-row">Rot Vector X <input type="number" id="ins-rotx" step="0.01"></div>
+                    <div class="prop-row">Rot Vector Y <input type="number" id="ins-roty" step="0.01"></div>
+                    <div class="prop-row">Rot Vector Z <input type="number" id="ins-rotz" step="0.01"></div>
+                    <div class="prop-row"><label style="color:#00d4ff; cursor:pointer;"><input type="checkbox"
+                                id="ins-anchor" style="width:auto; margin-right:5px;"> Anchored Position</label></div>
                 </div>
                 <div class="stat-group" id="bh-stats" style="display:none;">
                     <div class="stat-group-title">Singularity Data</div>
@@ -477,10 +503,11 @@
             <div id="tab-clim" class="tab-content">
                 <h3>Climate & Atmosphere</h3>
                 <div class="stat-group">
-                    <div class="prop-row">Avg Temp (K) <input type="number" id="ins-temp" step="10"></div>
-                    <div class="prop-row">Albedo <span class="val" id="ins-albedo">0</span></div>
-                    <div class="prop-row">Water Depth <span class="val" id="ins-water">0</span></div>
-                    <div class="prop-row">Ice Thickness <span class="val" id="ins-ice">0</span></div>
+                    <div class="prop-row">Avg Temp (K) <input type="number" id="ins-temp" step="5"></div>
+                    <div class="prop-row">Albedo (0-1) <input type="number" id="ins-albedo" step="0.05" min="0" max="1">
+                    </div>
+                    <div class="prop-row">Water (km) <input type="number" id="ins-water" step="1"></div>
+                    <div class="prop-row">Ice (km) <span class="val" id="ins-ice">0</span></div>
                     <div class="prop-row">Atm. Pressure <span class="val" id="ins-pressure">0</span></div>
                 </div>
             </div>
@@ -488,19 +515,46 @@
             <div id="tab-comp" class="tab-content">
                 <h3>Internal Structure</h3>
                 <div class="stat-group">
-                    <div class="prop-row">Iron <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-fe" style="background:#8a5a44;"></div></div></div>
-                    <div class="prop-row">Silicate <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-si" style="background:#b8b8b8;"></div></div></div>
-                    <div class="prop-row">Water/Ice <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-h2o" style="background:#4a90e2;"></div></div></div>
-                    <div class="prop-row">Hydrogen <div class="progress-bar-bg"><div class="progress-bar-fill" id="bar-h" style="background:#e0ae6c;"></div></div></div>
-                    <div style="margin-top:15px;" class="prop-row">Magnetic Field <span class="val" id="ins-mag">0 G</span></div>
+                    <div class="prop-row">Iron <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="bar-fe" style="background:#8a5a44;"></div>
+                        </div>
+                    </div>
+                    <div class="prop-row">Silicate <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="bar-si" style="background:#b8b8b8;"></div>
+                        </div>
+                    </div>
+                    <div class="prop-row">Water/Ice <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="bar-h2o" style="background:#4a90e2;"></div>
+                        </div>
+                    </div>
+                    <div class="prop-row">Hydrogen <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="bar-h" style="background:#e0ae6c;"></div>
+                        </div>
+                    </div>
+                    <div class="prop-row">Carbon <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="bar-c" style="background:#555;"></div>
+                        </div>
+                    </div>
+                    <div class="prop-row">Nitrogen <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="bar-n" style="background:#77aaff;"></div>
+                        </div>
+                    </div>
+                    <div class="prop-row">Oxygen <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="bar-o" style="background:#ffcccc;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top:15px;" class="prop-row">Magnetic Field <span class="val" id="ins-mag">0
+                            G</span></div>
                 </div>
             </div>
 
             <div id="tab-sci" class="tab-content">
                 <h3>Derived Diagnostics</h3>
                 <div class="stat-group">
-                    <div class="prop-row">Earth Similarity (ESI) <span class="val" id="ins-esi" style="color:#00ff88;">0%</span></div>
-                    <div class="prop-row">Life Likelihood <span class="val" id="ins-life" style="color:#00ff88;">0%</span></div>
+                    <div class="prop-row">Earth Similarity (ESI) <span class="val" id="ins-esi"
+                            style="color:#00ff88;">0%</span></div>
+                    <div class="prop-row">Life Likelihood <span class="val" id="ins-life"
+                            style="color:#00ff88;">0%</span></div>
                     <div class="prop-row">Habitable Zone <span class="val" id="ins-hz">No</span></div>
                     <div class="prop-row">Tidal Heating <span class="val" id="ins-tidal">0</span></div>
                     <div class="prop-row">Mass Lost <span class="val" id="ins-lost">0</span></div>
@@ -513,7 +567,6 @@
     <canvas id="simCanvas"></canvas>
 
     <script>
-        console.log("TODO: habitable zones are not working with the camera controls, they are stuck inside one small box.")
         const canvas = document.getElementById('simCanvas');
         const ctx = canvas.getContext('2d');
         const stats = document.getElementById('stats');
@@ -528,6 +581,8 @@
         const insRot = document.getElementById('ins-rot');
         const insAnchor = document.getElementById('ins-anchor'); const insState = document.getElementById('ins-state');
         const showHabZone = document.getElementById('showHabZone');
+        const showAxis = document.getElementById('showAxis');
+        const showRotation = document.getElementById('showRotation');
 
         let bodies = [];
         let shockwaves = [];
@@ -535,7 +590,7 @@
         let clouds = [];
         let G = 0.5;
         let timeScale = 1;
-        let currentMass = 100;
+        let currentMass = 30;
 
         let isDragging = false;
         let dragStart = { x: 0, y: 0 };
@@ -548,6 +603,12 @@
         let followedBody = null;
         let uiTarget = null;
 
+        let lastTime = performance.now();
+        let accumulator = 0;
+        const fixedDt = 1 / 60; // 60 physics steps per second
+        const maxFrameTime = 0.25; // no spiral of death thanks
+        const maxStepsPerFrame = 16; // physics cap per frame
+
         let backgroundStars = Array.from({ length: 400 }, () => ({
             x: (Math.random() - 0.5) * 5000,
             y: (Math.random() - 0.5) * 5000,
@@ -559,11 +620,8 @@
         const uiPanel = document.getElementById('ui');
         const uiToggle = document.getElementById('ui-toggle');
 
-        // When you hover the toggle: Show menu, hide toggle
-        uiToggle.addEventListener('mouseenter', () => {
-            uiPanel.classList.add('visible');
-            uiToggle.classList.add('hidden');
-        });
+        uiToggle.addEventListener('mouseenter', () => { uiPanel.classList.add('visible'); uiToggle.classList.add('hidden'); });
+        uiToggle.addEventListener('click', () => { uiPanel.classList.toggle('visible'); uiToggle.classList.toggle('hidden'); });
 
         // When you mouse off the menu: Hide menu, show toggle
         uiPanel.addEventListener('mouseleave', () => {
@@ -610,10 +668,10 @@
                 this.life = life; this.maxLife = life;
                 this.color = color; this.size = size;
             }
-            update() {
-                this.x += this.vx * timeScale;
-                this.y += this.vy * timeScale;
-                this.life -= 0.02 * timeScale;
+            update(dt) {
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+                this.life -= 0.02 * dt;
             }
             draw() {
                 ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
@@ -651,8 +709,8 @@
                     });
                 }
             }
-            update() {
-                if (timeScale > 0) this.life -= timeScale;
+            update(dt) {
+                if (dt > 0) this.life -= dt;
             }
             draw() {
                 let progress = this.life / this.maxLife;
@@ -677,43 +735,57 @@
                 this.mass = mass;
                 this.trail = [];
                 this.accretionFuel = 0;
-                this.angle = 0;
-                this.rotSpd = 0;
                 this.age = 0;
                 this.timeInHabZone = 0;
                 this.isHabitable = false;
                 this.isAnchored = false;
-                this.mergeTimer = 0; // Tracks gas condensation
-                this.temperature = mass >= 30000 ? mass * 0.5 : 300; // T_LOW_STAR is 30k
-                this.currentGlow = 0;
-                this.targetGlow = 0;
+                this.mergeTimer = 0;
 
+                // TRUE 3D Angular Velocity Vector
+                this.rotX = (Math.random() - 0.5) * 0.1;
+                this.rotY = (Math.random() - 0.5) * 0.1;
+                this.rotZ = (Math.random() - 0.5) * 0.1;
+                this.spinPhase = 0;
 
-                // stats
+                this.targetRotX = this.rotX;
+                this.targetRotY = this.rotY;
+                this.targetRotZ = this.rotZ;
+
+                // Trackers
                 this.name = null;
-                this.originalMass = mass;
+                this.originalMass = this.mass;
                 this.orbitingBody = null;
                 this.maxForceFelt = 0;
                 this.tidalHeatFelt = 0;
-
-                // Composition & Climate (0 to 1 scale)
+                this.temperature = mass >= 30000 ? Math.max(3800, 3000 + (mass - 30000) * 0.056) : 20;
+                // Composition
                 this.compFe = 0; this.compSi = 0; this.compH2O = 0; this.compH = 0;
-                this.albedo = 0.3;
-                this.pressure = 0;
-                this.waterDepth = 0;
-                this.iceThickness = 0;
+                this.compC = 0; this.compN = 0; this.compO = 0;
+                this.isCustomized = false; this.absorbDelay = 0; this.isRemnant = false;
+                this.albedo = 0.3; this.pressure = 0; this.waterDepth = 0; this.iceThickness = 0;
+                this.currentGlow = 0; this.targetGlow = 0;
+
 
                 this.updateProperties();
             }
 
+            get rotSpd() { return Math.sqrt(this.rotX ** 2 + this.rotY ** 2 + this.rotZ ** 2) || 0.0001; }
+            get axisAngle() { return Math.atan2(this.rotY, this.rotX) || 0; }
+            get axisTilt() { return Math.acos(this.rotZ / this.rotSpd) || 0; }
+
             updateProperties() {
+                if (this.mass <= 0 || isNaN(this.mass)) {
+                    this.isDead = true;
+                    return;
+                }
+
                 if (this.mass >= 1000000) {
                     this.radius = Math.max(8, Math.sqrt(this.mass) * 0.08);
                 } else if (this.mass >= 500000) {
                     this.radius = Math.max(5, Math.sqrt(this.mass) * 0.15);
                 } else {
-                    // Make fluffy gas particles slightly larger
-                    let radMult = this.type === 'Gas' ? 1.2 : 0.6;
+                    // Supernova Gas is highly expansive and visually massive
+                    let radMult = this.type === 'Gas' ? 12.0 : 0.6;
                     this.radius = Math.max(2, Math.sqrt(this.mass) * radMult);
                 }
 
@@ -728,18 +800,34 @@
                 } else if (this.mass >= 500000) {
                     this.type = 'Neutron Star'; this.color = '#e6ffff';
                 } else if (this.mass >= 30000) {
-                    this.type = 'Star';
-                    if (this.temperature < 3000 && this.mass < 200000) {
-                        this.type = 'White Dwarf'; this.color = '#ffffff';
-                        this.radius = Math.max(4, Math.sqrt(this.mass) * 0.25);
+                    // 1 Solar Mass ≈ 70,000. Chandrasekhar Limit ≈ 98,000 (Using < 140000 to match existing supernova physics)
+                    if (this.isRemnant && this.mass < 140000) {
+                        let subclass = 'DC';
+                        if (this.compH >= 0.5) subclass = 'DA';
+                        else if (this.compC >= 0.1) subclass = 'DQ';
+                        else if (this.compFe >= 0.1) subclass = 'DZ';
+                        else if (this.temperature >= 45000) subclass = 'DO'; // Ionized Helium proxy
+                        else if (this.temperature >= 10000) subclass = 'DB'; // Neutral Helium proxy
+
+                        this.type = 'White Dwarf ' + subclass;
+
+                        // Radiates leftover heat (100,000K down to 5,600K)
+                        if (this.temperature > 50000) this.color = '#ccddff';
+                        else if (this.temperature > 20000) this.color = '#e6f2ff';
+                        else if (this.temperature > 8000) this.color = '#ffffff';
+                        else this.color = '#ffeedd';
+
+                        // Earth-sized volume (extremely dense)
+                        this.radius = Math.max(1.5, Math.sqrt(this.mass) * 0.08);
                     } else {
-                        if (this.temperature < 3500) { this.color = '#ff4a2b'; }
-                        else if (this.temperature < 5000) { this.color = '#ffa651'; }
-                        else if (this.temperature < 6000) { this.color = '#fff4e8'; }
-                        else if (this.temperature < 7500) { this.color = '#f8f8ff'; }
-                        else if (this.temperature < 10000) { this.color = '#ccebff'; }
-                        else if (this.temperature < 30000) { this.color = '#99bbff'; }
-                        else { this.color = '#4488ff'; }
+                        this.type = 'Star';
+                        if (this.mass >= 300000 || this.temperature >= 30000) this.color = '#99bbff'; // O
+                        else if (this.mass >= 150000 || this.temperature >= 10000) this.color = '#ccebff'; // B
+                        else if (this.mass >= 100000 || this.temperature >= 7500) this.color = '#f8f8ff'; // A
+                        else if (this.mass >= 85000 || this.temperature >= 6000) this.color = '#fff4e8'; // F
+                        else if (this.mass >= 70000 || this.temperature >= 5200) this.color = '#ffffcc'; // G (Sun-like)
+                        else if (this.mass >= 40000 || this.temperature >= 3700) this.color = '#ffa651'; // K
+                        else this.color = '#ff4a2b'; // M
                     }
                 } else {
                     if (this.mass < 50) { this.type = 'Debris'; this.color = '#888'; }
@@ -758,55 +846,83 @@
                 this.density = this.mass / this.volume;
 
                 // Generate Realistic Compositions based on type
-                if (this.type === 'Gas Giant' || this.type === 'Star' || this.type === 'Gas') {
-                    this.compH = 0.98; this.compSi = 0.02; this.compFe = 0; this.compH2O = 0;
-                    this.pressure = this.mass * 2;
-                    this.albedo = 0.5;
-                } else if (this.type === 'Planet' || this.type === 'Moon') {
-                    this.compFe = 0.3; this.compSi = 0.6; this.compH2O = 0.1; this.compH = 0;
-                    this.pressure = (this.mass / 10000) * 1; // Earth-ish
-                    this.albedo = 0.3;
-                } else if (this.type === 'Asteroid' || this.type === 'Debris') {
-                    this.compFe = 0.1; this.compSi = 0.8; this.compH2O = 0.1; this.compH = 0;
-                    this.pressure = 0;
-                    this.albedo = 0.1;
-                } else {
-                    // Remnants
-                    this.compFe = 0.9; this.compSi = 0.1; this.compH2O = 0; this.compH = 0;
-                    this.pressure = 0;
+                if (!this.isCustomized) {
+                    if (this.type === 'Gas Giant' || this.type === 'Star' || this.type === 'Gas') {
+                        this.compH = 0.90; this.compC = 0.03; this.compN = 0.02; this.compO = 0.03; this.compSi = 0.02; this.compFe = 0; this.compH2O = 0;
+                        this.pressure = this.mass * 2; this.albedo = 0.5;
+                    } else if (this.type === 'Planet' || this.type === 'Moon') {
+                        this.compFe = 0.3; this.compSi = 0.4; this.compO = 0.15; this.compC = 0.05; this.compN = 0.05; this.compH2O = 0.05; this.compH = 0;
+                        this.pressure = (this.mass / 10000) * 1; this.albedo = 0.3;
+                    } else if (this.type === 'Asteroid' || this.type === 'Debris') {
+                        this.compFe = 0.1; this.compSi = 0.5; this.compC = 0.2; this.compO = 0.1; this.compH2O = 0.1; this.compH = 0; this.compN = 0;
+                        this.pressure = 0; this.albedo = 0.1;
+                    } else {
+                        // Remnants
+                        this.compFe = 0.8; this.compSi = 0.1; this.compC = 0.1; this.compO = 0; this.compH2O = 0; this.compH = 0; this.compN = 0;
+                        this.pressure = 0;
+                    }
+                }
+
+                if (this.displayRadius === undefined) {
+                    this.displayRadius = this.radius;
+                    this.diskRadTarget = 0; this.diskRadCurrent = 0;
+                    this.jetLenTarget = 0; this.jetLenCurrent = 0;
                 }
             }
             draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
                 if (this.trail.length > 1) {
                     ctx.beginPath();
-                    ctx.strokeStyle = this.type === 'Black Hole' ? 'rgba(50,50,50,0.5)' : this.color;
-                    ctx.lineWidth = Math.max(0.5, this.radius * 0.1); // Thicker trails for big bodies
-
-                    for (let i = 0; i < this.trail.length - 1; i++) {
-                        // Fade the tail out gradually
-                        ctx.globalAlpha = (i / this.trail.length) * 0.4;
-                        ctx.beginPath();
-                        ctx.moveTo(this.trail[i].x, this.trail[i].y);
-                        ctx.lineTo(this.trail[i + 1].x, this.trail[i + 1].y);
-                        ctx.stroke();
+                    ctx.moveTo(this.trail[0].x - this.x, this.trail[0].y - this.y);
+                    for (let i = 1; i < this.trail.length; i++) {
+                        ctx.lineTo(this.trail[i].x - this.x, this.trail[i].y - this.y);
                     }
+                    ctx.strokeStyle = this.type === 'Black Hole' ? 'rgba(50,50,50,0.5)' : this.color;
+                    ctx.lineWidth = 1.5 / camera.zoom;
+                    ctx.globalAlpha = 0.4;
+                    ctx.stroke();
                     ctx.globalAlpha = 1.0;
                 }
 
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(this.angle);
+                if (this.type === 'Gas') {
+                    let gasGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, this.radius);
+                    gasGrad.addColorStop(0, this.color);
+                    gasGrad.addColorStop(1, 'rgba(0,0,0,0)');
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = gasGrad;
+                    ctx.globalAlpha = 0.3;
+                    ctx.fill();
+                    ctx.globalAlpha = 1.0;
+                    ctx.restore();
+                    return;
+                }
+
+                if (this.isComet && this.tailVec) {
+                    let tailLen = this.radius * 20 * this.tailIntensity;
+                    let tailGrad = ctx.createLinearGradient(0, 0, -this.tailVec.x * tailLen, -this.tailVec.y * tailLen);
+                    tailGrad.addColorStop(0, 'rgba(200, 255, 255, 0.6)');
+                    tailGrad.addColorStop(1, 'rgba(200, 255, 255, 0)');
+
+                    ctx.beginPath();
+                    ctx.moveTo(-this.tailVec.y * this.radius * 0.8, this.tailVec.x * this.radius * 0.8);
+                    ctx.lineTo(-this.tailVec.x * tailLen, -this.tailVec.y * tailLen);
+                    ctx.lineTo(this.tailVec.y * this.radius * 0.8, -this.tailVec.x * this.radius * 0.8);
+                    ctx.fillStyle = tailGrad;
+                    ctx.fill();
+                    this.isComet = false;
+                }
 
                 if (this.type === 'Black Hole') {
-                    // Lensing effect color based on temperature
-                    let bhOutline = this.temperature > 5000 ? 'rgba(255, 200, 100, 1)' : 'rgba(255, 255, 255, 0.6)';
                     let lensMult = Math.min(10, 2.5 + Math.abs(this.rotSpd) * 5);
                     let lensRadius = this.radius * lensMult;
-
-                    let lensGrad = ctx.createRadialGradient(0, 0, this.radius, 0, 0, lensRadius); lensGrad.addColorStop(0, '#000');
-                    lensGrad.addColorStop(0.1, bhOutline);
-                    lensGrad.addColorStop(0.4, 'rgba(255, 150, 50, 0.1)'); // Orange shifted lensing
-                    lensGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                    let lensGrad = ctx.createRadialGradient(0, 0, this.radius, 0, 0, lensRadius);
+                    lensGrad.addColorStop(0, 'rgba(0,0,0,1)');
+                    lensGrad.addColorStop(0.1, this.temperature > 5000 ? 'rgba(255, 200, 100, 1)' : 'rgba(255, 255, 255, 0.6)');
+                    lensGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
                     ctx.beginPath();
                     ctx.arc(0, 0, lensRadius, 0, Math.PI * 2);
@@ -814,112 +930,223 @@
                     ctx.fill();
 
                     if (this.isQuasar) {
-                        // Scientifically accurate accretion disk colors (White -> Yellow -> Orange -> Red)
-                        let diskRadius = this.radius * (4.5 + Math.min(this.accretionFuel * 0.1, 5));
-                        let diskGrad = ctx.createRadialGradient(0, 0, this.radius, 0, 0, diskRadius);
-                        diskGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)'); // Superheated inner
-                        diskGrad.addColorStop(0.15, 'rgba(255, 220, 100, 0.8)'); // Yellow
-                        diskGrad.addColorStop(0.4, 'rgba(255, 100, 0, 0.6)'); // Orange
-                        diskGrad.addColorStop(0.8, 'rgba(150, 0, 0, 0.2)'); // Red cooler edge
+                        let safeAccretion = Math.max(0, this.accretionFuel);
+                        let maxDiskRadius = this.radius * 100;
+                        let maxJetLength = this.radius * 300;
+
+                        this.diskRadTarget = Math.min(maxDiskRadius, Math.max(1, this.displayRadius * (2 + Math.min(safeAccretion * 0.1, 20) + Math.abs(this.rotSpd) * 15)));
+                        this.jetLenTarget = Math.min(maxJetLength, Math.max(1, this.displayRadius * 10 * (1 + safeAccretion * 0.02) * (this.temperature / 5000)));
+
+                        let diskThickness = Math.max(1, Math.abs(this.diskRadCurrent * Math.sin(this.axisTilt)) + (this.displayRadius * 0.2));
+
+                        ctx.save();
+                        ctx.rotate(this.axisAngle);
+
+                        let diskGrad = ctx.createRadialGradient(0, 0, this.displayRadius, 0, 0, Math.max(this.displayRadius + 1, this.diskRadCurrent));
+                        diskGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+                        diskGrad.addColorStop(0.15, 'rgba(255, 220, 100, 0.8)');
+                        diskGrad.addColorStop(0.4, 'rgba(255, 100, 0, 0.6)');
+                        diskGrad.addColorStop(0.8, 'rgba(150, 0, 0, 0.2)');
                         diskGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
                         ctx.beginPath();
-                        // Tilt the disk slightly based on rotation
-                        ctx.ellipse(0, 0, diskRadius, diskRadius * 0.35, this.rotSpd * 10, 0, Math.PI * 2);
+                        ctx.ellipse(0, 0, this.diskRadCurrent, diskThickness, 0, 0, Math.PI * 2);
                         ctx.fillStyle = diskGrad;
-                        ctx.shadowBlur = this.accretionFuel > 10 ? 40 : 15;
-                        ctx.shadowColor = '#ff6600';
                         ctx.fill();
-                        ctx.shadowBlur = 0; // Reset
 
-                        // Relativistic Jets
-                        let jetLength = this.radius * 20 * (this.temperature / 5000) * Math.abs(this.rotSpd);
-                        let jetGradient = ctx.createLinearGradient(0, -jetLength, 0, jetLength);
-                        jetGradient.addColorStop(0, 'rgba(150, 200, 255, 0)');
-                        jetGradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.9)');
-                        jetGradient.addColorStop(0.5, 'rgba(255, 255, 255, 1)');
-                        jetGradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.9)');
-                        jetGradient.addColorStop(1, 'rgba(150, 200, 255, 0)');
-                        ctx.fillStyle = jetGradient;
-                        ctx.fillRect(-this.radius * 0.5, -jetLength, this.radius, jetLength * 2);
+                        let jetVis = Math.abs(Math.cos(this.axisTilt));
+
+                        if (jetVis > 0.05) {
+                            let jetGradient = ctx.createLinearGradient(0, -this.jetLenCurrent * jetVis, 0, this.jetLenCurrent * jetVis); jetGradient.addColorStop(0, 'rgba(150, 200, 255, 0)');
+                            jetGradient.addColorStop(0.4, 'rgba(255, 255, 255, 0.9)');
+                            jetGradient.addColorStop(0.5, 'rgba(255, 255, 255, 1)');
+                            jetGradient.addColorStop(0.6, 'rgba(255, 255, 255, 0.9)');
+                            jetGradient.addColorStop(1, 'rgba(150, 200, 255, 0)');
+
+                            ctx.fillStyle = jetGradient;
+                            ctx.fillRect(-this.displayRadius * 0.5, -this.jetLenCurrent * jetVis, this.displayRadius, this.jetLenCurrent * 2 * jetVis);
+                        }
+                        ctx.restore();
                     }
 
-                    // The Event Horizon
+                    // Event horizon core
                     ctx.beginPath();
                     ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
                     ctx.fillStyle = '#000';
                     ctx.fill();
-                    ctx.restore();
-                    return;
-                }
-                if (this.type === 'Neutron Star' && Math.abs(this.rotSpd) > 0.05) {
-                    ctx.save();
-                    // Counter-rotate to detach beam from physical body angle, then apply wobble
-                    ctx.rotate(-this.angle);
-                    let wobble = Math.sin(this.age * this.rotSpd * 5) * 0.2;
-                    ctx.rotate(wobble);
-                    ctx.rotate(Math.PI / 2);
-                    let beamLength = this.radius * 30;
-                    let pGrad = ctx.createLinearGradient(-beamLength, 0, beamLength, 0);
-                    pGrad.addColorStop(0, 'rgba(150, 50, 255, 0)');
-                    pGrad.addColorStop(0.48, 'rgba(200, 150, 255, 0.8)');
-                    pGrad.addColorStop(0.52, 'rgba(200, 150, 255, 0.8)');
-                    pGrad.addColorStop(1, 'rgba(150, 50, 255, 0)');
+                } else {
+                    // Standard Object Rendering
+                    if (this.type === 'Neutron Star' && Math.abs(this.rotSpd) > 0.05) {
+                        ctx.save();
+                        ctx.rotate(this.axisAngle);
+                        let beamLength = this.radius * 30;
+                        let pGrad = ctx.createLinearGradient(0, -beamLength, 0, beamLength); // Y is the pole
+                        pGrad.addColorStop(0, 'rgba(150, 50, 255, 0)');
+                        pGrad.addColorStop(0.48, 'rgba(200, 150, 255, 0.8)');
+                        pGrad.addColorStop(0.52, 'rgba(200, 150, 255, 0.8)');
+                        pGrad.addColorStop(1, 'rgba(150, 50, 255, 0)');
 
-                    ctx.fillStyle = pGrad;
-                    ctx.globalAlpha = Math.abs(Math.cos(this.age * this.rotSpd * 2)); // Pulse effect
-                    ctx.fillRect(-beamLength, -this.radius * 0.3, beamLength * 2, this.radius * 0.6);
-                    ctx.restore();
-                }
-
-                ctx.beginPath();
-                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-
-                if (this.currentGlow > 0) {
-                    ctx.shadowBlur = this.currentGlow;
-                    ctx.shadowColor = this.color;
-                }
-                ctx.fill();
-                ctx.shadowBlur = 0;
-
-
-                if (this.type !== 'Black Hole' && this.type !== 'Star' && this.type !== 'White Dwarf' && this.type !== 'Neutron Star') {
-                    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-                    // Draw Comet Tail
-                    if (this.isComet && this.tailVec) {
-                        let tailLen = 80 * this.tailIntensity;
-                        let grad = ctx.createLinearGradient(this.x, this.y, this.x + this.tailVec.x * tailLen, this.y + this.tailVec.y * tailLen);
-                        grad.addColorStop(0, `rgba(150, 200, 255, ${0.7 * this.tailIntensity})`);
-                        grad.addColorStop(1, 'rgba(150, 200, 255, 0)');
-
-                        ctx.beginPath();
-                        ctx.moveTo(this.x, this.y);
-                        ctx.lineTo(this.x + this.tailVec.x * tailLen, this.y + this.tailVec.y * tailLen);
-                        ctx.lineWidth = this.radius * 1.5;
-                        ctx.strokeStyle = grad;
-                        ctx.stroke();
-
-                        this.isComet = false; // Reset for the next frame
+                        ctx.fillStyle = pGrad;
+                        ctx.globalAlpha = Math.abs(Math.cos(this.age * this.rotSpd * 2));
+                        ctx.fillRect(-this.radius * 0.3, -beamLength, this.radius * 0.6, beamLength * 2);
+                        ctx.globalAlpha = 1.0;
+                        ctx.restore();
                     }
+
                     ctx.beginPath();
-                    ctx.arc(this.radius * 0.4, 0, this.radius * 0.3, 0, Math.PI * 2);
+                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+
+                    if (this.currentGlow > 0) {
+                        ctx.shadowBlur = this.currentGlow;
+                        ctx.shadowColor = this.color;
+                    }
                     ctx.fill();
+                    ctx.shadowBlur = 0;
+
+
+                    // Standard Solid Sphere with Dynamic 3D Environment Lighting
+                    let maxIllum = 0; let lx = 0; let ly = 0;
+
+                    if (this.temperature < 1500 && this.type !== 'Gas' && this.type !== 'Black Hole') {
+                        bodies.forEach(b => {
+                            if (b === this || b.temperature < 2000) return;
+                            let dx = b.x - this.x; let dy = b.y - this.y;
+                            let distSq = dx * dx + dy * dy;
+                            let illum = (b.temperature * b.radius) / Math.max(1, distSq);
+                            if (illum > maxIllum) {
+                                maxIllum = illum;
+                                let dist = Math.max(0.0001, Math.sqrt(distSq));
+                                lx = dx / dist; ly = dy / dist;
+                            }
+                        });
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+
+                    if (maxIllum > 0.05) {
+                        let shadowGrad = ctx.createRadialGradient(lx * this.radius * 0.4, ly * this.radius * 0.4, this.radius * 0.1, 0, 0, this.radius);
+                        shadowGrad.addColorStop(0, this.color);
+                        shadowGrad.addColorStop(0.7, 'rgba(0,0,0,0.4)');
+                        shadowGrad.addColorStop(1, 'rgba(0,0,0,0.9)');
+                        ctx.fillStyle = shadowGrad;
+                    } else if (this.temperature >= 1500) {
+                        ctx.fillStyle = this.color;
+                    } else {
+                        let shadowGrad = ctx.createRadialGradient(-this.radius * 0.3, -this.radius * 0.3, this.radius * 0.1, 0, 0, this.radius);
+                        shadowGrad.addColorStop(0, this.color);
+                        shadowGrad.addColorStop(1, 'rgba(0,0,0,0.7)');
+                        ctx.fillStyle = shadowGrad;
+                    }
+
+                    if (this.currentGlow > 0) {
+                        ctx.shadowBlur = this.currentGlow;
+                        ctx.shadowColor = this.color;
+                    }
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+
+                // 5. White Orbiting Particles (3D Z-Sorted)
+                if (showRotation && showRotation.checked) {
+                    ctx.save();
+                    ctx.rotate(this.axisAngle);
+
+                    let numParticles = Math.min(24, Math.max(6, Math.floor(this.radius / 5)));
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+
+                    for (let i = 0; i < numParticles; i++) {
+                        let theta = this.spinPhase + (i / numParticles) * Math.PI * 2;
+                        // Z depth logic (negative means behind the sphere)
+                        let pz = Math.sin(theta) * Math.cos(this.axisTilt);
+
+                        if (pz >= -0.1) { // Only draw if on the visible front hemisphere
+                            let px = this.radius * 1.15 * Math.cos(theta);
+                            let py = this.radius * 1.15 * Math.sin(theta) * Math.sin(this.axisTilt);
+
+                            let pSize = Math.min(5, Math.max(1.5, this.radius * 0.05)) / camera.zoom;
+                            ctx.beginPath();
+                            ctx.arc(px, py, pSize, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            // Particle speed tail
+                            ctx.beginPath();
+                            ctx.moveTo(px, py);
+                            let vectorSum = this.rotX + this.rotY + this.rotZ;
+                            let tailTheta = theta - (vectorSum >= 0 ? 0.2 : -0.2);
+                            let tx = this.radius * 1.15 * Math.cos(tailTheta);
+                            let ty = this.radius * 1.15 * Math.sin(tailTheta) * Math.sin(this.axisTilt);
+                            ctx.lineTo(tx, ty);
+                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                            ctx.lineWidth = pSize;
+                            ctx.stroke();
+                        }
+                    }
+                    ctx.restore();
+                }
+
+                // 6. Super-Visible 3D Orientation (Animated Green Equator)
+                if (showAxis && showAxis.checked) {
+                    ctx.save();
+                    ctx.rotate(this.axisAngle);
+
+                    ctx.beginPath();
+                    let eqThickness = Math.max(0.5, this.radius * 1.25 * Math.abs(Math.sin(this.axisTilt)));
+                    ctx.ellipse(0, 0, this.radius * 1.25, eqThickness, 0, 0, Math.PI * 2);
+
+                    // Dash line visually spins using spinPhase!
+                    ctx.setLineDash([15 / camera.zoom, 10 / camera.zoom]);
+                    ctx.lineDashOffset = -this.spinPhase * this.radius * 1.25;
+
+                    ctx.strokeStyle = '#00ff00';
+                    ctx.lineWidth = 2.5 / camera.zoom;
+                    ctx.stroke();
+                    ctx.setLineDash([]); // Reset dash
+
+                    ctx.beginPath();
+                    ctx.moveTo(0, -this.radius * 1.8);
+                    ctx.lineTo(0, this.radius * 1.8);
+                    ctx.strokeStyle = '#ff00ff';
+                    ctx.lineWidth = 2.5 / camera.zoom;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(0, -this.radius * 1.8, 5 / camera.zoom, 0, Math.PI * 2);
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.fill();
+
+                    ctx.restore();
                 }
 
                 ctx.restore();
             }
-
-            update() {
+            update(dt) {
                 if (!this.isAnchored) {
-                    this.x += this.vx * timeScale;
-                    this.y += this.vy * timeScale;
+                    this.x += this.vx * dt;
+                    this.y += this.vy * dt;
                 }
-                this.angle += this.rotSpd * timeScale;
+                this.spinPhase += this.rotSpd * dt;
+                this.displayRadius += (this.radius - this.displayRadius) * 0.1 * dt;
+                this.diskRadCurrent += (this.diskRadTarget - this.diskRadCurrent) * 0.05 * dt;
+                this.jetLenCurrent += (this.jetLenTarget - this.jetLenCurrent) * 0.05 * dt;
+                // Smoothly animate 3D rotation vectors over ~1 second
+                this.rotX += (this.targetRotX - this.rotX) * 0.02 * dt;
+                this.rotY += (this.targetRotY - this.rotY) * 0.02 * dt;
+                this.rotZ += (this.targetRotZ - this.rotZ) * 0.02 * dt;
+                this.updateProperties();
+
+                this.age += dt / 60;
+
+                if (this.type === 'Gas') {
+                    this.mass -= (this.originalMass * 0.8) / 3600 * dt;
+                    this.mergeTimer += dt / 60;
+                    if (this.mass <= this.originalMass * 0.2) this.isDead = true;
+                }
 
                 let speedSq = this.vx * this.vx + this.vy * this.vy;
 
-                if (timeScale > 0 && (this.temperature > 1000 || speedSq > 25) && this.type !== 'Gas') {
+                if (dt > 0 && (this.temperature > 1000 || speedSq > 25) && this.type !== 'Gas') {
                     if (Math.random() < 0.4) {
                         let tailColor = this.type === 'Star' ? this.color : (this.temperature > 800 ? '#ff6600' : '#bbddff');
                         particles.push(new Particle(
@@ -930,92 +1157,82 @@
                     }
                 }
 
-                if (timeScale > 0) {
-                    this.currentGlow += (this.targetGlow - this.currentGlow) * 0.05 * timeScale;
+                if (dt > 0) {
+                    this.currentGlow += (this.targetGlow - this.currentGlow) * 0.05 * dt;
 
-                    if (this.type === 'Star') {
-                        this.temperature = this.mass * 0.5;
-                    } else if (this.type !== 'White Dwarf' && this.type !== 'Neutron Star') {
-                        if (this.temperature > 3) this.temperature -= (this.temperature - 3) * 0.005 * timeScale;
+                    if (this.type === 'Star' && !this.isCustomized) {
+                        this.temperature += (Math.max(3800, 3000 + (this.mass - 30000) * 0.056) - this.temperature) * 0.02 * dt;
+                    } else if (this.type !== 'White Dwarf' && this.type !== 'Neutron Star' && !this.isCustomized) {
+                        if (this.temperature > 3) this.temperature -= (this.temperature - 3) * 0.005 * dt;
                     }
 
                     if (this.type === 'Black Hole' && this.accretionFuel > 0) {
-                        let feedRate = Math.min(this.accretionFuel, 2 * timeScale);
+                        let feedRate = Math.min(this.accretionFuel, 2 * dt);
                         this.accretionFuel -= feedRate;
                         this.mass += feedRate;
                         this.temperature += feedRate * 50;
+                        this.updateProperties();
+
                     }
 
                     if (this.type === 'Planet' || this.type === 'Moon') {
                         if (this.temperature >= 260 && this.temperature <= 340) {
-                            this.timeInHabZone += timeScale;
+                            this.timeInHabZone += dt;
                             if (this.timeInHabZone > 3600 && !this.isHabitable) {
                                 this.isHabitable = true; this.color = '#2E8B57';
                             }
-                        } else if (this.isHabitable && (this.temperature < 220 || this.temperature > 380)) {
+                        } else if (this.temperature < 255 || this.temperature > 355) {
                             this.isHabitable = false; this.timeInHabZone = 0;
                             this.color = this.temperature > 380 ? '#8b4513' : '#a0c8d0';
                         }
                     }
 
-                    // Climate Simulation
-                    if (this.compH2O > 0) {
-                        if (this.temperature < 260) {
-                            this.iceThickness = this.mass * this.compH2O * 10;
-                            this.waterDepth = 0;
-                            this.albedo = 0.6; // Ice is reflective
-                        } else if (this.temperature < 373) {
-                            this.iceThickness = 0;
-                            this.waterDepth = this.mass * this.compH2O * 10;
-                            this.albedo = 0.3; // Liquid water
-                        } else {
-                            this.iceThickness = 0;
-                            this.waterDepth = 0;
-                            this.pressure += this.compH2O * 0.1; // Boils into atmosphere
-                            this.compH2O -= 0.001 * timeScale; // Slowly escapes to space
-                            this.albedo = 0.4; // Clouds
-                        }
-                    }
+                    if (this.absorbDelay > 0) this.absorbDelay -= dt;
 
-                    // Reset trackers for the next frame
-                    this.orbitingBody = null;
-                    this.maxForceFelt = 0;
-                    this.tidalHeatFelt = 0;
+                    // Climate Simulation (Celsius Base: 0C = 273.15K, 100C = 373.15K)
+                    if (this.compH2O > 0) {
+                        let totalH2O = this.mass * this.compH2O * 10;
+                        let tIce = 0, tWater = 0;
+
+                        if (this.temperature < 273.15) { tIce = totalH2O; tWater = 0; }
+                        else if (this.temperature < 373.15) { tIce = 0; tWater = totalH2O; }
+                        else {
+                            this.pressure += this.compH2O * 0.01 * dt;
+                            this.compH2O -= 0.0001 * dt;
+                        }
+
+                        this.iceThickness += (tIce - this.iceThickness) * 0.05 * dt;
+                        if (!this.isCustomized) this.waterDepth += (tWater - this.waterDepth) * 0.05 * dt;
+                        this.albedo = this.iceThickness > this.waterDepth ? 0.6 : (this.waterDepth > 0 ? 0.3 : 0.4);
+                    }
 
                     this.trail.push({ x: this.x, y: this.y });
                     if (this.trail.length > (this.type === 'Gas' ? 20 : 80)) this.trail.shift();
                 }
 
-                // Stellar Evolution (Aging)
-                if (timeScale > 0 && this.mass >= T_LOW_STAR) {
-                    this.age += timeScale;
-                    // Massive stars burn out exponentially faster than small ones
+                if (dt > 0 && this.mass >= 30000) {
+                    this.age += dt;
                     let lifespan = 200000000 / this.mass;
 
                     if (this.age > lifespan && this.type === 'Star') {
-                        if (this.mass >= T_NEUTRON_STAR) {
-                            // Massive stars explode, leaving a remnant
-                            triggerSupernova(this.x, this.y, this.mass);
-                            this.mass = this.mass * 0.2;
+                        this.age = 0; // CRITICAL FIX: Stops the infinite supernova loop!
+                        if (this.mass >= 500000) {
+                            if (typeof triggerSupernova === 'function') triggerSupernova(this);
+                        } else {
+                            this.mass = Math.max(1, this.mass * 0.4);
+                            this.temperature = 100000; // Peaks instantly upon outer shell ejection
+                            this.isRemnant = true;
                             this.updateProperties();
-                        } else if (this.mass < T_MID_STAR) {
-                            // Smaller stars quietly puff off their outer layers
-                            this.mass = this.mass * 0.4;
-                            this.temperature = 2500;
-                            this.updateProperties(); // Becomes a White Dwarf
                         }
                     }
                 }
 
+                // 3D-Aligned Neutron Star Push Force
+                if (dt > 0 && this.type === 'Neutron Star' && Math.abs(this.rotSpd) > 0.05) {
+                    let beamAngle = this.axisAngle;
 
-                if (timeScale > 0 && this.type === 'Neutron Star' && Math.abs(this.rotSpd) > 0.05) {
-                    // 1. Match the visual angle perfectly (note the negative sign!)
-                    let wobble = Math.sin(this.age * this.rotSpd * 5) * 0.2;
-                    let beamAngle = -this.angle + wobble;
-
-                    // Pre-calculate sin and cos for the projection
-                    let cosA = Math.cos(beamAngle);
-                    let sinA = Math.sin(beamAngle);
+                    let cosA = Math.cos(-beamAngle);
+                    let sinA = Math.sin(-beamAngle);
 
                     let beamLength = this.radius * 30;
                     let beamHalfWidth = this.radius * 0.3;
@@ -1026,21 +1243,20 @@
                         let dx = b.x - this.x;
                         let dy = b.y - this.y;
 
+                        // Project object coords into 3D pole space (Y = Pole, X = Equator)
+                        let localX = dx * cosA - dy * sinA;
+                        let localY = dx * sinA + dy * cosA;
 
-                        let localX = dx * cosA + dy * sinA;
-                        let localY = -dx * sinA + dy * cosA;
-
-                        if (Math.abs(localX) <= beamLength && Math.abs(localY) <= beamHalfWidth) {
-
+                        if (Math.abs(localY) <= beamLength && Math.abs(localX) <= beamHalfWidth) {
                             let dist = Math.hypot(dx, dy);
 
-                            b.temperature += (6000 / dist) * timeScale;
+                            b.temperature += (6000 / dist) * dt;
 
-                            let push = (this.mass * 20) / (dist * dist);
-                            b.vx += (dx / dist) * push * timeScale;
-                            b.vy += (dy / dist) * push * timeScale;
+                            let push = (this.mass * 20) / Math.max(1, dist * dist);
+                            b.vx += (dx / dist) * push * dt;
+                            b.vy += (dy / dist) * push * dt;
 
-                            if (b.mass < 5 && b.temperature > 1500) b.mass -= 0.5 * timeScale;
+                            if (b.mass < 5 && b.temperature > 1500) b.mass -= 0.5 * dt;
                         }
                     });
                 }
@@ -1072,56 +1288,86 @@
             star.updateProperties();
 
             // Spawn Physical Nebula Gas
-            let numGas = Math.min(800, Math.max(100, Math.floor(ejectaMass / 200)));
-            let massPerGas = ejectaMass / numGas;
+            let numGas = Math.min(120, Math.max(30, Math.floor(ejectaMass / 5000))); let massPerGas = ejectaMass / numGas;
+
+            // Establish a random bidirectional polar axis for relativistic jets
+            let jetAngle = Math.random() * Math.PI;
 
             for (let i = 0; i < numGas; i++) {
                 let angle = Math.random() * Math.PI * 2;
-                let speed = Math.random() * 18 + 8;
-                let dist = Math.random() * star.radius;
+                let isJet = false;
+
+                // 15% chance to align with the jet axis (shooting in opposite directions)
+                if (Math.random() < 0.15) {
+                    angle = jetAngle + (Math.random() > 0.5 ? 0 : Math.PI) + (Math.random() - 0.5) * 0.3; // Narrow cone
+                    isJet = true;
+                }
+
+                star.isRemnant = true;
+                let dist = Math.random() * (star.radius * 6.0) + (star.radius * 3.0);
+
+                // Jets travel 2x-4x faster than standard expanding shell
+                let speed = isJet ? (Math.random() * 40 + 30) : (Math.random() * 20 + 5);
 
                 let gas = new Body(star.x + Math.cos(angle) * dist, star.y + Math.sin(angle) * dist, star.vx + Math.cos(angle) * speed, star.vy + Math.sin(angle) * speed, massPerGas);
                 gas.type = 'Gas';
                 gas.temperature = 8000;
                 gas.mergeTimer = 0;
 
-                // Realistic ionized gas colors
                 let hue = Math.random() > 0.5 ? (Math.random() * 40 + 330) % 360 : Math.random() * 60 + 180;
                 gas.color = `hsl(${hue}, 100%, 65%)`;
+                gas.absorbDelay = Math.random() * 420 + 60; // 1 to 8 seconds immunity at 60tps
 
                 newBodiesArray.push(gas);
             }
         }
 
-        function resolveGravity() {
+        function resolveGravity(dt) {
             let newBodies = [];
 
-            bodies.forEach(b => { b.fx = 0; b.fy = 0; b.absFx = 0; b.absFy = 0; });
-
+            bodies.forEach(b => {
+                b.fx = 0; b.fy = 0; b.absFx = 0; b.absFy = 0;
+                b.orbitingBody = null; b.maxForceFelt = 0; b.tidalHeatFelt = 0;
+            });
             for (let i = 0; i < bodies.length; i++) {
                 let b1 = bodies[i];
                 if (b1.isDead) continue;
 
                 for (let j = i + 1; j < bodies.length; j++) {
+                    if (b1.isDead) break; // stop checking b1 if it was just destroyed due to merge/collision
                     let b2 = bodies[j];
-                    if (b2.isDead) continue;
+                    if (b2.isDead || b1.mass <= 0 || b2.mass <= 0) continue;
 
                     let dx = b2.x - b1.x; let dy = b2.y - b1.y;
                     let distSq = dx * dx + dy * dy;
                     if (distSq > 5000000 && b1.mass < 100 && b2.mass < 100) continue;
-                    let dist = Math.sqrt(distSq);
+                    let dist = Math.max(0.0001, Math.sqrt(distSq));
 
                     // Optimization: Gas particles don't calculate gravity against other gas to save CPU
                     if (b1.type === 'Gas' && b2.type === 'Gas' && dist > b1.radius + b2.radius) continue;
 
                     // Black Hole Leeching
                     if (b1.type === 'Black Hole' && b2.type === 'Black Hole' && dist < (b1.radius + b2.radius) * 15) {
-                        let leechRate = Math.min(b1.mass, b2.mass) * 0.0005 * timeScale;
-                        b1.mass -= leechRate; b2.mass -= leechRate;
-                        if (Math.random() < 0.1) {
-                            let dMass = Math.random() * 80 + 5; let angle = Math.random() * Math.PI * 2; let speed = Math.random() * 20 + 10;
-                            let debris = new Body((b1.x + b2.x) / 2, (b1.y + b2.y) / 2, Math.cos(angle) * speed, Math.sin(angle) * speed, dMass);
-                            debris.temperature = 6000; newBodies.push(debris);
+                        // Perfectly conserve mass and prevent negative mass bugs
+                        let leechRate = Math.min(b1.mass * 0.01, b2.mass * 0.01, Math.min(b1.mass, b2.mass) * 0.0005 * dt);
+                        if (b1.mass - leechRate < 1 || b2.mass - leechRate < 1) leechRate = 0;
+
+                        if (leechRate > 0) {
+                            b1.mass -= leechRate;
+                            b2.mass -= leechRate;
+                            // 90% of leached mass converts to accretion fuel
+                            b1.accretionFuel += leechRate * 0.9;
+                            b2.accretionFuel += leechRate * 0.9;
+
+                            let availableDebris = leechRate * 0.2; // 10% of total leached mass available for debris
+                            if (Math.random() < 0.1 * dt && availableDebris >= 1) {
+                                let dMass = Math.min(availableDebris, Math.random() * 80 + 5);
+                                let angle = Math.random() * Math.PI * 2;
+                                let speed = Math.random() * 20 + 10;
+                                let debris = new Body((b1.x + b2.x) / 2, (b1.y + b2.y) / 2, Math.cos(angle) * speed, Math.sin(angle) * speed, dMass);
+                                debris.temperature = 6000;
+                                newBodies.push(debris);
+                            }
                         }
                     }
 
@@ -1133,39 +1379,64 @@
                     if (massive && small && small.type !== 'Gas') {
                         let rocheLimit = massive.radius * (massive.type === 'Black Hole' ? 12.0 : (massive.isQuasar ? 15.0 : 3.5));
                         if (dist < rocheLimit && dist > massive.radius + small.radius) {
-                            let depth = 1 - ((dist - (massive.radius + small.radius)) / (rocheLimit - (massive.radius + small.radius)));
-                            let shredRate = small.mass * 0.01 * Math.pow(depth, 2) * timeScale;
+                            let validRange = Math.max(1, rocheLimit - (massive.radius + small.radius));
+                            let depth = Math.max(0, Math.min(1, (rocheLimit - dist) / validRange));
 
-                            if (shredRate > 0 && small.mass > 5) {
-                                small.mass -= shredRate;
-                                massive.type === 'Black Hole' ? massive.accretionFuel += shredRate : massive.mass += shredRate * 0.2;
-                                small.updateProperties(); massive.updateProperties();
+                            // CRITICAL FIX: Clamp shredRate to prevent small.mass from going negative
+                            let shredRate = Math.min(small.mass, small.mass * 0.05 * depth * dt);
 
-                                if (Math.random() < 0.3) {
-                                    particles.push(new Particle(small.x + (Math.random() - 0.5) * small.radius * 2, small.y + (Math.random() - 0.5) * small.radius * 2, small.vx + (Math.random() - 0.5) * 2, small.vy + (Math.random() - 0.5) * 2, 2.0, small.color, Math.random() * 2 + 1));
+                            if (shredRate > 0) {
+                                if (small.mass <= 5) {
+                                    small.isDead = true;
+                                } else {
+                                    small.mass -= shredRate;
+                                    let absorbed = shredRate * 0.2;
+                                    if (massive.type === 'Black Hole') {
+                                        massive.accretionFuel += shredRate;
+                                    } else {
+                                        massive.vx = (massive.vx * massive.mass + small.vx * absorbed) / (massive.mass + absorbed);
+                                        massive.vy = (massive.vy * massive.mass + small.vy * absorbed) / (massive.mass + absorbed);
+                                        massive.mass += absorbed;
+                                    }
+                                    small.updateProperties(); massive.updateProperties();
+                                    if (Math.random() < 0.3 * dt) {
+                                        particles.push(new Particle(small.x + (Math.random() - 0.5) * small.radius * 2, small.y + (Math.random() - 0.5) * small.radius * 2, small.vx + (Math.random() - 0.5) * 2, small.vy + (Math.random() - 0.5) * 2, 2.0, small.color, Math.random() * 2 + 1));
+                                    }
                                 }
                             }
                         }
                     }
-
                     // --- Collision / Merging & Gas Siphoning ---
                     if (dist < b1.radius + b2.radius) {
                         let isGas1 = b1.type === 'Gas';
                         let isGas2 = b2.type === 'Gas';
 
                         if (isGas1 || isGas2) {
-                            b1.mergeTimer += timeScale; b2.mergeTimer += timeScale;
+                            if (b1.absorbDelay > 0 || b2.absorbDelay > 0) continue;
+                            if ((b1.type === 'Black Hole' && b2.age < 2) || (b2.type === 'Black Hole' && b1.age < 2)) continue;
+                            if (isGas1 && isGas2) {
+                                let big = b1.mass >= b2.mass ? b1 : b2;
+                                let small = b1.mass < b2.mass ? b1 : b2;
 
-                            // Slow Siphoning
-                            let big = b1.mass >= b2.mass ? b1 : b2;
-                            let small = b1.mass < b2.mass ? b1 : b2;
-                            let siphon = small.mass * 0.02 * timeScale;
-                            big.mass += siphon; small.mass -= siphon;
+                                let siphon = Math.min(small.mass, small.mass * 0.05 * dt); big.mass += siphon; small.mass -= siphon;
 
-                            if (small.mass < 1) small.isDead = true;
+                                if (small.mass < 1) {
+                                    small.isDead = true;
+                                } else if (b1.mergeTimer >= 120 && b2.mergeTimer >= 120) {
+                                    // Instantly and silently merge them without a kinetic explosion
+                                    big.mass += small.mass;
+                                    small.isDead = true;
+                                }
+                                continue; // ALWAYS skip kinetic explosion for Gas-Gas
+                            } else {
+                                let gas = isGas1 ? b1 : b2;
+                                let solid = isGas1 ? b2 : b1;
 
-                            // Delay physical merging/explosion for 120 frames (approx 2 seconds)
-                            if (b1.mergeTimer < 120 || b2.mergeTimer < 120) continue;
+                                solid.mass += gas.mass;
+                                solid.temperature += (gas.temperature * gas.mass) / solid.mass;
+                                gas.isDead = true;
+                                continue; // ALWAYS skip kinetic explosion for Gas-Solid
+                            }
                         }
 
                         let targetWasDestroyed = (uiTarget === b1 || uiTarget === b2);
@@ -1182,11 +1453,15 @@
                         let originalTotalMass = b1.mass + b2.mass;
                         let nvx = (b1.vx * b1.mass + b2.vx * b2.mass) / originalTotalMass;
                         let nvy = (b1.vy * b1.mass + b2.vy * b2.mass) / originalTotalMass;
+                        let totalPx = nvx * originalTotalMass;
+                        let totalPy = nvy * originalTotalMass;
                         let ejectedMass = 0;
 
                         let canSplit = false;
-                        if ((b1.type === 'Asteroid' || b2.type === 'Asteroid') && impactSpeedSq > 20 && Math.random() < 0.2) canSplit = true;
-                        else if (originalTotalMass > 50 && b1.type !== 'Debris' && b2.type !== 'Debris' && impactSpeedSq > 15) canSplit = true;
+                        if (bodies.length < 300 && b1.mass > 2 && b2.mass > 2 && b1.age > 1 && b2.age > 1) {
+                            if ((b1.type === 'Asteroid' || b2.type === 'Asteroid') && impactSpeedSq > 20 && Math.random() < 0.2) canSplit = true;
+                            else if (originalTotalMass > 50 && b1.type !== 'Debris' && b2.type !== 'Debris' && impactSpeedSq > 15) canSplit = true;
+                        }
 
                         let finalMass = originalTotalMass;
                         let newMergedRadius = Math.max(2, Math.sqrt(finalMass) * 0.6);
@@ -1200,7 +1475,12 @@
                                     let tx = -dy / dist; let ty = dx / dist; let dir = d % 2 === 0 ? 1 : -1;
                                     let safeDistance = newMergedRadius + Math.max(2, Math.sqrt(dMass) * 0.6) + (Math.random() * 20 + 30);
 
-                                    let debris = new Body(b1.x + tx * dir * safeDistance, b1.y + ty * dir * safeDistance, nvx + (tx * dir * Math.sqrt(impactSpeedSq) * 0.8) + (Math.random() - 0.5) * 5, nvy + (ty * dir * Math.sqrt(impactSpeedSq) * 0.8) + (Math.random() - 0.5) * 5, dMass);
+                                    let dvx = nvx + (tx * dir * Math.sqrt(impactSpeedSq) * 0.8) + (Math.random() - 0.5) * 5;
+                                    let dvy = nvy + (ty * dir * Math.sqrt(impactSpeedSq) * 0.8) + (Math.random() - 0.5) * 5;
+                                    totalPx -= dvx * dMass;
+                                    totalPy -= dvy * dMass;
+
+                                    let debris = new Body(b1.x + tx * dir * safeDistance, b1.y + ty * dir * safeDistance, dvx, dvy, dMass);
                                     debris.temperature = Math.max(b1.temperature, b2.temperature) + kineticHeat;
                                     newBodies.push(debris);
                                 }
@@ -1208,13 +1488,34 @@
                         }
 
                         finalMass = originalTotalMass - ejectedMass;
-                        const merged = new Body((b1.x * b1.mass + b2.x * b2.mass) / originalTotalMass, (b1.y * b1.mass + b2.y * b2.mass) / originalTotalMass, nvx, nvy, finalMass);
+                        const merged = new Body((b1.x * b1.mass + b2.x * b2.mass) / originalTotalMass, (b1.y * b1.mass + b2.y * b2.mass) / originalTotalMass, totalPx / finalMass, totalPy / finalMass, finalMass);
                         merged.temperature = ((b1.temperature * b1.mass) + (b2.temperature * b2.mass)) / originalTotalMass + kineticHeat;
-                        merged.rotSpd = (b1.rotSpd * b1.mass + b2.rotSpd * b2.mass) / originalTotalMass;
-                        merged.isAnchored = b1.isAnchored || b2.isAnchored; // Inherit anchor
+
+                        // --- True 3D Vector Angular Momentum Conservation ---
+                        let I1 = b1.mass * b1.radius * b1.radius;
+                        let I2 = b2.mass * b2.radius * b2.radius;
+
+                        let Lx = I1 * b1.rotX + I2 * b2.rotX;
+                        let Ly = I1 * b1.rotY + I2 * b2.rotY;
+                        let Lz = I1 * b1.rotZ + I2 * b2.rotZ;
+
+                        let I_new = merged.mass * merged.radius * merged.radius;
+
+                        // Set the newly calculated 3D momentum as the target
+                        merged.targetRotX = Lx / (I_new || 1);
+                        merged.targetRotY = Ly / (I_new || 1);
+                        merged.targetRotZ = Lz / (I_new || 1);
+
+                        // Inherit current visual rotation of largest parent to start the animation smoothly
+                        let dominant = b1.mass >= b2.mass ? b1 : b2;
+                        merged.rotX = dominant.rotX;
+                        merged.rotY = dominant.rotY;
+                        merged.rotZ = dominant.rotZ;
+
+                        merged.isAnchored = b1.isAnchored || b2.isAnchored;
 
                         // Trigger supernova if the merge crosses the threshold
-                        if (b1.type !== 'Black Hole' && b2.type !== 'Black Hole' && finalMass >= 500000 && b1.mass < 500000 && b2.mass < 500000) {
+                        if (b1.type !== 'Black Hole' && b2.type !== 'Black Hole' && finalMass >= 500000 && !b1.isRemnant && !b2.isRemnant) {
                             triggerSupernova(merged, newBodies);
                         }
 
@@ -1228,7 +1529,8 @@
                     }
 
                     // --- Core Gravity & Tidal Stress ---
-                    const force = (0.5 * b1.mass * b2.mass) / distSq; // G = 0.5
+                    let minGravityDist = (b1.radius + b2.radius) * 0.5;
+                    const force = (0.5 * b1.mass * b2.mass) / Math.max(distSq, minGravityDist * minGravityDist);
 
                     if (force > b1.maxForceFelt && b2.mass > b1.mass) {
                         b1.maxForceFelt = force;
@@ -1245,14 +1547,26 @@
                     b2.fx -= fx; b2.absFx += Math.abs(fx);
                     b2.fy -= fy; b2.absFy += Math.abs(fy);
 
+                    // if (b1.temperature > 1000 || b2.temperature > 1000) {
+                    //     if (b1.mass > b2.mass && b1.temperature > 1000) {
+                    //         let tEq = b1.temperature * Math.sqrt(b1.radius / dist);
+                    //         if (tEq > b2.temperature) b2.temperature += (tEq - b2.temperature) * 0.05 * dt;
+                    //     }
+                    //     if (b2.mass > b1.mass && b2.temperature > 1000) {
+                    //         let tEq = b2.temperature * Math.sqrt(b2.radius / dist);
+                    //         if (tEq > b1.temperature) b1.temperature += (tEq - b1.temperature) * 0.05 * dt;
+                    //     }
+                    // }
+
                     if (b1.temperature > 1000 || b2.temperature > 1000) {
+                        // Game-friendly thermodynamics: Heat falls off faster so Habitable Zones fit on screen
                         if (b1.mass > b2.mass && b1.temperature > 1000) {
-                            let tEq = b1.temperature * Math.sqrt(b1.radius / dist);
-                            if (tEq > b2.temperature) b2.temperature += (tEq - b2.temperature) * 0.05 * timeScale;
+                            let tEq = b1.temperature * (b1.radius / dist) * 0.8;
+                            if (tEq > b2.temperature) b2.temperature += (tEq - b2.temperature) * 0.05 * dt;
                         }
                         if (b2.mass > b1.mass && b2.temperature > 1000) {
-                            let tEq = b2.temperature * Math.sqrt(b2.radius / dist);
-                            if (tEq > b1.temperature) b1.temperature += (tEq - b1.temperature) * 0.05 * timeScale;
+                            let tEq = b2.temperature * (b2.radius / dist) * 0.8;
+                            if (tEq > b1.temperature) b1.temperature += (tEq - b1.temperature) * 0.05 * dt;
                         }
                     }
 
@@ -1262,15 +1576,18 @@
                     if (isComet1 && dist < b2.radius * 30) { b1.isComet = true; b1.tailVec = { x: (b1.x - b2.x) / dist, y: (b1.y - b2.y) / dist }; b1.tailIntensity = 1 - (dist / (b2.radius * 30)); }
                     if (isComet2 && dist < b1.radius * 30) { b2.isComet = true; b2.tailVec = { x: (b2.x - b1.x) / dist, y: (b2.y - b1.y) / dist }; b2.tailIntensity = 1 - (dist / (b1.radius * 30)); }
 
-                    let tidalHeat = (force / dist) * 0.05 * timeScale;
+                    let tidalHeat = (force / dist) * 0.05 * dt;
                     b1.tidalHeatFelt += tidalHeat;
                     b2.tidalHeatFelt += tidalHeat;
                     if (b1.type !== 'Star' && b1.type !== 'Black Hole') b1.temperature += tidalHeat / b1.mass;
                     if (b2.type !== 'Star' && b2.type !== 'Black Hole') b2.temperature += tidalHeat / b2.mass;
 
-                    // Exert gravity movement ONLY if not anchored
-                    if (!b1.isAnchored) { b1.vx += (dx / dist) * (force / b1.mass) * timeScale; b1.vy += (dy / dist) * (force / b1.mass) * timeScale; }
-                    if (!b2.isAnchored) { b2.vx -= (dx / dist) * (force / b2.mass) * timeScale; b2.vy -= (dy / dist) * (force / b2.mass) * timeScale; }
+                    // Gas gravity scales aggressively only in the second half of its decaying mass lifespan
+                    let mult1 = b1.type === 'Gas' ? (b1.mass < b1.originalMass * 0.5 ? Math.min(60, 1 + (b1.originalMass * 0.5 - b1.mass)) : 1) : 1;
+                    let mult2 = b2.type === 'Gas' ? (b2.mass < b2.originalMass * 0.5 ? Math.min(60, 1 + (b2.originalMass * 0.5 - b2.mass)) : 1) : 1;
+
+                    if (!b1.isAnchored) { b1.vx += (dx / dist) * (force / b1.mass) * mult1 * dt; b1.vy += (dy / dist) * (force / b1.mass) * mult1 * dt; }
+                    if (!b2.isAnchored) { b2.vx -= (dx / dist) * (force / b2.mass) * mult2 * dt; b2.vy -= (dy / dist) * (force / b2.mass) * mult2 * dt; }
                 }
             }
 
@@ -1301,11 +1618,11 @@
             }
 
             if (newBodies.length > 0 || bodies.some(b => b.isDead)) {
-                bodies = bodies.filter(b => !b.isDead).concat(newBodies);
+                bodies = bodies.concat(newBodies).filter(b => !b.isDead && b.mass > 0 && !isNaN(b.x) && !isNaN(b.y));
             }
         }
 
-        function drawPredictedTrajectory(startX, startY, initVx, initVy) {
+        function drawPredictedTrajectory(startX, startY, initVx, initVy, dt) {
             ctx.beginPath();
             ctx.strokeStyle = 'rgba(0, 212, 255, 0.8)';
             ctx.setLineDash([5, 5]);
@@ -1316,7 +1633,7 @@
             let simMass = currentMass;
             ctx.moveTo(simX, simY);
 
-            let stepTime = timeScale === 0 ? 1 : timeScale;
+            let stepTime = dt === 0 ? 1 : dt;
 
             let majorBodies = bodies.filter(b => b.mass > 500);
             for (let step = 0; step < 200; step++) {
@@ -1327,7 +1644,7 @@
 
                     let force = (G * b.mass * simMass) / distSq;
                     let acc = force / simMass;
-                    let dist = Math.sqrt(distSq);
+                    let dist = Math.max(0.0001, Math.sqrt(distSq));
                     simVx += (dx / dist) * acc * stepTime;
                     simVy += (dy / dist) * acc * stepTime;
                 }
@@ -1337,6 +1654,65 @@
             }
             ctx.stroke();
             ctx.setLineDash([]);
+        }
+        function updateShockwaves(s) {
+            for (let i = shockwaves.length - 1; i >= 0; i--) {
+                let sw = shockwaves[i];
+
+                let speed = Math.max(1, (1 - (sw.radius / sw.maxRadius)) * 30) * s;
+                sw.radius += speed;
+                sw.alpha -= 0.005 * s;
+
+                if (sw.alpha <= 0 || sw.radius >= sw.maxRadius) {
+                    shockwaves.splice(i, 1);
+                }
+            }
+        }
+        function updateParticles(s) {
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+
+                p.update(s);
+
+                if (p.life <= 0) {
+                    particles[i] = particles[particles.length - 1];
+                    particles.pop();
+                }
+            }
+        }
+
+
+        function updateClouds(s) {
+
+            for (let i = clouds.length - 1; i >= 0; i--) {
+                let c = clouds[i];
+
+                c.update(s); // pass scaled dt
+
+                if (c.life <= 0) {
+                    let newRedDwarf = new Body(c.x, c.y, 0, 0, T_LOW_STAR + 1000);
+                    newRedDwarf.temperature = 3000;
+                    bodies.push(newRedDwarf);
+                    clouds.splice(i, 1);
+                }
+            }
+        }
+
+        function updateExplosions(s) {
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                let ex = explosions[i];
+
+                if (ex.type === 'supernova') {
+                    ex.radius += 30 * s;
+                    ex.life -= 0.01 * s;
+                } else {
+                    ex.radius += 5 * s;
+                    ex.life -= 0.05 * s;
+                }
+
+                if (ex.life <= 0) explosions.splice(i, 1);
+            }
         }
 
         function drawExplosions() {
@@ -1350,32 +1726,28 @@
                     grad.addColorStop(0.1, `rgba(200, 150, 255, ${ex.life * 0.9})`);
                     grad.addColorStop(0.5, `rgba(100, 50, 200, ${ex.life * 0.5})`);
                     grad.addColorStop(1, `rgba(30, 0, 80, 0)`);
-                    ex.radius += 30 * timeScale;
-                    ex.life -= 0.01 * timeScale;
                 } else {
                     grad.addColorStop(0, `rgba(255, 255, 255, ${ex.life})`);
                     grad.addColorStop(0.4, `rgba(255, 150, 50, ${ex.life * 0.6})`);
                     grad.addColorStop(1, `rgba(255, 50, 0, 0)`);
-                    ex.radius += 5 * timeScale;
-                    ex.life -= 0.05 * timeScale;
+
                 }
 
                 ctx.arc(ex.x, ex.y, ex.radius, 0, Math.PI * 2);
                 ctx.fillStyle = grad;
                 ctx.fill();
 
-                if (ex.life <= 0) explosions.splice(i, 1);
             }
         }
 
         function updateInspector() {
-            if (uiTarget && bodies.includes(uiTarget)) {
-                
+            if (uiTarget && bodies.includes(uiTarget) && !uiTarget.isDead) {
+
                 // HEADER
                 document.getElementById('ins-type').innerText = uiTarget.type;
                 document.getElementById('ins-type').style.color = uiTarget.color;
-                
-                // EXPANDED MULTI-STATE SYSTEM
+
+                // MULTI-STATE SYSTEM
                 let states = [];
                 if (uiTarget.type === 'Black Hole') {
                     if (uiTarget.accretionFuel > 5) states.push("Feeding");
@@ -1384,39 +1756,51 @@
                     states.push("Nebula Gas");
                     if (uiTarget.mergeTimer > 60) states.push("Condensing");
                 } else {
-                    if (uiTarget.temperature > 800) states.push("Scorched");
-                    else if (uiTarget.temperature < 200) states.push("Frozen");
+                    if (uiTarget.temperature > 1500) states.push("Lava World");
+                    else if (uiTarget.temperature > 800) states.push("Scorched");
+                    else if (uiTarget.temperature < 100) states.push("Ice Ball");
+                    else if (uiTarget.temperature < 250) states.push("Frozen");
                     else if (uiTarget.temperature >= 260 && uiTarget.temperature <= 340 && uiTarget.compH2O > 0) states.push("Temperate");
+
+                    if (uiTarget.waterDepth > uiTarget.radius * 0.1) states.push("Ocean World");
+                    if (uiTarget.type === 'Gas Giant' && uiTarget.temperature > 1000) states.push("Hot Jupiter");
                 }
 
                 if (uiTarget.isHabitable) states.push("Habitable");
                 if (uiTarget.isComet) states.push("Comet Tail");
                 if (uiTarget.pressure > 0 && uiTarget.compH2O > 0 && uiTarget.temperature >= 373) states.push("Evaporating");
-                
-                // Check if forces are tearing it apart
+
                 let stress = (uiTarget.absFx - Math.abs(uiTarget.fx)) + (uiTarget.absFy - Math.abs(uiTarget.fy));
                 if (stress > uiTarget.mass * 8 && uiTarget.type !== 'Gas') states.push("Tidal Stress");
 
-                if (!uiTarget.orbitingBody && uiTarget.type !== 'Black Hole' && uiTarget.type !== 'Star' && uiTarget.type !== 'Gas') states.push("Rogue");
+                if (!uiTarget.orbitingBody && uiTarget.type !== 'Black Hole' && uiTarget.type !== 'Star' && uiTarget.type !== 'Gas') {
+                    states.push("Rogue");
+                } else if (uiTarget.orbitingBody && uiTarget.orbitingBody.mass < uiTarget.mass * 2 && uiTarget.type === uiTarget.orbitingBody.type) {
+                    states.push("Binary Pair");
+                }
 
                 if (states.length === 0) states.push("Stable");
                 document.getElementById('ins-state').innerText = states.join(' • ');
 
                 // TAB 1: PHYSICAL (Inputs & Bug Fixes)
-                if (!document.activeElement.matches('#inspector input')) {
-                    document.getElementById('ins-mass').value = uiTarget.mass.toFixed(0);
-                    document.getElementById('ins-vx').value = uiTarget.vx.toFixed(2);
-                    document.getElementById('ins-vy').value = uiTarget.vy.toFixed(2);
-                    document.getElementById('ins-temp').value = uiTarget.temperature.toFixed(0);
-                    document.getElementById('ins-rot').value = uiTarget.rotSpd.toFixed(3);
-                    
-                    document.getElementById('ins-anchor').checked = uiTarget.isAnchored;
+                if (!document.activeElement.matches('.tab-content input')) {
+                    let eMass = document.getElementById('ins-mass'); if (eMass) eMass.value = (uiTarget.mass || 0).toFixed(0);
+                    let eVX = document.getElementById('ins-vx'); if (eVX) eVX.value = (uiTarget.vx || 0).toFixed(2);
+                    let eVY = document.getElementById('ins-vy'); if (eVY) eVY.value = (uiTarget.vy || 0).toFixed(2);
+                    let eTemp = document.getElementById('ins-temp'); if (eTemp) eTemp.value = (uiTarget.temperature || 0).toFixed(0);
+
+                    // Safely update the 3D vectors
+                    let eRotX = document.getElementById('ins-rotx'); if (eRotX) eRotX.value = (uiTarget.rotX || 0).toFixed(3);
+                    let eRotY = document.getElementById('ins-roty'); if (eRotY) eRotY.value = (uiTarget.rotY || 0).toFixed(3);
+                    let eRotZ = document.getElementById('ins-rotz'); if (eRotZ) eRotZ.value = (uiTarget.rotZ || 0).toFixed(3);
+
+                    let eAnch = document.getElementById('ins-anchor'); if (eAnch) eAnch.checked = uiTarget.isAnchored;
                 }
-                
+
                 document.getElementById('ins-rad').innerText = uiTarget.radius.toFixed(1) + " Mm";
                 document.getElementById('ins-vol').innerText = uiTarget.volume.toFixed(0) + " Mm³";
                 document.getElementById('ins-den').innerText = (uiTarget.density * 1000).toFixed(1);
-                
+
                 if (uiTarget.type === 'Black Hole') {
                     document.getElementById('bh-stats').style.display = 'block';
                     document.getElementById('ins-acc').innerText = uiTarget.accretionFuel.toFixed(1);
@@ -1459,9 +1843,13 @@
                 }
 
                 // TAB 3: CLIMATE
-                document.getElementById('ins-albedo').innerText = uiTarget.albedo.toFixed(2);
-                document.getElementById('ins-water').innerText = uiTarget.waterDepth.toFixed(1) + " km";
-                document.getElementById('ins-ice').innerText = uiTarget.iceThickness.toFixed(1) + " km";
+                if (!document.activeElement.matches('#tab-clim input')) {
+                    if (!document.activeElement.matches('.tab-content input')) {
+                        document.getElementById('ins-albedo').value = uiTarget.albedo.toFixed(2);
+                        document.getElementById('ins-water').value = uiTarget.waterDepth.toFixed(1);
+                    }
+                    document.getElementById('ins-ice').innerText = uiTarget.iceThickness.toFixed(1);
+                }
                 document.getElementById('ins-pressure').innerText = uiTarget.pressure.toFixed(2) + " atm";
 
                 // TAB 4: COMPOSITION
@@ -1469,6 +1857,10 @@
                 document.getElementById('bar-si').style.width = (uiTarget.compSi * 100) + "%";
                 document.getElementById('bar-h2o').style.width = (uiTarget.compH2O * 100) + "%";
                 document.getElementById('bar-h').style.width = (uiTarget.compH * 100) + "%";
+
+                document.getElementById('bar-c').style.width = (uiTarget.compC * 100) + "%";
+                document.getElementById('bar-n').style.width = (uiTarget.compN * 100) + "%";
+                document.getElementById('bar-o').style.width = (uiTarget.compO * 100) + "%";
 
                 let magField = (uiTarget.compFe * uiTarget.mass * Math.abs(uiTarget.rotSpd) * 0.1);
                 document.getElementById('ins-mag').innerText = magField.toFixed(2) + " Gauss";
@@ -1484,10 +1876,10 @@
                 document.getElementById('ins-hz').innerText = uiTarget.timeInHabZone > 0 ? "Yes" : "No";
                 document.getElementById('ins-hz').style.color = uiTarget.timeInHabZone > 0 ? "#00ff88" : "#aaa";
 
-                document.getElementById('ins-tidal').innerText = uiTarget.tidalHeatFelt.toFixed(2) + " J/s";
-
-                let lost = uiTarget.originalMass - uiTarget.mass;
-                document.getElementById('ins-lost').innerText = lost > 0 ? lost.toFixed(1) : "0";
+                // Accumulate tidal heat for display (don't let it reset to 0 instantly)
+                document.getElementById('ins-tidal').innerText = (uiTarget.tidalHeatFelt * 60).toFixed(2) + " J/s"; // Approx per second
+                let lost = Math.max(0, uiTarget.originalMass - uiTarget.mass);
+                document.getElementById('ins-lost').innerText = lost > 0.1 ? lost.toFixed(1) : "0";
 
             } else {
                 uiTarget = null;
@@ -1495,7 +1887,7 @@
             }
         }
 
-        function loop() {
+        function render() {
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.fillStyle = '#050508';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1540,7 +1932,6 @@
             ctx.translate(camera.x - canvas.width / 2, camera.y - canvas.height / 2);
 
             for (let i = clouds.length - 1; i >= 0; i--) {
-                clouds[i].update();
                 clouds[i].draw();
                 if (clouds[i].life <= 0) {
                     let newRedDwarf = new Body(clouds[i].x, clouds[i].y, 0, 0, T_LOW_STAR + 1000);
@@ -1549,8 +1940,6 @@
                     clouds.splice(i, 1);
                 }
             }
-
-            if (timeScale > 0) resolveGravity();
 
 
             if (showHabZone && showHabZone.checked) {
@@ -1561,28 +1950,34 @@
                     ctx.fillStyle = 'rgba(46, 139, 87, 0.25)';
                     ctx.beginPath();
 
-                    let halfW = (canvas.width / 2) / camera.zoom;
-                    let halfH = (canvas.height / 2) / camera.zoom;
-                    let startX = camera.x - (halfW * 2.5);
-                    let endX = camera.x + (halfW * 2.5);
-                    let startY = camera.y - (halfH * 2.5);
-                    let endY = camera.y + (halfH * 2.5);
+                    let tl = screenToWorld(0, 0);
+                    let br = screenToWorld(canvas.width, canvas.height);
+                    let bufferW = (br.x - tl.x) * 1.0; // 100% buffer
+                    let bufferH = (br.y - tl.y) * 1.0;
+
+                    let startX = tl.x - bufferW;
+                    let endX = br.x + bufferW;
+                    let startY = tl.y - bufferH;
+                    let endY = br.y + bufferH;
                     let step = res / camera.zoom;
 
-                    for (let wx = startX; wx < endX; wx += step) {
-                        for (let wy = startY; wy < endY; wy += step) {
+                    let renderStep = Math.min(step, 30); // Cap max step size to prevent skipping
+
+                    for (let wx = startX; wx < endX; wx += renderStep) {
+                        for (let wy = startY; wy < endY; wy += renderStep) {
                             let totalEqTemp = 0;
 
                             for (let s of heatSources) {
                                 let dx = (wx + step / 2) - s.x;
                                 let dy = (wy + step / 2) - s.y;
                                 let distSq = Math.max(dx * dx + dy * dy, s.radius * s.radius);
-                                let dist = Math.sqrt(distSq);
-                                totalEqTemp += s.temperature * Math.sqrt(s.radius / dist);
+                                let dist = Math.max(0.0001, Math.sqrt(distSq));
+                                // totalEqTemp += s.temperature * Math.sqrt(s.radius / dist);
+                                totalEqTemp += s.temperature * (s.radius / dist) * 0.8; // match game friendly habitable zone.
                             }
 
                             if (totalEqTemp > 260 && totalEqTemp < 380) {
-                                ctx.rect(wx, wy, step, step);
+                                ctx.rect(wx, wy, renderStep, renderStep);
                             }
                         }
                     }
@@ -1590,20 +1985,10 @@
                 }
             }
 
-            bodies.forEach(b => { b.update(); b.draw(); });
+            bodies.forEach(b => { b.draw(); });
+
+
             for (let i = shockwaves.length - 1; i >= 0; i--) {
-                let sw = shockwaves[i];
-
-                // NEW: Shockwave slows down logarithmically as it reaches max radius
-                let speed = Math.max(1, (1 - (sw.radius / sw.maxRadius)) * 30) * timeScale;
-                sw.radius += speed;
-                sw.alpha -= 0.005 * timeScale;
-
-                if (sw.alpha <= 0 || sw.radius >= sw.maxRadius) {
-                    shockwaves.splice(i, 1);
-                    continue;
-                }
-
                 ctx.beginPath();
                 ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
                 ctx.lineWidth = Math.max(1, sw.alpha * 15); // Thick at first, thins out
@@ -1615,16 +2000,13 @@
             }
 
             for (let i = particles.length - 1; i >= 0; i--) {
-                particles[i].update();
                 particles[i].draw();
-                // could use Array.prototype.filter() for O(n)? below should be o(1)
-                if (particles[i].life <= 0) {
-                    particles[i] = particles[particles.length - 1];
-                    particles.pop();
-                }
             }
 
             drawExplosions();
+
+            let isShiftPressed = window.isShiftPressed || false;
+            let currentMode = document.getElementById('toolMode') ? document.getElementById('toolMode').value : 'spawn';
 
             if (isDragging) {
                 let ghostRadius = Math.max(2, Math.sqrt(currentMass) * 0.6);
@@ -1641,6 +2023,21 @@
 
                 let vx = (dragStart.x - mousePos.x) * 0.05;
                 let vy = (dragStart.y - mousePos.y) * 0.05;
+
+                if (currentMode === 'circular' || isShiftPressed) {
+                    let nearest = null; let minDist = Infinity;
+                    bodies.forEach(b => {
+                        if (b.mass > currentMass * 5) {
+                            let d = Math.hypot(b.x - dragStart.x, b.y - dragStart.y);
+                            if (d < minDist) { minDist = d; nearest = b; }
+                        }
+                    });
+                    if (nearest) {
+                        let dx = dragStart.x - nearest.x; let dy = dragStart.y - nearest.y; let dist = Math.hypot(dx, dy);
+                        let orbitSpeed = Math.sqrt((G * nearest.mass) / dist);
+                        vx = nearest.vx + (-dy / dist) * orbitSpeed; vy = nearest.vy + (dx / dist) * orbitSpeed;
+                    }
+                }
                 drawPredictedTrajectory(dragStart.x, dragStart.y, vx, vy);
             }
 
@@ -1648,6 +2045,33 @@
 
             // Update DOM HTML UI
             updateInspector();
+        }
+
+        function updateVisuals(dt){
+            const s = dt * timeScale
+            updateExplosions(s);
+            updateClouds(s);
+            updateShockwaves(s);
+            updateParticles(s);
+        }
+
+        function loop(now) {
+            frameDt = Math.min((now - lastTime) / 1000, maxFrameTime);
+            lastTime = now;
+            steps = 0;
+            if (timeScale > 0) {
+
+                accumulator += frameDt * timeScale;
+
+                while (accumulator >= fixedDt && steps < maxStepsPerFrame) {
+                    resolveGravity(fixedDt);
+                    updateVisuals(fixedDt)
+                    accumulator -= fixedDt;
+                    steps++;
+                }
+            }
+            
+            render()
 
             stats.innerText = `Bodies: ${bodies.length} | Particles: ${particles.length} | Zoom: ${camera.zoom.toFixed(2)}x`;
             requestAnimationFrame(loop);
@@ -1661,31 +2085,45 @@
 
             let newZoom = camera.zoom * Math.pow(1 + zoomSpeed, -delta);
 
-            camera.zoom = Math.min(Math.max(0.04, newZoom), 5);
+            camera.zoom = Math.min(Math.max(0.005, newZoom), 5);
         });
 
         canvas.addEventListener('mousedown', e => {
-            if (e.ctrlKey) {
+            let currentMode = document.getElementById('toolMode') ? document.getElementById('toolMode').value : 'spawn';
+
+            if (e.ctrlKey || currentMode === 'explode') {
                 const mouseWorld = screenToWorld(e.clientX, e.clientY);
                 for (let i = bodies.length - 1; i >= 0; i--) {
                     let b = bodies[i];
                     let dist = Math.hypot(b.x - mouseWorld.x, b.y - mouseWorld.y);
                     if (dist < b.radius + 10) {
-                        if (b.mass >= T_LOW_STAR) {
-                            triggerSupernova(b.x, b.y, b.mass);
-                            b.mass = b.mass * 0.2;
-                            b.updateProperties();
-                        } else {
+                        if (b.mass >= T_LOW_STAR) triggerSupernova(b);
+                        else {
                             explosions.push({ x: b.x, y: b.y, radius: 2, maxRadius: b.radius * 4, life: 1.0, type: 'collision' });
-                            for (let p = 0; p < Math.min(30, b.mass); p++) {
-                                particles.push(new Particle(b.x, b.y, (Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15, 1.5, b.color, Math.random() * 3 + 1));
-                            }
+                            for (let p = 0; p < Math.min(30, b.mass); p++) particles.push(new Particle(b.x, b.y, (Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15, 1.5, b.color, Math.random() * 3 + 1));
                             bodies.splice(i, 1);
                         }
                         return;
                     }
                 }
+            } else if (currentMode === 'inspect') {
+                let clickPos = screenToWorld(e.clientX, e.clientY);
+                let found = null, minDist = Infinity;
+                for (let b of bodies) {
+                    let dist = Math.hypot(b.x - clickPos.x, b.y - clickPos.y);
+                    if (dist <= b.radius * 2 + 10) { found = b; break; }
+                    if (dist < minDist) { minDist = dist; found = b; }
+                }
+                if (found) {
+                    if (uiTarget === found && inspector.classList.contains('open')) { uiTarget = null; inspector.classList.remove('open'); followedBody = null; }
+                    else { uiTarget = found; followedBody = found; inspector.classList.add('open'); if (!uiTarget.name) uiTarget.name = "Obj-" + Math.floor(Math.random() * 9000 + 1000); document.getElementById('ins-name').innerText = uiTarget.name; }
+                }
+                return;
+            } else if (currentMode === 'ring' && uiTarget) {
+                window.dispatchEvent(new KeyboardEvent('keydown', { 'key': 'r' }));
+                return;
             }
+
             if (e.button === 2) {
                 isRightDragging = true;
                 rightDragStart = { x: e.clientX, y: e.clientY };
@@ -1695,6 +2133,7 @@
                 mousePos = screenToWorld(e.clientX, e.clientY);
             }
         });
+
 
         window.addEventListener('mousemove', e => {
             mouseScreenX = e.clientX;
@@ -1707,7 +2146,9 @@
             mousePos = screenToWorld(e.clientX, e.clientY);
         });
 
+
         window.addEventListener('keydown', e => {
+            if (e.key === 'Shift') window.isShiftPressed = true;
             if (e.key.toLowerCase() === 'q') {
                 let found = null;
                 let minDist = Infinity;
@@ -1723,7 +2164,7 @@
                         found = b;
                         break;
                     }
-                    
+
                     // Otherwise, keep track of the closest object
                     if (dist < minDist) {
                         minDist = dist;
@@ -1780,19 +2221,37 @@
             }
         });
 
-        ['ins-mass', 'ins-vx', 'ins-vy', 'ins-temp', 'ins-rot'].forEach(id => {
-            document.getElementById(id).addEventListener('change', (e) => {
-                if (!uiTarget) return;
-                let val = parseFloat(e.target.value);
-                if (isNaN(val)) return;
 
-                if (id === 'ins-mass') { uiTarget.mass = Math.max(1, val); uiTarget.updateProperties(); }
-                if (id === 'ins-vx') uiTarget.vx = val;
-                if (id === 'ins-vy') uiTarget.vy = val;
-                if (id === 'ins-temp') uiTarget.temperature = Math.max(0, val);
-                if (id === 'ins-rot') uiTarget.rotSpd = val; // Apply rotation changes
-            });
+        // Bind all editable inspector fields
+        const editableFields = ['ins-mass', 'ins-vx', 'ins-vy', 'ins-temp', 'ins-rotx', 'ins-roty', 'ins-rotz', 'ins-albedo', 'ins-water'];
+
+        editableFields.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', (e) => {
+                    if (!uiTarget) return;
+                    let val = parseFloat(e.target.value);
+                    if (isNaN(val)) return;
+
+                    if (id === 'ins-mass') { uiTarget.mass = Math.max(0.1, val); uiTarget.originalMass = Math.max(uiTarget.originalMass, uiTarget.mass); uiTarget.updateProperties(); } if (id === 'ins-vx') uiTarget.vx = val;
+                    if (id === 'ins-vy') uiTarget.vy = val;
+                    if (id === 'ins-temp') { uiTarget.isCustomized = true; uiTarget.temperature = Math.max(0, val); }
+                    if (id === 'ins-rotx') { uiTarget.rotX = val; uiTarget.targetRotX = val; }
+                    if (id === 'ins-roty') { uiTarget.rotY = val; uiTarget.targetRotY = val; }
+                    if (id === 'ins-rotz') { uiTarget.rotZ = val; uiTarget.targetRotZ = val; }
+                    if (id === 'ins-albedo') { uiTarget.isCustomized = true; uiTarget.albedo = Math.max(0, Math.min(1, val)); }
+                    if (id === 'ins-water') {
+                        uiTarget.isCustomized = true;
+                        uiTarget.waterDepth = Math.max(0, val);
+                        uiTarget.compH2O = Math.min(1, val / (uiTarget.mass * 10 || 1));
+                    }
+                });
+            }
         });
+        window.addEventListener('keyup', e => {
+            if (e.key === 'Shift') window.isShiftPressed = false;
+        });
+
         insAnchor.addEventListener('change', (e) => {
             if (uiTarget) uiTarget.isAnchored = e.target.checked;
         });
@@ -1807,7 +2266,9 @@
                     let vy = (dragStart.y - endPos.y) * 0.05;
 
                     // NEW: Hold Alt to Paint Nebula Dust
-                    if (e.altKey) {
+                    let currentMode = document.getElementById('toolMode') ? document.getElementById('toolMode').value : 'spawn';
+
+                    if (e.altKey || currentMode === 'debris') {
                         // Spawn 20 tiny asteroids at once with slight random variations
                         for (let i = 0; i < 20; i++) {
                             let rx = dragStart.x + (Math.random() - 0.5) * 60;
@@ -1822,7 +2283,7 @@
                     }
 
                     // NEW: Hold Shift to Auto-Circularize Orbit
-                    if (e.shiftKey) {
+                    if (e.shiftKey || currentMode === 'circular') {
                         let nearest = null; let minDist = Infinity;
                         // Find the closest massive body to orbit
                         bodies.forEach(b => {
@@ -1844,12 +2305,62 @@
                     }
 
                     let newBody = new Body(dragStart.x, dragStart.y, vx, vy, currentMass);
+
+                    let activePrefab = prefabs[document.getElementById('prefabSelect') ? document.getElementById('prefabSelect').value : 0];
+                    if (activePrefab && currentMass === activePrefab.mass) {
+                        newBody.temperature = activePrefab.temp;
+                        newBody.compH2O = activePrefab.water;
+                    }
+
                     newBody.rotSpd = (Math.random() - 0.5) * 0.2;
                     bodies.push(newBody);
                 }
             }
         });
+        // Mobile Touch Support
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                isDragging = true;
+                dragStart = screenToWorld(e.touches[0].clientX, e.touches[0].clientY);
+                mousePos = dragStart;
+            } else if (e.touches.length === 2) {
+                isRightDragging = true;
+                rightDragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+        }, { passive: false });
 
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            mouseScreenX = e.touches[0].clientX;
+            mouseScreenY = e.touches[0].clientY;
+            if (isRightDragging && e.touches.length === 2) {
+                camera.x += (e.touches[0].clientX - rightDragStart.x) / camera.zoom;
+                camera.y += (e.touches[0].clientY - rightDragStart.y) / camera.zoom;
+                rightDragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }
+            mousePos = screenToWorld(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', e => {
+            e.preventDefault();
+            isRightDragging = false;
+            if (isDragging && e.touches.length === 0) {
+                isDragging = false;
+                const endPos = mousePos;
+                let vx = (dragStart.x - endPos.x) * 0.05;
+                let vy = (dragStart.y - endPos.y) * 0.05;
+                let newBody = new Body(dragStart.x, dragStart.y, vx, vy, currentMass);
+
+                let activePrefab = prefabs[document.getElementById('prefabSelect') ? document.getElementById('prefabSelect').value : 0];
+                if (activePrefab && currentMass === activePrefab.mass) {
+                    newBody.temperature = activePrefab.temp;
+                    newBody.compH2O = activePrefab.water;
+                }
+
+                bodies.push(newBody);
+            }
+        }, { passive: false });
         document.getElementById('gravityRange').oninput = e => {
             G = parseFloat(e.target.value);
             document.getElementById('gVal').innerText = G.toFixed(1);
@@ -1877,13 +2388,34 @@
         };
 
         document.getElementById('clearBtn').onclick = () => { bodies = []; explosions = []; clouds = []; uiTarget = null; };
+        let prefabs = JSON.parse(localStorage.getItem('uniPrefabs')) || [{ name: "Earth-like", mass: 8000, temp: 288, water: 0.1 }, { name: "Jupiter-like", mass: 25000, temp: 150, water: 0 }];
+        function updatePrefabUI() {
+            let pSel = document.getElementById('prefabSelect');
+            pSel.innerHTML = prefabs.map((p, i) => `<option value="${i}">${p.name}</option>`).join('');
+        }
+        updatePrefabUI();
 
+        document.getElementById('prefabSelect').onchange = e => {
+            let p = prefabs[e.target.value];
+            if (p) { currentMass = p.mass; document.getElementById('mVal').innerText = p.mass; document.getElementById('massRange').value = Math.log10(p.mass) / Math.log10(1500000) * 100; }
+        };
+
+        document.getElementById('savePrefabBtn').onclick = () => {
+            if (uiTarget) {
+                let name = prompt("Enter prefab name:", uiTarget.name);
+                if (name) {
+                    prefabs.push({ name: name, mass: uiTarget.mass, temp: uiTarget.temperature, water: uiTarget.compH2O });
+                    localStorage.setItem('uniPrefabs', JSON.stringify(prefabs));
+                    updatePrefabUI();
+                }
+            }
+        };
 
         bodies.push(new Body(0, 0, 0, 0, 15000));
         bodies.push(new Body(0, -300, 3.5, 0, 2000));
         bodies.push(new Body(0, -320, 5.0, 0, 50));
 
-        loop();
+        requestAnimationFrame(loop);
     </script>
 </body>
 
